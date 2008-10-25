@@ -6,12 +6,9 @@ import re
 
 from cStringIO import StringIO
 
-use_rx = re.compile(r"(?:JSAN|OE).use\((['\"][^'\"]*['\"]).*\)", re.MULTILINE)
-require_rx = re.compile(r"OE.require\((['\"][^'\"]*['\"])\)", re.MULTILINE)
+use_rx = re.compile(r"(?:JSAN|OpenEnd).use\((['\"][^'\"]*['\"]).*\)", re.MULTILINE)
+require_rx = re.compile(r"OpenEnd.require\((['\"][^'\"]*['\"])\)", re.MULTILINE)
 deps_rx = re.compile(r"Base._deps\(.*(\[.*\]).*\)", re.MULTILINE)
-
-weblibDir = os.environ['WEBLIB']
-jsDir = os.path.join(os.path.dirname(__file__), 'js')
 
 from htmlrewrite import HTMLRewriter, rewrite_html
 
@@ -55,6 +52,7 @@ class FP(object):
         return os.path.exists(self.path)
                                   
 class JsResolver(object):
+    repoParents = {}
 
     def __init__(self):
         self._depsData = {}
@@ -65,13 +63,14 @@ class JsResolver(object):
         return _topSort(deps)
 
     def _findFP(self, segs):
+        # I map uri segs to directory in the file system containing the
+        # actual js files
+        # fill in repoParents or override me
         if segs:
             first = segs[0]
             rest = segs[1:]
-            if first  == 'lib':
-                return FP(os.path.join(weblibDir, *rest))
-            if first == 'js':
-                return FP(os.path.join(jsDir, *rest))
+            if first in self.repoParents:
+                return FP(os.path.join(self.repoParents[first], *rest))
         return None
 
     def _findReposInFS(self, repos):
@@ -181,7 +180,7 @@ class HTMLResolver(HTMLRewriter):
         elif name == 'script':
             attrs = dict(attrs.items())            
             src = attrs.get('src')
-            if src and self.fsRepos:
+            if src and self.fsRepos is not None:
                 injected = self.injected
                 for dep in self.jsResolver._findDeps(src, self.fsRepos)[:-1]:
                     if dep not in injected:
@@ -189,10 +188,12 @@ class HTMLResolver(HTMLRewriter):
                         injected.add(dep)
  
         return False
-    
+
+# ________________________________________________________________
+# twisted web2 stuff
 
 class JsRoot(JsResolver):
-    def __init__(self):
+    def __init__(self, webDir, jsDir):
         self.child_lib = static.File(webDir)
         self.child_js  = static.File(jsDir)        
         JsResolver.__init__(self)

@@ -1,10 +1,28 @@
+import tempfile, shutil
 import os, cStringIO, HTMLParser
 import jskit.modular
 from jskit.modular import JsResolver
 from jskit.htmlrewrite import naive_sanity_check_html
 
+weblibDir = os.environ['WEBLIB']
+
 class TestJsResolver(object):
 
+    @classmethod
+    def setup_class(cls):
+        # xxx throw once we have a real /js ?
+        cls.test_dir = tempfile.mkdtemp()
+        cls.jsDir = os.path.join(cls.test_dir, 'js') 
+        os.mkdir(cls.jsDir)
+        os.mkdir(os.path.join(cls.test_dir, 'js', 'OpenEnd'))
+        f = open(os.path.join(cls.test_dir, 'js', 'OpenEnd', 'Support.js'), 'w')
+        f.write('// dummy\n')
+        f.close()
+
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls.test_dir)
+    
     def test__topSort(self):
         res = jskit.modular._topSort({})
         assert res == []
@@ -19,39 +37,44 @@ class TestJsResolver(object):
 
     def test__findReposInFS(self):
         jsResolver = JsResolver()
+        jsResolver.repoParents = {
+            'lib': weblibDir,
+            'js': self.jsDir
+            }
+
         repos = ['/lib/mochikit/', '/js', '']
 
         res = jsResolver._findReposInFS(repos)
 
         assert res == {
-            jskit.modular.jsDir: ['js'],
-            os.path.join(jskit.modular.weblibDir, 'mochikit'): ['lib', 'mochikit']
+            self.jsDir: ['js'],
+            os.path.join(weblibDir, 'mochikit'): ['lib', 'mochikit']
             }
 
     def test__find(self):
         jsResolver = JsResolver()
-        fsRepos = {os.path.join(jskit.modular.weblibDir, 'mochikit'):
+        fsRepos = {os.path.join(weblibDir, 'mochikit'):
                        ['lib', 'mochikit']}
-        support = ['OE', 'Support.js']
+        support = ['OpenEnd', 'Support.js']
 
         fp, path = jsResolver._find(support, fsRepos)
         assert fp is None
         assert path is None
 
-        fsRepos = {os.path.join(jskit.modular.weblibDir, 'mochikit'):
+        fsRepos = {os.path.join(weblibDir, 'mochikit'):
                        ['lib', 'mochikit'],
-                   jskit.modular.jsDir: ['js']
+                   self.jsDir: ['js']
                    }
         fp, path = jsResolver._find(support, fsRepos)
         assert fp
-        assert path == '/js/OE/Support.js'
+        assert path == '/js/OpenEnd/Support.js'
         assert fp.exists()
 
 
     def test_simpleDeps(self):
         jsResolver = JsResolver()
 
-        fsRepos = {os.path.join(jskit.modular.weblibDir, 'mochikit'):
+        fsRepos = {os.path.join(weblibDir, 'mochikit'):
                        ['lib', 'mochikit']}        
 
         acc = {}
@@ -98,7 +121,7 @@ class TestJsResolver(object):
     def test_findDeps(self):
         jsResolver = JsResolver()
 
-        fsRepos = {os.path.join(jskit.modular.weblibDir, 'mochikit'):
+        fsRepos = {os.path.join(weblibDir, 'mochikit'):
                        ['lib', 'mochikit']}
         
         res = jsResolver._findDeps("MochiKit.Signal", fsRepos)
@@ -122,8 +145,8 @@ class TestJsResolver(object):
             JSAN.use("MochiKit.Base")
             JSAN.use("MochiKit.Iter")
             JSAN.use("MochiKit.Signal")
-            JSAN.use("OE.Support", [])
-            JSAN.use("OE.Object", [])
+            JSAN.use("OpenEnd.Support", [])
+            JSAN.use("OpenEnd.Object", [])
             JSAN.use("MochiKit.Base", ['bindMethods', 'update']);
             }
         """
@@ -132,19 +155,19 @@ class TestJsResolver(object):
 
         res = list(jsResolver._parse(data))
         assert res == ["MochiKit.Base", "MochiKit.Iter", "MochiKit.Signal",
-                       "OE.Support", "OE.Object", "MochiKit.Base"]
+                       "OpenEnd.Support", "OpenEnd.Object", "MochiKit.Base"]
 
 
-    def test__parse_OE(self):
+    def test__parse_OpenEnd(self):
         data = """
-        OE.use("MochiKit.Base")
-        OE.use("MochiKit.Iter")
-        OE.use("MochiKit.Signal")
-        OE.use("OE.Support", [])
-        OE.use("OE.Object", [])
-        OE.use("MochiKit.Base", ['bindMethods', 'update']);
+        OpenEnd.use("MochiKit.Base")
+        OpenEnd.use("MochiKit.Iter")
+        OpenEnd.use("MochiKit.Signal")
+        OpenEnd.use("OpenEnd.Support", [])
+        OpenEnd.use("OpenEnd.Object", [])
+        OpenEnd.use("MochiKit.Base", ['bindMethods', 'update']);
 
-        OE.require("/foo/bar.js")
+        OpenEnd.require("/foo/bar.js")
 
         """
         
@@ -152,7 +175,7 @@ class TestJsResolver(object):
 
         res = list(jsResolver._parse(data))
         assert res == ["MochiKit.Base", "MochiKit.Iter", "MochiKit.Signal",
-                       "OE.Support", "OE.Object", "MochiKit.Base",
+                       "OpenEnd.Support", "OpenEnd.Object", "MochiKit.Base",
                        "/foo/bar.js"]
 
     def test__parse__deps(self):
@@ -227,12 +250,14 @@ class TestJsResolver(object):
         calls = []
         
         class FakeFP(object):
+            track = False
 
             def exists(self):
                 return True
 
             def open(self):
-                calls.append('open')
+                if self.track:
+                    calls.append('open')
                 return self
 
             def getmtime(self):
@@ -242,8 +267,12 @@ class TestJsResolver(object):
                 return self.data
 
         fakeFP = FakeFP()
+        fakeFP.track = True
+        otherFP = FakeFP()
+        otherFP.mtime = 1
+        otherFP.data = ''
 
-        fsRepos = {os.path.join(jskit.modular.weblibDir, 'mochikit'):
+        fsRepos = {'/path/to/mochikit':
                        ['lib', 'mochikit']}
         
         class TestRoot(JsResolver):
@@ -251,7 +280,8 @@ class TestJsResolver(object):
             def _find(self, segs, fsRepos):
                 if segs == ['This', 'That.js']:
                     return fakeFP, '/place/This/That.js'
-                return JsResolver._find(self, segs, fsRepos)
+                if segs == ['MochiKit', 'Base.js']:
+                    return otherFP, '/lib/mochikit/MochiKit/Base.js'
 
         testRoot = TestRoot()
 
@@ -279,7 +309,7 @@ class TestJsResolver(object):
   <meta content="text/html; charset=utf-8" http-equiv="content-type" />
   <title>Open End Helpdesk</title>
   <link rel="stylesheet" type="text/css" href="/static/en/css/helpdesk.css" />
-  <meta name="oe:jsRepos" content="/static /js /lib/mochikit" />
+  <meta name="oe:jsRepos" content="/static" />
   <script type="text/javascript" src="/js/oe.js"></script>
   <script type="text/javascript" src="/static/en/A.js"></script>
   <script type="text/javascript" src="/static/B.js"></script>
