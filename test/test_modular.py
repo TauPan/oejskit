@@ -310,7 +310,7 @@ class TestJsResolver(object):
   <title>Open End Helpdesk</title>
   <link rel="stylesheet" type="text/css" href="/static/en/css/helpdesk.css" />
   <meta name="oe:jsRepos" content="/static" />
-  <script type="text/javascript" src="/js/oe.js"></script>
+  <script type="text/javascript" src="/js/modular_rt.js"></script>
   <script type="text/javascript" src="/static/en/A.js"></script>
   <script type="text/javascript" src="/static/B.js"></script>
   <script type="text/javascript" src="/static/C.js"></script>      
@@ -350,7 +350,7 @@ class TestJsResolver(object):
 
         Checker().feed(html2)
 
-        assert srcs == ['/js/oe.js', '/static/en/A.js',                        
+        assert srcs == ['/js/modular_rt.js', '/static/en/A.js',
                         '/js/Foo.js', '/js/Bar.js', '/static/B.js',
                         '/js/Baz.js', '/static/C.js']
                         

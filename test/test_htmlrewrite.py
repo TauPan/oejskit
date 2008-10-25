@@ -25,7 +25,7 @@ class TestHtmlRewrite(object):
   <title>Open End Helpdesk</title>
   <link rel="stylesheet" type="text/css" href="/static/en/css/helpdesk.css" />
   <meta name="oe:jsRepos" content="/static /js /lib/mochikit" />
-  <script type="text/javascript" src="/js/oe.js"></script>
+  <script type="text/javascript" src="/js/modular_rt.js"></script>
   <script type="text/javascript" src="/static/en/translation.js"></script>
   <script type="text/javascript" src="/static/boot.js"></script>
   <script type="text/javascript">
@@ -80,7 +80,7 @@ class TestHtmlRewrite(object):
   <title>Open End Helpdesk</title>
   <link rel="stylesheet" type="text/css" href="/static/en/css/helpdesk.css">
   <meta name="oe:jsRepos" content="/static /js /lib/mochikit">
-  <script type="text/javascript" src="/js/oe.js"></script>
+  <script type="text/javascript" src="/js/modular_rt.js"></script>
   <script type="text/javascript" src="/static/en/translation.js"></script>
   <script type="text/javascript" src="/static/boot.js"></script>
   <script type="text/javascript">
