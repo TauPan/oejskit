@@ -1,7 +1,6 @@
 import os, tempfile, shutil, cStringIO
 from wsgiref.util import shift_path_info
-from jskit.serving import Serve, ServeFiles
-
+from jskit.serving import Serve, ServeFiles, Dispatch
 
 
 class TestServe(object):
@@ -180,4 +179,70 @@ class TestServeFiles(object):
         res = check('/static/a.txt/')
         assert res == '404 Not Found'                        
             
+class TestDispatch(object):
+
+    def test_dispatch(self):
+        calls = []
+        def start_response(status, headers):
+            calls.append((status, headers))
+
+        def make_app(name):
+            def app(environ, start_response):
+                calls.append(environ['PATH_INFO'])
+                return [name]
+            return app
+
+        a = make_app('a')
+        ax = make_app('ax')
+        b = make_app('b')
+        root = make_app('root')
+
+        d = Dispatch({'/a/': a,
+                      '/a/x': ax,
+                      '/b': b,
+                      '/': root})
+
+        def check(path):
+            environ = {'PATH_INFO': path}
+            res = d(environ, start_response)
+            got = calls[:]
+            del calls[:]
+            return got, res
+
+        outcome = check('/a/')
+        assert outcome == (['/'], ['a'])
+
+        outcome = check('/a/z')
+        assert outcome == (['/z'], ['a'])
+
+        outcome = check('/a/x')
+        assert outcome == ([''], ['ax'])
+
+        outcome = check('/a/x')
+        assert outcome == ([''], ['ax'])
+
+        outcome = check('/a/x/foo')
+        assert outcome == ([('404 Not Found', [])], ['404 Not Found\n'])
+
+        outcome = check('/b')
+        assert outcome == ([''], ['b'])
+
+        outcome = check('/z')
+        assert outcome == (['/z'], ['root'])
+
+        outcome = check('')
+        assert outcome == ([('404 Not Found', [])], ['404 Not Found\n'])        
+
+        # no root
+        d = Dispatch({'/a/': a,
+                      '/a/x': ax,
+                      '/b': b })
+
+        outcome = check('/z')
+        assert outcome == ([('404 Not Found', [])], ['404 Not Found\n'])
+        
+
+
+            
+
         

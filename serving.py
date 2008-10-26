@@ -5,6 +5,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 def status_string(code):
     return "%d %s" % (code, BaseHTTPRequestHandler.responses[code][0])
 from wsgiref import headers
+from wsgiref.util import shift_path_info
 
 class Serve(object):
 
@@ -45,6 +46,29 @@ class Serve(object):
 
     def serve(self, path, data):
         raise NontImplementedError
+
+class Dispatch(object):
+
+    def __init__(self, appmap):
+        self.appmap = sorted(appmap.items(), reverse=True)
+
+    def __call__(self, environ, start_response):
+        path = environ['PATH_INFO']
+        for prefix, app in self.appmap:
+            if path.startswith(prefix):
+                slashes = prefix.count('/')
+                if prefix[-1] != '/':
+                    if path != prefix:
+                        break
+                    slashes += 1
+                for i in range(slashes-1):
+                    shift_path_info(environ)
+                return app(environ, start_response)
+        # no match
+        status = status_string(404)
+        start_response(status, [])
+        return [status+'\n']        
+        
 
 class ServeFiles(Serve):
 
