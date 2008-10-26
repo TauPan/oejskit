@@ -9,6 +9,10 @@ from wsgiref.util import shift_path_info
 
 class Serve(object):
 
+    def __init__(self, servefunc=None):
+        if servefunc:
+            self.serve = servefunc
+
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
         if environ['REQUEST_METHOD'] == 'POST':

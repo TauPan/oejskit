@@ -10,14 +10,12 @@ class TestServe(object):
         def start_response(status, headers):
             calls.append((status, headers))
 
-        class Get(Serve):
-
-            def serve(self, path, data):
-                calls.append((path, data))
-                return 'hello'
+        def get(path, data):
+            calls.append((path, data))
+            return 'hello'
 
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g'}
-        res = Get()(environ, start_response)
+        res = Serve(get)(environ, start_response)
         assert calls == [('/g', None), ('200 OK',
                                         [('content-type', 'text/plain')])]
         assert res == ['hello']
