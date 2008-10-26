@@ -1,24 +1,39 @@
-import cStringIO
-from jskit.serving import Serve
+import os, tempfile, shutil, cStringIO
+from wsgiref.util import shift_path_info
+from jskit.serving import Serve, ServeFiles
+
 
 
 class TestServe(object):
 
     def test_GET(self):
         calls = []
+        def start_response(status, headers):
+            calls.append((status, headers))
 
         class Get(Serve):
 
             def serve(self, path, data):
                 calls.append((path, data))
-                return 'text/plain', 'hello', False
-
-        def start_response(status, headers):
-            calls.append((status, headers))
+                return 'hello'
 
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g'}
         res = Get()(environ, start_response)
         assert calls == [('/g', None), ('200 OK',
+                                        [('content-type', 'text/plain')])]
+        assert res == ['hello']
+        
+        calls = []
+
+        class Get1(Serve):
+
+            def serve(self, path, data):
+                calls.append((path, data))
+                return 'hello', 'text/plain', False
+
+        environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g1'}
+        res = Get1()(environ, start_response)
+        assert calls == [('/g1', None), ('200 OK',
                                         [('content-type', 'text/plain'),
                                          ('cache-control', 'no-cache')])]
         assert res == ['hello']
@@ -29,7 +44,7 @@ class TestServe(object):
 
             def serve(self, path, data):
                 calls.append((path, data))
-                return ('text/plain', 'utf-8'), 'hello'
+                return 'hello', ('text/plain', 'utf-8')
         
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g2'}
         res = Get2()(environ, start_response)
@@ -40,15 +55,15 @@ class TestServe(object):
 
     def test_POST(self):
         calls = []
-
+        def start_response(status, headers):
+            calls.append((status, headers))
+            
         class Post(Serve):
 
             def serve(self, path, data):
                 calls.append((path, data))
-                return 'text/json', '42', False
+                return '42', 'text/json', False
 
-        def start_response(status, headers):
-            calls.append((status, headers))
 
         environ = {'REQUEST_METHOD': 'POST',
                    'wsgi.input': cStringIO.StringIO("post-data"),
@@ -60,5 +75,109 @@ class TestServe(object):
                                                ('cache-control', 'no-cache')])]
         assert res == ['42']
 
+
+    def test_not_200(self):
+        calls = []
+
+        class Get(Serve):
+
+            def serve(self, path, data):
+                return 405
+
+        def start_response(status, headers):
+            calls.append((status, headers))
+
+        environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g'}
+        res = Get()(environ, start_response)
+        assert calls == [('405 Method Not Allowed', [])]
+        assert res == ['405 Method Not Allowed\n']        
+
+
+class TestServeFiles(object):
+
+    @classmethod
+    def setup_class(cls):
+        cls.test_dir = tempfile.mkdtemp()
+        p = lambda *segs:os.path.join(cls.test_dir, *segs)
+        cls.root = p('staticFiles')
+        os.mkdir(cls.root)
+        a = open(p('staticFiles', 'a.txt'), 'w')
+        a.write('a.\n')
+        a.close()
+        os.mkdir(p('staticFiles', 'sub'))
+        b = open(p('staticFiles', 'sub', 'b.png'), 'w')
+        b.write('PNG...')
+        b.close()        
+
+    @classmethod
+    def teardown_class(cls):
+        shutil.rmtree(cls.test_dir)
+
+
+    def test_serve_file(self):
+        calls = []
+        def start_response(status, headers):
+            calls.append((status, headers))
         
+        static = ServeFiles(self.root, False)
+
+        environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/static/a.txt'}
+        shift_path_info(environ)
+
+        res = static(environ, start_response)
+        assert calls == [('200 OK',
+                          [('content-type', 'text/plain'),
+                           ('cache-control', 'no-cache')])]
+        assert res == ['a.\n']
+
+        calls = []
+        static = ServeFiles(self.root)
+        environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/static/sub/b.png'}
+        shift_path_info(environ)
+
+        res = static(environ, start_response)
+        assert calls == [('200 OK', [('content-type', 'image/png')])]
+        assert res == ['PNG...']
+
+
+    def test_fail(self):
+        calls = []
+        def start_response(status, headers):
+            calls.append((status, headers))
+            
+        static = ServeFiles(self.root, False)
+
+        def check(path, method='GET'):
+            environ = {'REQUEST_METHOD': method, 'PATH_INFO': path,
+                       }
+            shift_path_info(environ)
+            del calls[:]
+
+            static(environ, start_response)
+            return calls[0][0]
+
+        res = check('/static/a.txt', method='POST')
+        assert res == '405 Method Not Allowed'
+
+        res = check('/static')
+        assert res == '404 Not Found'
+
+        res = check('/static/')
+        assert res == '404 Not Found'
+
+        res = check('/static/../x.sh')
+        assert res == '404 Not Found'
+
+        res = check('/static/x.txt')
+        assert res == '404 Not Found'
+
+        res = check('/static/sub')
+        assert res == '404 Not Found'
+
+        res = check('/static/sub/')
+        assert res == '404 Not Found'
+
+        res = check('/static/a.txt/')
+        assert res == '404 Not Found'                        
+            
         

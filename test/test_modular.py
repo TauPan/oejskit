@@ -10,7 +10,7 @@ class TestJsResolver(object):
 
     @classmethod
     def setup_class(cls):
-        # xxx throw once we have a real /js ?
+        # xxx throw away once we have a real /js ?
         cls.test_dir = tempfile.mkdtemp()
         cls.jsDir = os.path.join(cls.test_dir, 'js') 
         os.mkdir(cls.jsDir)
