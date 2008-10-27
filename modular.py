@@ -127,7 +127,7 @@ class JsResolver(object):
                     segs = segs[len(repo):]
                     break
             else:
-                # only for test running
+                # xxx only for test running
                 fp = self._findFP(segs)
                 path = module
 

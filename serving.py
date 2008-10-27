@@ -14,7 +14,6 @@ class Serve(object):
             self.serve = servefunc
 
     def __call__(self, environ, start_response):
-        path = environ['PATH_INFO']
         if environ['REQUEST_METHOD'] == 'POST':
             length = environ.get('CONTENT_LENGTH')
             if length is None:
@@ -24,7 +23,7 @@ class Serve(object):
         else:
             data = None
 
-        resp = self.serve(path, data)
+        resp = self.serve(environ, data)
         if type(resp) is not tuple:
             resp = (resp,)
         return self.respond(start_response, *resp)
@@ -56,6 +55,11 @@ class Dispatch(object):
     def __init__(self, appmap):
         self.appmap = sorted(appmap.items(), reverse=True)
 
+    def notFound(self, start_response):
+        status = status_string(404)
+        start_response(status, [])
+        return [status+'\n']        
+
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
         for prefix, app in self.appmap:
@@ -69,9 +73,7 @@ class Dispatch(object):
                     shift_path_info(environ)
                 return app(environ, start_response)
         # no match
-        status = status_string(404)
-        start_response(status, [])
-        return [status+'\n']        
+        return self.notFound(start_response)
         
 
 class ServeFiles(Serve):
@@ -91,9 +93,10 @@ class ServeFiles(Serve):
             return None
         return p
 
-    def serve(self, path, data):
+    def serve(self, env, data):
         if data is not None:
             return 405
+        path = env['PATH_INFO']
         if not path:
             return 404
         if path[0] != '/':

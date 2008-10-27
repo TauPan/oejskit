@@ -10,8 +10,8 @@ class TestServe(object):
         def start_response(status, headers):
             calls.append((status, headers))
 
-        def get(path, data):
-            calls.append((path, data))
+        def get(env, data):
+            calls.append((env['PATH_INFO'], data))
             return 'hello'
 
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g'}
@@ -24,8 +24,8 @@ class TestServe(object):
 
         class Get1(Serve):
 
-            def serve(self, path, data):
-                calls.append((path, data))
+            def serve(self, env, data):
+                calls.append((env['PATH_INFO'], data))
                 return 'hello', 'text/plain', False
 
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g1'}
@@ -39,8 +39,8 @@ class TestServe(object):
 
         class Get2(Serve):
 
-            def serve(self, path, data):
-                calls.append((path, data))
+            def serve(self, env, data):
+                calls.append((env['PATH_INFO'], data))
                 return 'hello', ('text/plain', 'utf-8')
         
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g2'}
@@ -57,8 +57,8 @@ class TestServe(object):
             
         class Post(Serve):
 
-            def serve(self, path, data):
-                calls.append((path, data))
+            def serve(self, env, data):
+                calls.append((env['PATH_INFO'], data))
                 return '42', 'text/json', False
 
 
@@ -78,7 +78,7 @@ class TestServe(object):
 
         class Get(Serve):
 
-            def serve(self, path, data):
+            def serve(self, env, data):
                 return 405
 
         def start_response(status, headers):
