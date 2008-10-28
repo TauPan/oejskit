@@ -25,7 +25,7 @@ class ServeTesting(Dispatch):
         
         self.rt = ServeFiles(os.path.join(os.path.dirname(__file__),
                                           'testing_rt'))
-        self.otherStatic = None
+        self.extra = None
         map = {
             '/browser_testing/': self.home,
             '/browser_testing/cmd': Serve(self.cmd),
@@ -37,16 +37,18 @@ class ServeTesting(Dispatch):
 
     def withSetup(self, setupBag, action):
         if setupBag:
-            staticMap = {}
+            extraMap = {}
             for url, p in setupBag.staticDirs.items():
                 if url[-1] != '/':
                     url += '/'
-                staticMap[url] = ServeFiles(p)
-            self.otherStatic = Dispatch(staticMap)
+                extraMap[url] = ServeFiles(p)
+            for url, app in setupBag.wsgiEndpoints.items():
+                extraMap[url] = app
+            self.extra = Dispatch(extraMap)
         self._cmd['CMD'] = action
 
     def reset(self):
-        self.otherStatic = None
+        self.extra = None
 
     def getResult(self, key):
         return self._results.pop(key, None)
@@ -66,8 +68,8 @@ class ServeTesting(Dispatch):
         return 'ok\n', 'text/plain', False
 
     def varpart(self, environ, start_response):
-        if self.otherStatic:
-            return self.otherStatic(environ, start_response)
+        if self.extra:
+            return self.extra(environ, start_response)
         return self.notFound(start_response)
         
 
@@ -75,21 +77,26 @@ class ServeTesting(Dispatch):
 
 class SetupBag(object):
 
-    def __init__(self, source):
+    def __init__(self, *sources):
         staticDirs = {}
         jsRepos = {}
         jsScripts = []
-        for name in dir(source):
-            if name.startswith('staticDirs'):
-                staticDirs.update(getattr(source, name))
-            elif name.startswith('jsRepos'):
-                jsRepos.update(getattr(source, name))
-            elif name.startswith('jsScripts'):
-                jsScripts.extend(getattr(source, name))
-
+        wsgiEndpoints = {}
+        for source in sources:
+            for name in dir(source):
+                if name.startswith('staticDirs'):
+                    staticDirs.update(getattr(source, name))
+                elif name.startswith('jsRepos'):
+                    jsRepos.update(getattr(source, name))
+                elif name.startswith('jsScripts'):
+                    jsScripts.extend(getattr(source, name))
+                elif name.startswith('wsgiEndpoints'):
+                    wsgiEndpoints.update(getattr(source, name))
+                    
         self.staticDirs = staticDirs
         self.jsRepos = jsRepos
         self.jsScripts = jsScripts
+        self.wsgiEndpoints = wsgiEndpoints
 
 class Browser(object):
     """
@@ -266,8 +273,8 @@ class InBrowserSupport(object):
         self.ServerSide.cleanup()
 
     @classmethod
-    def install(cls, modDict):
-        inst = cls()
+    def install(supportCls, modDict):
+        inst = supportCls()
         
         modDict['setup_module'] = inst.setup_module
         modDict['teardown_module'] = inst.teardown_module
@@ -285,7 +292,7 @@ class InBrowserSupport(object):
                     py.test.skip("iexplorer can be tested only on windows")
 
                 browsers = modDict['browsers']
-                setupBag = SetupBag(cls)
+                setupBag = SetupBag(supportCls, cls)
                 cls.browser = browsers.get(cls.browserKind, inst.ServerSide,
                                            bootstrapSetupBag=setupBag)
                 cls.setupBag = setupBag
