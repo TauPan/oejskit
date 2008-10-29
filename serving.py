@@ -115,27 +115,3 @@ class ServeFiles(Serve):
             f.close()
         mimetype, _ = mimetypes.guess_type(p, True)
         return data, mimetype, self.cache
-        
-
-# ________________________________________________________________
-
-class Application(Serve):
-
-    def serve(self, path, data):
-        return 'text/plain', 'PATH: %s' % path, False
-
-
-import SocketServer
-from wsgiref import simple_server, validate
-
-class HTTPServer(SocketServer.ThreadingMixIn,
-                 simple_server.WSGIServer):
-    pass
-
-if __name__ == '__main__':
-    import sys
-    app = validate.validator(Application())
-    port = int(sys.argv[1])
-    httpd = simple_server.make_server('', port, app, HTTPServer)
-    print "serving at %d ..." % port
-    httpd.serve_forever()

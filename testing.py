@@ -312,6 +312,8 @@ class InBrowserSupport(object):
             def setup_class(cls):
                 if cls.browserKind == 'iexplore' and sys.platform != 'win32':
                     py.test.skip("iexplorer can be tested only on windows")
+                if cls.browserKind == 'safari' and sys.platform != 'darwin':
+                    py.test.skip("safari expects mac os x")                    
 
                 browsers = modDict['browsers']
                 bootstrapSetupBag = SetupBag(inst)
