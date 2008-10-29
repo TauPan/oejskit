@@ -6,31 +6,59 @@ Python side infrastructure for running javascript tests in browsers
 """
 import sys, os, urllib
 import subprocess
+import py
 import simplejson
 
 from jskit.serving import Serve, ServeFiles, Dispatch
+from jskit.modular import JsResolver
 
 PORT = 0
 MANUAL = False
 if MANUAL:
     PORT = 8116
 
+rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
+jsDir = os.path.join(os.path.dirname(__file__), 'js')
+
 # ________________________________________________________________
+load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
+<head>
+  <script type="text/javascript" src="/js/modular_rt.js"></script>
+  <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
+  </script>
+  <script type="text/javascript" src="/browser_testing/rt/utils.js">
+  </script>  
+
+  <script type="text/javascript" src="%s">
+  </script>  
+</head>
+<body>
+
+<pre id="test">
+</pre>
+
+</body>
+</html>
+"""
 
 class ServeTesting(Dispatch):
 
-    def __init__(self):
+    def __init__(self, bootstrapSetupBag):
+        repoParents = {}
+        repoParents.update(bootstrapSetupBag.staticDirs)
+        repoParents.update(bootstrapSetupBag.repoParents)  
+        self.jsResolver = JsResolver(repoParents)
         self._cmd = {}
         self._results = {}
         
-        self.rt = ServeFiles(os.path.join(os.path.dirname(__file__),
-                                          'testing_rt'))
+        self.rt = ServeFiles(rtDir)
         self.extra = None
         map = {
             '/browser_testing/': self.home,
             '/browser_testing/cmd': Serve(self.cmd),
             '/browser_testing/result': Serve(self.result),
             '/browser_testing/rt/': self.rt,
+            '/browser_testing/load/': Serve(self.load),
             '/': self.varpart
             }
         Dispatch.__init__(self, map)
@@ -45,10 +73,12 @@ class ServeTesting(Dispatch):
             for url, app in setupBag.wsgiEndpoints.items():
                 extraMap[url] = app
             self.extra = Dispatch(extraMap)
+            self.repos = setupBag.jsRepos
         self._cmd['CMD'] = action
 
     def reset(self):
         self.extra = None
+        self.repos = None
 
     def getResult(self, key):
         return self._results.pop(key, None)
@@ -71,32 +101,35 @@ class ServeTesting(Dispatch):
         if self.extra:
             return self.extra(environ, start_response)
         return self.notFound(start_response)
-        
+
+    def load(self, env, path):
+        page = load_template % env['PATH_INFO']
+        page = self.jsResolver.resolveHTML(page, repos=self.repos)
+        return page, 'text/html'
+
 
 # ________________________________________________________________
 
 class SetupBag(object):
+    _configs = [('staticDirs', dict),
+                ('repoParents', dict),
+                ('jsRepos', list),
+                ('jsScripts', list),
+                ('wsgiEndpoints', dict)]
+    _update = {dict: dict.update, list: list.extend}
 
     def __init__(self, *sources):
-        staticDirs = {}
-        jsRepos = {}
-        jsScripts = []
-        wsgiEndpoints = {}
+        cfg = {}
+        for prefix, typ in self._configs:
+            cfg[prefix] = typ()
         for source in sources:
             for name in dir(source):
-                if name.startswith('staticDirs'):
-                    staticDirs.update(getattr(source, name))
-                elif name.startswith('jsRepos'):
-                    jsRepos.update(getattr(source, name))
-                elif name.startswith('jsScripts'):
-                    jsScripts.extend(getattr(source, name))
-                elif name.startswith('wsgiEndpoints'):
-                    wsgiEndpoints.update(getattr(source, name))
-                    
-        self.staticDirs = staticDirs
-        self.jsRepos = jsRepos
-        self.jsScripts = jsScripts
-        self.wsgiEndpoints = wsgiEndpoints
+                for prefix, typ in self._configs:
+                    if name.startswith(prefix):
+                        SetupBag._update[typ](cfg[prefix],
+                                              getattr(source, name))
+        self.__dict__ = cfg
+
 
 class Browser(object):
     """
@@ -108,17 +141,14 @@ class Browser(object):
         self.name = name
         self.process = None
         self.default_timeout = 30
-        self.app = ServeTesting()
-        self._startup_serving(ServerSide)
+        self.app = ServeTesting(bootstrapSetupBag)        
+        self.serverSide = ServerSide(PORT, self.app)
         self._startup_browser(bootstrapSetupBag)
 
     def makeurl(self, relative):
         baseurl = "http://localhost:%d/" % self.serverSide.getPort()
         return urllib.basejoin(baseurl, relative)
  
-    def _startup_serving(self, ServerSide):
-        self.serverSide = ServerSide(PORT, self.app)
-
     def _startup_browser(self, bootstrapSetupBag):
         url = self.makeurl('/browser_testing/')
         if MANUAL:
@@ -180,55 +210,41 @@ class BrowserFactory(object):
 
 # ________________________________________________________________
 
-class Runner(object):
+class PageContext(object):
 
-    def __init__(self, browser, root, url, timeout, setupBag):
-        self.browser = browser
+    def __init__(self, browserController, root, url, timeout, index=None):
+        self.browserController = browserController
         self.root = root
         self.timeout = timeout
         self.url = url
         self.count = 0
-        self.setupBag = setupBag
+        self.index = index
 
-    def run(self, name):
+    def _execute(self, method, argument):
         n = self.count
         self.count += 1
-        b = self.browser
-        outcome = b.send('InBrowserTesting.runOneTest(%r, %r, %d)' %
-                         (self.url, str(name), n),
+        browser = self.browserController.browser
+        setupBag = self.browserController.setupBag
+        outcome = browser.send('InBrowserTesting.%s(%r, %s, %d)' %
+                         (method, self.url, simplejson.dumps(argument), n),
                          discrim="%s@%d" % (self.url, n),
-                         root = self.root, setupBag=self.setupBag,
+                         root = self.root, setupBag=setupBag,
                          timeout=self.timeout)
+        return outcome
+        
+    def eval(self, js):
+        outcome = self._execute('eval', js)
+        if outcome.get('error'):
+            py.test.fail('[%s] %s: %s' % (self.url, js, outcome['error']))
+        return outcome['result']
+
+    def runOneTest(self, name):
+        outcome = self._executre('runOneTest', name)
         if not outcome['result']:
             py.test.fail('%s: %s' % (name, outcome['diag']))
         if outcome['leakedNames']:
             py.test.fail('%s leaked global names: %s' % (name,
                                                        outcome['leakedNames']))
-
-class PageContext(object):
-
-    def __init__(self, browser, root, url, index, timeout, setupBag):
-        self.browser = browser
-        self.root = root
-        self.timeout = timeout
-        self.url = url
-        self.index = index
-        self.count = 0
-        self.setupBag = setupBag
-
-    def eval(self, js):
-        n = self.count
-        self.count += 1
-        b = self.browser
-        outcome = b.send('InBrowserTesting.eval(%r, %s, %d)' %
-                         (self.url, simplejson.dumps(js), n),
-                         discrim="%s@%d" % (self.url, n),
-                         root = self.root, setupBag=self.setupBag,
-                         timeout=self.timeout)
-
-        if outcome.get('error'):
-            py.test.fail('[%s] %s: %s' % (self.url, js, outcome['error']))
-        return outcome['result']
         
 
 class BrowserController(object):
@@ -245,8 +261,7 @@ class BrowserController(object):
         res = self.browser.send('InBrowserTesting.open(%r)' % url,
                                 root=root, discrim=url, setupBag=self.setupBag,
                                 timeout=timeout)
-        return PageContext(self, root, url, res['panel'], timeout,
-                           self.setupBag)
+        return PageContext(self, root, url, timeout, res['panel'])
 
     def gatherTests(self, url, root=None, timeout=None):
         root = root or self.default_root
@@ -254,15 +269,23 @@ class BrowserController(object):
                         discrim="%s@collect" % url,
                         root = root, setupBag=self.setupBag,
                         timeout=timeout)
-        return res, Runner(self, root, url, timeout, self.setupBag)
+        return res, PageContext(self, root, url, timeout)
 
     def runTests(self, url, root=None, timeout=None):
         names, runner = self.gatherTests(url, root, timeout=timeout)
         for name in names:
             runner.run(name)
 
+
+libDir = os.environ['WEBLIB'] # !
+
 class InBrowserSupport(object):
     ServerSide = None
+    # !
+    staticDirs = { '/lib': libDir,
+                   '/browser_testing/rt': rtDir,
+                   '/js': jsDir }                           
+    jsRepos = ['/lib/mochikit', '/js', '/browser_testing/rt']
 
     def setup_module(self, mod):
         mod.browsers = BrowserFactory()
@@ -273,18 +296,17 @@ class InBrowserSupport(object):
         self.ServerSide.cleanup()
 
     @classmethod
-    def install(supportCls, modDict):
+    def install(supportCls, modDict, configs={}):
         inst = supportCls()
+        inst.staticDirsTest = {'/test/': os.path.dirname(modDict['__file__'])}
+        inst.jsReposTest = ['/test']
+        inst.__dict__.update(configs)
         
         modDict['setup_module'] = inst.setup_module
         modDict['teardown_module'] = inst.teardown_module
 
-        libDir = os.environ['WEBLIB'] # !
-
         class BrowserTestClass(BrowserController):
             browserKind = None
-
-            staticDirs = { '/lib': libDir }
             
             @staticmethod
             def setup_class(cls):
@@ -292,9 +314,10 @@ class InBrowserSupport(object):
                     py.test.skip("iexplorer can be tested only on windows")
 
                 browsers = modDict['browsers']
-                setupBag = SetupBag(supportCls, cls)
+                bootstrapSetupBag = SetupBag(inst)
+                setupBag = SetupBag(inst, cls)
                 cls.browser = browsers.get(cls.browserKind, inst.ServerSide,
-                                           bootstrapSetupBag=setupBag)
+                                      bootstrapSetupBag=bootstrapSetupBag)
                 cls.setupBag = setupBag
 
         modDict['BrowserTestClass'] = BrowserTestClass

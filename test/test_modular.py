@@ -37,10 +37,24 @@ class TestJsResolver(object):
 
     def test__findReposInFS(self):
         jsResolver = JsResolver()
-        jsResolver.repoParents = {
-            'lib': weblibDir,
-            'js': self.jsDir
+        jsResolver.setRepoParents({
+            '/lib': weblibDir,
+            '/js': self.jsDir
+            })
+
+        repos = ['/lib/mochikit/', '/js', '']
+
+        res = jsResolver._findReposInFS(repos)
+
+        assert res == {
+            self.jsDir: ['js'],
+            os.path.join(weblibDir, 'mochikit'): ['lib', 'mochikit']
             }
+
+        jsResolver.setRepoParents({
+            '/lib/mochikit': os.path.join(weblibDir, 'mochikit'),
+            '/js/': self.jsDir
+            })
 
         repos = ['/lib/mochikit/', '/js', '']
 

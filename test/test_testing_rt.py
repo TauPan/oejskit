@@ -9,6 +9,7 @@ class TryInBrowser(InBrowserSupport):
 
 TryInBrowser.install(globals())
 
+
 class BrowserTests(BrowserTestClass):
 
     def test_simple(self):
@@ -26,7 +27,7 @@ class BrowserTests(BrowserTestClass):
                    discrim="/browser_testing/rt/abc.txt")
         assert res['panel'] == n
 
-    def test_controller_open(self):
+    def test_open(self):
         browser = self.browser
         
         def root(environ, start_response):
@@ -43,7 +44,23 @@ class BrowserTests(BrowserTestClass):
         pg = controller.open('/')
         scrapePanel = 'InBrowserTesting.result(scrapeText(document.getElementById("panel-frame-%d").contentWindow.document))' % pg.index
         text = browser.send(scrapePanel)
-        assert text == "my-root"      
+        assert text == "my-root"
+
+    def test_eval(self):
+        pg = self.open('/browser_testing/load/test/examples/test_eval_example.js')
+        res = pg.eval("foo()")
+        assert res == "foo"
+
+        fail = False
+        try:
+            pg.eval("bar()")
+        except BaseException, e:
+            pass
+        except:
+            t, v, tb = sys.exc_info()
+            fail = True
+
+        assert fail        
 
 class TestFirefox(BrowserTests):
     browserKind = "firefox"

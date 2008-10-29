@@ -52,10 +52,19 @@ class FP(object):
         return os.path.exists(self.path)
                                   
 class JsResolver(object):
-    repoParents = {}
 
-    def __init__(self):
+    def __init__(self, repoParents=None):
         self._depsData = {}
+        repoParents = repoParents or {}
+        self.setRepoParents(repoParents)
+
+    def setRepoParents(self, repoParents):
+        self._parents = {}        
+        for uri, directory in repoParents.items():
+            if uri[-1] == '/':
+                uri = uri[:-1]
+            segs = uri.split('/')[1:]
+            self._parents[directory] = segs
 
     def _findDeps(self, module, fsRepos):
         deps = {}
@@ -63,14 +72,12 @@ class JsResolver(object):
         return _topSort(deps)
 
     def _findFP(self, segs):
-        # I map uri segs to directory in the file system containing the
+        # I map uri segs to a directory in the file system containing the
         # actual js files
-        # fill in repoParents or override me
-        if segs:
-            first = segs[0]
-            rest = segs[1:]
-            if first in self.repoParents:
-                return FP(os.path.join(self.repoParents[first], *rest))
+        # use setRepoParents or override me
+        for directory, parent in self._parents.items():
+            if segs[:len(parent)] == parent:
+                return FP(os.path.join(directory, *segs[len(parent):]))
         return None
 
     def _findReposInFS(self, repos):
@@ -141,7 +148,6 @@ class JsResolver(object):
             return path
 
         deps = []
-
         for dep in self._parseDepsData(module, fp):
             p = self._simpleDeps(dep, fsRepos, acc)
             if p:
