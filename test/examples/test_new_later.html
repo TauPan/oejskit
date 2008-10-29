@@ -1,0 +1,45 @@
+<html>
+<head>
+  <script type="text/javascript" src="/lib/mochikit/packed/MochiKit/MochiKit.js"></script>
+  <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
+  </script>
+</head>
+<body>
+
+<pre id="test">
+<script type="text/javascript">
+Tests = {
+test_later: function() {
+    aok(true, "ok 1", "ok(false)")
+
+    var d = new Deferred()
+    setTimeout(function later() {
+        try {
+	    aok(true, "ok 2", "ok(false)")
+            d.callback()
+        } catch(err) {
+            d.errback(err)
+        }
+    }, 5)
+    
+    return d
+},
+
+test_later_exc: function() {
+    aok(true, "ok 1", "ok(false)")
+
+    var d = new Deferred()
+    setTimeout(function later() {
+        var err = new Error("later error")
+        d.errback(err)
+    }, 5)
+    
+    return d
+}
+
+}
+
+</script>
+</pre>
+</body>
+</html>

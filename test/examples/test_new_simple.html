@@ -1,0 +1,50 @@
+<html>
+<head>
+  <script type="text/javascript" src="/lib/mochikit/packed/MochiKit/MochiKit.js"></script>
+  <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
+  </script>
+</head>
+<body>
+
+<pre id="test">
+<script type="text/javascript">
+Tests = {
+test_ok_ok: function() {
+   aok(true, "ok 1", "ok(false)")
+},
+
+test_ok_fail: function() {
+   aok(false, "ok 2", "ok(false)")
+},
+
+test_is_ok: function() {
+    ais(2, 2, "is 1")
+    ais('abc', 'abc', "is 2")
+},
+
+test_is_fail_1: function() {
+    ais(2, 3, "is 3")
+},
+
+test_is_fail_2: function() {
+    ais('abc', 3, "is 4")
+},
+
+test_isDeeply_ok: function() {
+    var o1 = {'a': [1,2], 'b': 'boo'}
+    var o2 = {'a': [1,2], 'b': 'boo'}
+    aisDeeply(o1, o2, "isDeeply 1")
+},
+
+test_isDeeply_fail: function() {
+    var o1 = {'a': [1,2], 'b': 'boo'}
+    var o2 = {'a': [1,4], 'b': 'boo'}
+    aisDeeply(o1, o2, "isDeeply 2")
+}
+
+}
+
+</script>
+</pre>
+</body>
+</html>

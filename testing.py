@@ -72,6 +72,7 @@ class ServeTesting(Dispatch):
                 extraMap[url] = ServeFiles(p)
             for url, app in setupBag.wsgiEndpoints.items():
                 extraMap[url] = app
+
             self.extra = Dispatch(extraMap)
             self.repos = setupBag.jsRepos
         self._cmd['CMD'] = action
@@ -175,6 +176,7 @@ class Browser(object):
         if MANUAL:
             timeout = max(120, timeout)
 
+        print setupBag
         self.app.withSetup(setupBag, action)
         try:
             self.serverSide.serve_till_fulfilled(root, timeout)
@@ -239,7 +241,7 @@ class PageContext(object):
         return outcome['result']
 
     def runOneTest(self, name):
-        outcome = self._executre('runOneTest', name)
+        outcome = self._execute('runOneTest', name)
         if not outcome['result']:
             py.test.fail('%s: %s' % (name, outcome['diag']))
         if outcome['leakedNames']:
@@ -252,29 +254,32 @@ class BrowserController(object):
     setupBag = None
     default_root = None
 
+    def send(self, action, discrim=None, root=None, timeout=None):
+        root = root or self.default_root        
+        return self.browser.send(action, discrim=discrim, root=root,
+                                 setupBag=self.setupBag, timeout=timeout)
+
     def open(self, url, root=None, timeout=None):
         """
         open url in a sub-iframe of the browser testing page.
         the iframe for a url is reused!
         """
         root = root or self.default_root
-        res = self.browser.send('InBrowserTesting.open(%r)' % url,
-                                root=root, discrim=url, setupBag=self.setupBag,
-                                timeout=timeout)
+        res = self.send('InBrowserTesting.open(%r)' % url,
+                        root=root, discrim=url, timeout=timeout)
         return PageContext(self, root, url, timeout, res['panel'])
 
     def gatherTests(self, url, root=None, timeout=None):
         root = root or self.default_root
         res = self.send('InBrowserTesting.collectTests(%r)' % url,
-                        discrim="%s@collect" % url,
-                        root = root, setupBag=self.setupBag,
+                        discrim="%s@collect" % url, root = root,
                         timeout=timeout)
         return res, PageContext(self, root, url, timeout)
 
     def runTests(self, url, root=None, timeout=None):
         names, runner = self.gatherTests(url, root, timeout=timeout)
         for name in names:
-            runner.run(name)
+            runner.runOneTest(name)
 
 
 libDir = os.environ['WEBLIB'] # !
@@ -323,3 +328,26 @@ class InBrowserSupport(object):
                 cls.setupBag = setupBag
 
         modDict['BrowserTestClass'] = BrowserTestClass
+
+# ________________________________________________________________
+
+def inBrowser(test):
+    """
+    py.test decorator, expects a test function returning the results of
+    a browser.runTests invocation, produces a generative test
+    reflecting back the browser-side tests one by one
+    """
+    overallName = test.__name__
+            
+    def runInBrowserTests(*args):
+        names, runner = test(*args)
+        assert names, ("%r no tests from the page: something is wrong" %
+                        runner.url)
+        for name in names:
+                yield name, runner.runOneTest, name
+
+    code = py.code.Code(test)
+    runInBrowserTests.explicit_names = True    
+    runInBrowserTests.__name__ = overallName
+    runInBrowserTests.masquerade_pathlineno = code.path, code.firstlineno
+    return runInBrowserTests
