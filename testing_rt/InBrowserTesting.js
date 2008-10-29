@@ -56,7 +56,10 @@ InBrowserTesting = {
 	var frame = createDOM('IFRAME', {"id": "panel-frame-"+n, 
 		                         "width": "70%", "height": "100px" })
         var expand = BUTTON("Expand")
-        expand.onclick=function(event) { frame.height = frame.height * 2 }
+        expand.onclick=function(event) { 
+            var doc = frame.contentWindow.document
+            frame.height = doc.body.scrollHeight
+        }
         var contract = BUTTON("Contract")
         contract.onclick=function(event) { frame.height = frame.height / 2 }
         var container = DIV({"style": "display: block"}, contract, expand)
