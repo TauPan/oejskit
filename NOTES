@@ -1,0 +1,19 @@
+Safari Iframe loading detection
+
+i = document.createElement("IFRAME")
+i.src = "http://www.google.com"
+document.body.appendChild(i)
+
+function check() {
+  try {
+     window.alert("trying")
+     window.alert(i.contentWindow.document.readyState+":"+
+                             i.contentWindow.document.location)
+  } catch(e) {
+      window.alert("ERR: "+e)
+  }
+}
+
+check()
+
+window.setTimeout(check, 1000)
