@@ -58,7 +58,12 @@ InBrowserTesting = {
         var expand = BUTTON("Expand")
         expand.onclick=function(event) { 
             var doc = frame.contentWindow.document
-            frame.height = doc.body.scrollHeight
+            var height = doc.documentElement.offsetHeight
+            var scrollHeight = doc.body.scrollHeight
+            if (scrollHeight > height) {
+                height = scrollHeight
+            }
+            frame.height = height
         }
         var contract = BUTTON("Contract")
         contract.onclick=function(event) { frame.height = frame.height / 2 }
