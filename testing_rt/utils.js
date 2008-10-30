@@ -69,7 +69,7 @@ function fakeHTMLEvent(target, kind) {
 
 function fakeKeyEvent(target, kind, keyCode, charCode, shiftKey) {
     var evt
-    if (charCode == undefined && kind=="keypress") {
+    if (charCode == undefined) {
         charCode = keyCode
     }
     if(document.createEvent) {
