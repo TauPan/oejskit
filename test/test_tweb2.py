@@ -103,15 +103,23 @@ def test_integration():
         except urllib2.HTTPError, e:
             return e.code, e.fp.read()
 
+    import Queue
+    q = Queue.Queue()
     results = []
     def requests():
         results.append(get('x'))
         results.append(get('other'))
-        get('stop')
+        done = get('stop')
+        q.put(done)
+        
     threading.Thread(target=requests).start()
 
     serverSide.serve_till_fulfilled(Root(), 6*60)
 
+    ok = q.get()
+    assert ok == 'ok\n'
+
     assert results[0] == 'hello\n'
-    assert results[1] == 'OTHER\n'    
+    assert results[1] == 'OTHER\n'
+
     
