@@ -80,7 +80,9 @@ class TWeb2ServerSide(object):
     def serve_till_fulfilled(self, root, timeout):
         self.stopDeferred = defer.Deferred()
         try:
+            self.root.fallback = root
             reactor_supp.consume(self.stopDeferred, timeout)
         finally:
+            self.root.fallback = None
             self.stopDeferred = None
       

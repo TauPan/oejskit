@@ -71,3 +71,47 @@ def test_POST():
     data =  str(resp.stream.read()) # one-shot, depends on internals
     assert data == '+stuff+'
     assert calls == ['5']
+
+def test_integration():
+    calls = []
+    def app(environ, start_response):
+        path_info = environ['PATH_INFO']
+        if 'stop' in path_info:
+            start_response('200 OK', [('content-type', 'text/plain')])
+            environ['jskit.stop_serving']()
+            return ['ok\n']
+        
+        if not path_info.startswith('/x'):
+            start_response('404 Not Found', [('content-type',
+                                              'text/plain')])
+            return ["WHAT?\n"]
+        calls.append((environ['REQUEST_METHOD'], path_info))
+        start_response('200 OK', [('content-type', 'text/plain')])
+        return ['hello\n']
+
+    class Root(resource.Resource):
+        child_other = static.Data("OTHER\n", 'text/plain')
+
+    serverSide = tweb2.TWeb2ServerSide(0, app)
+
+    port = serverSide.getPort()
+    
+    import threading, urllib2
+    def get(rel):
+        try:
+            return urllib2.urlopen('http://localhost:%d/%s' % (port, rel)).read()
+        except urllib2.HTTPError, e:
+            return e.code, e.fp.read()
+
+    results = []
+    def requests():
+        results.append(get('x'))
+        results.append(get('other'))
+        print get('stop')
+    threading.Thread(target=requests).start()
+
+    serverSide.serve_till_fulfilled(Root(), 6*60)
+
+    assert results[0] == 'hello\n'
+    assert results[1] == 'OTHER\n'    
+    
