@@ -107,7 +107,7 @@ def test_integration():
     def requests():
         results.append(get('x'))
         results.append(get('other'))
-        print get('stop')
+        get('stop')
     threading.Thread(target=requests).start()
 
     serverSide.serve_till_fulfilled(Root(), 6*60)
