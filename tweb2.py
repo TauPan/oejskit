@@ -82,6 +82,7 @@ class TWeb2ServerSide(object):
         try:
             self.root.fallback = root
             reactor_supp.consume(self.stopDeferred, timeout)
+            # best effort to finish handling the last request
             from twisted.internet import reactor
             reactor.iterate(0)
         finally:
