@@ -1,7 +1,6 @@
 - wsgiref based ServerSide
 - switch to py lib trunk
 - add feature there
-
 - auto collection for various browsers, js files
 
 -------------------------------------
