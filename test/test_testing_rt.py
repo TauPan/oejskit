@@ -10,7 +10,8 @@ import jskit.testing
 from jskit.testing import InBrowserSupport, inBrowser
 
 class TryInBrowser(InBrowserSupport):
-    from jskit.tweb2 import TWeb2ServerSide as ServerSide
+    #from jskit.tweb2 import TWeb2ServerSide as ServerSide
+    from jskit.wsgi import WSGIServerSide as ServerSide
 
 TryInBrowser.install(globals())
 
