@@ -346,8 +346,6 @@ def inBrowser(test):
         for name in names:
                 yield name, runner.runOneTest, name
 
-    code = py.code.Code(test)
-    runInBrowserTests.explicit_names = True    
     runInBrowserTests.__name__ = overallName
-    runInBrowserTests.masquerade_pathlineno = code.path, code.firstlineno
+    runInBrowserTests.place_as = test
     return runInBrowserTests

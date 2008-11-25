@@ -1,6 +1,11 @@
 import py
 import sys, os
 
+try:
+    py.test.fail("")
+except Exception, e:
+    Failed = e.__class__
+
 import jskit.testing
 from jskit.testing import InBrowserSupport, inBrowser
 
@@ -53,11 +58,11 @@ class BrowserTests(BrowserTestClass):
         fail = False
         try:
             pg.eval("bar()")
-        except BaseException, e:
-            pass
-        except:
+        except Failed:
             t, v, tb = sys.exc_info()
             fail = True
+        except:
+            pass
 
         assert fail        
 
@@ -165,12 +170,12 @@ class RunningTestTests(BrowserTestClass):
         runner.runOneTest('test_success')
         try:
             runner.runOneTest('test_failure')
-        except BaseException:
-            pass
-        except:
+        except Failed:
             failed = True
             t, v, tb = sys.exc_info()
             assert v.msg.startswith("test_failure: FAILED: 2 == 1")
+        except:
+            pass
         assert failed
 
     def test_inBrowser(self):
@@ -190,12 +195,12 @@ class RunningTestTests(BrowserTestClass):
             else:
                 try:
                     run(name)
-                except BaseException:
-                    pass
-                except:
+                except Failed:
                     t, v, tb = sys.exc_info()
                     failed += 1
                     assert v.msg.startswith("test_failure: FAILED: 2 == 1")
+                except:
+                    pass
 
         assert passed == 1
         assert failed == 1
