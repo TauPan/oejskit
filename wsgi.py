@@ -1,9 +1,14 @@
 import time
+import socket
 from wsgiref import simple_server
 from SocketServer import ThreadingMixIn
 
 class WSGIServer(ThreadingMixIn, simple_server.WSGIServer):
-    pass
+
+    def get_request(self):
+        (req_sock, addr) = simple_server.WSGIServer.get_request(self)
+        req_sock.setblocking(1) 
+        return (req_sock, addr)
 
 class WSGIServerSide(object):
 
@@ -43,17 +48,20 @@ class WSGIServerSide(object):
         self.server.server_close()
 
     def getPort(self):
-        return self.server.server_address[1]
+        return self.server.server_port
 
     def serve_till_fulfilled(self, root, timeout):
-        # self.server.socket.settimeout(timeout) meh
+        self.server.socket.settimeout(2)
         self.root = root
         t0 = time.time()
         try:
             while time.time() - t0 <= timeout and not self.done:
-                self.server.handle_request()
+                try:
+                    self.server.handle_request()
+                except socket.timeout:
+                    pass
             if not self.done:
-                raise RuntimeError("timeout")
+                raise socket.timeout
         finally:
             self.root = None
             self.done = False

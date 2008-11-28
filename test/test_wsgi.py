@@ -1,5 +1,20 @@
+import py
+import socket, time
 from jskit import wsgi
 #from wsgiref.validate import validator
+
+def test_timeout():
+    def app(environ, start_response):
+        start_response('200 OK', [('content-type', 'text/plain')])
+        return ['dont care\n']        
+
+    serverSide = wsgi.WSGIServerSide(0, app)
+
+    t0 = time.time()
+    py.test.raises(socket.timeout, serverSide.serve_till_fulfilled, None, 3)
+    t1 = time.time()
+
+    assert 3.0 <= (t1-t0) <= 6.0
 
 def test_integration():
     calls = []
@@ -47,8 +62,8 @@ def test_integration():
         get('stop')
         done.set()    
     threading.Thread(target=requests).start()
-    
-    serverSide.serve_till_fulfilled(other, 6*60)
+
+    serverSide.serve_till_fulfilled(other, 60)
 
     done.wait()
     assert results[0] == 'hello\n'
