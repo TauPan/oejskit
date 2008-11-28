@@ -7,7 +7,7 @@ class WSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
     def get_request(self):
         (req_sock, addr) = simple_server.WSGIServer.get_request(self)
-        req_sock.setblocking(1) 
+        req_sock.setblocking(1) # Mac OS X work-around
         return (req_sock, addr)
 
 class WSGIServerSide(object):

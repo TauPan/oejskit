@@ -6,14 +6,28 @@ from jskit import wsgi
 def test_timeout():
     def app(environ, start_response):
         start_response('200 OK', [('content-type', 'text/plain')])
-        return ['dont care\n']        
+        return ['stuff\n']        
 
     serverSide = wsgi.WSGIServerSide(0, app)
+    port = serverSide.getPort()
+    
+    import threading, urllib2
+    def get(rel):
+        try:
+            return urllib2.urlopen('http://localhost:%d/%s' % (port, rel)).read()
+        except urllib2.HTTPError, e:
+            return e.code, e.fp.read()
+
+    results = []
+    def requests():
+        results.append(get('whatever'))
+    threading.Thread(target=requests).start()
 
     t0 = time.time()
     py.test.raises(socket.timeout, serverSide.serve_till_fulfilled, None, 3)
     t1 = time.time()
 
+    assert results == ['stuff\n']
     assert 3.0 <= (t1-t0) <= 6.0
 
 def test_integration():
