@@ -3,6 +3,11 @@ import socket
 from wsgiref import simple_server
 from SocketServer import ThreadingMixIn
 
+class WSGIHandler(simple_server.WSGIRequestHandler):
+
+    def log_request(self, code=None, size=None):
+        pass
+
 class WSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
     def get_request(self):
@@ -17,7 +22,8 @@ class WSGIServerSide(object):
         self.root = None
         self.done = False
         self.server = simple_server.make_server('', port, self._serve,
-                                                server_class = WSGIServer)
+                                                server_class = WSGIServer,
+                                                handler_class = WSGIHandler)
 
     def _serve(self, environ, start_response):
         later = []
