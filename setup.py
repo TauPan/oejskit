@@ -3,7 +3,7 @@ try:
 except ImportError:
     from distutils.core import setup
     
-version = '0.9'
+version = '0.8.0'
 
 setup(
     name="oejskit",
