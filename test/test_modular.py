@@ -1,8 +1,8 @@
 import tempfile, shutil
 import os, cStringIO, HTMLParser
-import jskit.modular
-from jskit.modular import JsResolver
-from jskit.htmlrewrite import naive_sanity_check_html
+import oejskit.modular
+from oejskit.modular import JsResolver
+from oejskit.htmlrewrite import naive_sanity_check_html
 
 weblibDir = os.environ['WEBLIB']
 
@@ -24,15 +24,15 @@ class TestJsResolver(object):
         shutil.rmtree(cls.test_dir)
     
     def test__topSort(self):
-        res = jskit.modular._topSort({})
+        res = oejskit.modular._topSort({})
         assert res == []
 
         deps = {'X': ['A'], 'A': ['Y'], 'Y': []}
-        res = jskit.modular._topSort(deps)
+        res = oejskit.modular._topSort(deps)
         assert res == ['Y', 'A', 'X']
 
         deps = {'A': ['B', 'C'], 'C': ['B', 'D'], 'B': ['D'], 'D': []}
-        res = jskit.modular._topSort(deps)
+        res = oejskit.modular._topSort(deps)
         assert res == ['D', 'B', 'C', 'A']
 
     def test__findReposInFS(self):

@@ -29,7 +29,7 @@ class WSGIServerSide(object):
         later = []
         def _stop():
             self.done = True
-        environ['jskit.stop_serving'] = _stop
+        environ['oejskit.stop_serving'] = _stop
         def wrap_response(status, headers):
             status_code = int(status.split()[0])
             if status_code == 404:
@@ -40,7 +40,7 @@ class WSGIServerSide(object):
         stuff = self.app(environ, wrap_response)
         if later:
             if self.root:
-                del environ['jskit.stop_serving']
+                del environ['oejskit.stop_serving']
                 return self.root(environ, start_response)
             else:
                 start_response(*later)

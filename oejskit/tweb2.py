@@ -46,7 +46,7 @@ class NaiveWSGIRoot(resource.Resource):
             data = ''.join(postData)
             env['CONTENT_LENGTH'] = str(len(data))
             env['wsgi.input'] = StringIO(data)
-        env['jskit.stop_serving'] = self.stop
+        env['oejskit.stop_serving'] = self.stop
 
         result = self.app(env, start_response)
         

@@ -10,7 +10,7 @@ from twisted.web2 import (server, static, resource, http, channel, log,
                           http_headers, stream, responsecode)
 from twisted_testing import support as reactor_supp
 
-from jskit import tweb2
+from oejskit import tweb2
 #from wsgiref.validate import validator
 
 def teardown_module(mod):
@@ -22,7 +22,7 @@ def test_min_sanity():
     def app(environ, start_response):
         calls.append((environ['REQUEST_METHOD'], environ['PATH_INFO']))
         start_response('200 OK', [('content-type', 'text/plain')])
-        environ['jskit.stop_serving']()
+        environ['oejskit.stop_serving']()
         return ['hello']
 
     def stop():
@@ -85,7 +85,7 @@ def test_integration():
         path_info = environ['PATH_INFO']
         if 'stop' in path_info:
             start_response('200 OK', [('content-type', 'text/plain')])
-            environ['jskit.stop_serving']()
+            environ['oejskit.stop_serving']()
             return ['ok\n']
         
         if not path_info.startswith('/x'):

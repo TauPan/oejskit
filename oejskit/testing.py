@@ -9,8 +9,8 @@ import subprocess
 import py
 import simplejson
 
-from jskit.serving import Serve, ServeFiles, Dispatch
-from jskit.modular import JsResolver
+from oejskit.serving import Serve, ServeFiles, Dispatch
+from oejskit.modular import JsResolver
 
 PORT = 0
 MANUAL = False
@@ -95,7 +95,7 @@ class ServeTesting(Dispatch):
     def result(self, env, data):
         data = simplejson.loads(data)
         self._results[data['discrim']] = data['res']
-        env['jskit.stop_serving']()
+        env['oejskit.stop_serving']()
         return 'ok\n', 'text/plain', False
 
     def varpart(self, environ, start_response):

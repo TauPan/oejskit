@@ -1,8 +1,8 @@
 import py
-from jskit.testing import InBrowserSupport, inBrowser
+from oejskit.testing import InBrowserSupport, inBrowser
 
 class TryInBrowser(InBrowserSupport):
-    from jskit.wsgi import WSGIServerSide as ServerSide
+    from oejskit.wsgi import WSGIServerSide as ServerSide
 
 TryInBrowser.install(globals())
 

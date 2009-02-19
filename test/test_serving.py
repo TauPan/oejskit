@@ -1,6 +1,6 @@
 import os, tempfile, shutil, cStringIO
 from wsgiref.util import shift_path_info
-from jskit.serving import Serve, ServeFiles, Dispatch
+from oejskit.serving import Serve, ServeFiles, Dispatch
 
 
 class TestServe(object):

@@ -1,6 +1,6 @@
 import py
 import socket, time
-from jskit import wsgi
+from oejskit import wsgi
 #from wsgiref.validate import validator
 
 def test_timeout():
@@ -36,7 +36,7 @@ def test_integration():
         path_info = environ['PATH_INFO']
         if 'stop' in path_info:
             start_response('200 OK', [('content-type', 'text/plain')])
-            environ['jskit.stop_serving']()
+            environ['oejskit.stop_serving']()
             return ['ok\n']
         
         if not path_info.startswith('/x'):

@@ -6,11 +6,11 @@ try:
 except Exception, e:
     Failed = e.__class__
 
-import jskit.testing
-from jskit.testing import InBrowserSupport, inBrowser
+import oejskit.testing
+from oejskit.testing import InBrowserSupport, inBrowser
 
 class TryInBrowser(InBrowserSupport):
-    from jskit.wsgi import WSGIServerSide as ServerSide
+    from oejskit.wsgi import WSGIServerSide as ServerSide
 
 TryInBrowser.install(globals())
 
@@ -38,12 +38,12 @@ class BrowserTests(BrowserTestClass):
             start_response('200 OK', [('content-type', 'text/plain')])
             return  ['my-root']
 
-        class Controller(jskit.testing.BrowserController):
+        class Controller(oejskit.testing.BrowserController):
             wsgiEndpoints = {'/': root}
 
         controller = Controller()
         controller.browser  = browser
-        controller.setupBag = jskit.testing.SetupBag(self, controller)
+        controller.setupBag = oejskit.testing.SetupBag(self, controller)
 
         pg = controller.open('/')
         scrapePanel = 'InBrowserTesting.result(scrapeText(document.getElementById("panel-frame-%d").contentWindow.document))' % pg.index
