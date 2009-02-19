@@ -9,10 +9,7 @@ except Exception, e:
 import oejskit.testing
 from oejskit.testing import InBrowserSupport, inBrowser
 
-class TryInBrowser(InBrowserSupport):
-    from oejskit.wsgi import WSGIServerSide as ServerSide
-
-TryInBrowser.install(globals())
+InBrowserSupport.install(globals())
 
 
 class BrowserTests(BrowserTestClass):

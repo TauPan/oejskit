@@ -176,7 +176,6 @@ class Browser(object):
         if MANUAL:
             timeout = max(120, timeout)
 
-        print setupBag
         self.app.withSetup(setupBag, action)
         try:
             self.serverSide.serve_till_fulfilled(root, timeout)
@@ -323,7 +322,23 @@ class InBrowserSupport(object):
                 browsers = modDict['browsers']
                 bootstrapSetupBag = SetupBag(inst)
                 setupBag = SetupBag(inst, cls)
-                cls.browser = browsers.get(cls.browserKind, inst.ServerSide,
+
+                serverSide = inst.ServerSide
+                if serverSide is None:
+                    try:
+                        serverSide = py.test.config.getvalue("js_tests_server_side")
+                    except KeyError:
+                        serverSide = "oejskit.wsgi.WSGIServerSide" 
+                        
+                    if isinstance(serverSide, str):
+                        p = serverSide.split('.')
+                        mod = __import__('.'.join(p[:-1]),
+                                         {}, {}, ['__doc__'])
+                        serverSide = getattr(mod, p[-1])
+
+                    inst.ServerSide = serverSide
+                    
+                cls.browser = browsers.get(cls.browserKind, serverSide,
                                       bootstrapSetupBag=bootstrapSetupBag)
                 cls.setupBag = setupBag
 
