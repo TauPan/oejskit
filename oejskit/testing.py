@@ -10,7 +10,7 @@ import py
 import simplejson
 
 from oejskit.serving import Serve, ServeFiles, Dispatch
-from oejskit.modular import JsResolver
+from oejskit.modular import JsResolver, jsDir
 
 PORT = 0
 MANUAL = False
@@ -18,7 +18,6 @@ if MANUAL:
     PORT = 8116
 
 rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
-jsDir = os.path.join(os.path.dirname(__file__), 'js')
 
 # ________________________________________________________________
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>

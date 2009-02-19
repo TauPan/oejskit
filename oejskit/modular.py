@@ -6,6 +6,9 @@ import re
 
 from cStringIO import StringIO
 
+# path to the directory containing the runtime js file modular_rt.js
+jsDir = os.path.join(os.path.dirname(__file__), 'js')
+
 use_rx = re.compile(r"(?:JSAN|OpenEnd).use\((['\"][^'\"]*['\"]).*\)", re.MULTILINE)
 require_rx = re.compile(r"OpenEnd.require\((['\"][^'\"]*['\"])\)", re.MULTILINE)
 deps_rx = re.compile(r"Base._deps\(.*(\[.*\]).*\)", re.MULTILINE)
