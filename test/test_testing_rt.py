@@ -10,7 +10,6 @@ import jskit.testing
 from jskit.testing import InBrowserSupport, inBrowser
 
 class TryInBrowser(InBrowserSupport):
-    #from jskit.tweb2 import TWeb2ServerSide as ServerSide
     from jskit.wsgi import WSGIServerSide as ServerSide
 
 TryInBrowser.install(globals())
@@ -222,6 +221,9 @@ class RunningTestTests(BrowserTestClass):
 class TestRunningTestFirefox(RunningTestTests):
     browserKind = "firefox"
 
+class TestRunningTestIExplore(RunningTestTests):
+    browserKind = "iexplore"        
+
 class TestRunningTestSafari(RunningTestTests):
-    browserKind = "safari"    
+    browserKind = "safari"
 

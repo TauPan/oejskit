@@ -1,3 +1,10 @@
+import py
+
+try:
+    import twisted
+except ImportError:
+    py.test.skip("needs twisted")
+
 from twisted.internet import defer
 from twisted.web2 import (server, static, resource, http, channel, log,
                           http_headers, stream, responsecode)
