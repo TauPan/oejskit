@@ -57,7 +57,7 @@ class TestHtmlRewrite(object):
                     pairs = []
                     for candName in ('name', 'http-equiv', 'rel', 'type', 'src',
                                      'href', 'content'):
-                        if candName in attrs:
+                        if candName in attrs.keys():
                             pairs.append((candName, attrs.getValue(candName)))
                     attrs = _attrs(pairs)
                 

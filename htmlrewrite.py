@@ -70,6 +70,8 @@ class HTMLRewriter(saxutils.XMLGenerator):
 
     def __init__(self, out):
         saxutils.XMLGenerator.__init__(self, out, encoding='ascii')
+        if not hasattr(self, '_write'): # pyxml vs not :(
+            self._write = lambda data: self._out.write(data)
 
     def setType(self, type):
         if type == 'xhtml':
