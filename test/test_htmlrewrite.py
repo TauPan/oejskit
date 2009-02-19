@@ -1,5 +1,5 @@
 import py
-from jskit.htmlrewrite import (rewrite_html, naive_sanity_check_html,
+from oejskit.htmlrewrite import (rewrite_html, naive_sanity_check_html,
                                HTMLRewriter, _attrs)
 
 
