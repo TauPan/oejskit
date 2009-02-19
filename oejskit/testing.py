@@ -22,7 +22,7 @@ rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 # ________________________________________________________________
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
 <head>
-  <script type="text/javascript" src="/js/modular_rt.js"></script>
+  <script type="text/javascript" src="/oe-js/modular_rt.js"></script>
   <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
   </script>
   <script type="text/javascript" src="/browser_testing/rt/utils.js">
@@ -279,16 +279,18 @@ class BrowserController(object):
         for name in names:
             runner.runOneTest(name)
 
-
-libDir = os.environ['WEBLIB'] # !
+try:
+    libDir = py.test.config.getvalue("js_tests_weblib")
+except KeyError:
+    libDir = os.environ['WEBLIB'] # !
 
 class InBrowserSupport(object):
     ServerSide = None
     # !
     staticDirs = { '/lib': libDir,
                    '/browser_testing/rt': rtDir,
-                   '/js': jsDir }                           
-    jsRepos = ['/lib/mochikit', '/js', '/browser_testing/rt']
+                   '/oe-js': jsDir }                           
+    jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
 
     def setup_module(self, mod):
         mod.browsers = BrowserFactory()
