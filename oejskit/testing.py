@@ -43,6 +43,7 @@ load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
 class ServeTesting(Dispatch):
 
     def __init__(self, bootstrapSetupBag):
+        self.bootstrapSetupBag = bootstrapSetupBag
         repoParents = {}
         repoParents.update(bootstrapSetupBag.staticDirs)
         repoParents.update(bootstrapSetupBag.repoParents)  
@@ -63,17 +64,18 @@ class ServeTesting(Dispatch):
         Dispatch.__init__(self, map)
 
     def withSetup(self, setupBag, action):
-        if setupBag:
-            extraMap = {}
-            for url, p in setupBag.staticDirs.items():
-                if url[-1] != '/':
-                    url += '/'
-                extraMap[url] = ServeFiles(p)
-            for url, app in setupBag.wsgiEndpoints.items():
-                extraMap[url] = app
+        setupBag = setupBag or self.bootstrapSetupBag
+        
+        extraMap = {}
+        for url, p in setupBag.staticDirs.items():
+            if url[-1] != '/':
+                url += '/'
+            extraMap[url] = ServeFiles(p)
+        for url, app in setupBag.wsgiEndpoints.items():
+            extraMap[url] = app
+        self.extra = Dispatch(extraMap)
 
-            self.extra = Dispatch(extraMap)
-            self.repos = setupBag.jsRepos
+        self.repos = setupBag.jsRepos
         self._cmd['CMD'] = action
 
     def reset(self):
@@ -137,19 +139,19 @@ class Browser(object):
     launched browser will point to /browser_testing/ which serves
     testing_rt/testing.html
     """
-    def __init__(self, name, ServerSide, bootstrapSetupBag):
+    def __init__(self, name, ServerSide):
         self.name = name
         self.process = None
         self.default_timeout = 30
-        self.app = ServeTesting(bootstrapSetupBag)        
-        self.serverSide = ServerSide(PORT, self.app)
-        self._startup_browser(bootstrapSetupBag)
+        self.app = None
+        self.serverSide = ServerSide(PORT)
+        self._startup_browser()
 
     def makeurl(self, relative):
-        baseurl = "http://localhost:%d/" % self.serverSide.getPort()
+        baseurl = "http://localhost:%d/" % self.serverSide.get_port()
         return urllib.basejoin(baseurl, relative)
  
-    def _startup_browser(self, bootstrapSetupBag):
+    def _startup_browser(self):
         url = self.makeurl('/browser_testing/')
         if MANUAL:
             print "open", url
@@ -163,9 +165,13 @@ class Browser(object):
                 name = "open -a " + name.title()            
             print "%s %s" % (name, url)
             self.process = subprocess.Popen("%s %s" % (name, url), shell=True)
-        r = self.send('InBrowserTesting.ping()', discrim='ping',
-                      setupBag=bootstrapSetupBag)
-        assert r == 'ping'
+
+    def prepare(self, app, name="suite"):
+        self.app = app
+        self.serverSide.set_app(app)
+        r = self.send('InBrowserTesting.prepare(%r)' % name,
+                      discrim='prepared:%s' % name)
+        assert r == 'prepared'        
 
     def send(self, action, discrim=None, root=None, timeout=None,
              setupBag = None):
@@ -188,25 +194,36 @@ class Browser(object):
             raise NotImplementedError
         self.serverSide.shutdown()
 
+reuse_windows = False # XXX from conftest or option !
+
 class BrowserFactory(object):
+    _inst = None
 
-    def __init__(self):
-        self._browsers = {}        
+    def __new__(cls):
+        if reuse_windows and cls._inst:
+            return cls._inst
+        obj = object.__new__(BrowserFactory)
+        obj._browsers = {}
+        if reuse_windows:
+            cls._inst = obj
+        return obj
 
-    def get(self, browserName, ServerSide, bootstrapSetupBag):
+    def get(self, browserName, ServerSide):
         _browsers = self._browsers
+        key = (browserName, ServerSide)
         try:
-            return _browsers[browserName]
+            return _browsers[key]
         except KeyError:
-            browser = Browser(browserName, ServerSide, bootstrapSetupBag)
-            _browsers[browserName] = browser
+            browser = Browser(browserName, ServerSide)
+            _browsers[key] = browser
             return browser
 
     def shutdownAll(self):
-        _browsers = self._browsers
-        while _browsers:
-            _, browser = _browsers.popitem()
-            browser.shutdown()
+        if not reuse_windows:
+            _browsers = self._browsers
+            while _browsers:
+                _, browser = _browsers.popitem()
+                browser.shutdown()
 
 # ________________________________________________________________
 
@@ -310,6 +327,11 @@ class InBrowserSupport(object):
         modDict['setup_module'] = inst.setup_module
         modDict['teardown_module'] = inst.teardown_module
 
+        bootstrapSetupBag = SetupBag(inst)
+        app = ServeTesting(bootstrapSetupBag)
+
+        modName = modDict["__name__"]
+
         class BrowserTestClass(BrowserController):
             browserKind = None
             
@@ -321,7 +343,6 @@ class InBrowserSupport(object):
                     py.test.skip("safari expects mac os x")                    
 
                 browsers = modDict['browsers']
-                bootstrapSetupBag = SetupBag(inst)
                 setupBag = SetupBag(inst, cls)
 
                 serverSide = inst.ServerSide
@@ -339,8 +360,9 @@ class InBrowserSupport(object):
 
                     inst.ServerSide = serverSide
                     
-                cls.browser = browsers.get(cls.browserKind, serverSide,
-                                      bootstrapSetupBag=bootstrapSetupBag)
+                cls.browser = browsers.get(cls.browserKind, serverSide)
+                cls.browser.prepare(app, modName)
+                
                 cls.setupBag = setupBag
 
         modDict['BrowserTestClass'] = BrowserTestClass

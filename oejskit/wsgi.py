@@ -1,6 +1,6 @@
 import time
 import socket
-from wsgiref import simple_server
+from wsgiref import simple_server, handlers
 from SocketServer import ThreadingMixIn
 
 class WSGIHandler(simple_server.WSGIRequestHandler):
@@ -17,13 +17,15 @@ class WSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
 class WSGIServerSide(object):
 
-    def __init__(self, port, app):
-        self.app = app
+    def __init__(self, port):
+        self.app = None
         self.root = None
         self.done = False
         self.server = simple_server.make_server('', port, self._serve,
                                                 server_class = WSGIServer,
                                                 handler_class = WSGIHandler)
+    def set_app(self, app):
+        self.app = app
 
     def _serve(self, environ, start_response):
         later = []
@@ -53,7 +55,7 @@ class WSGIServerSide(object):
     def shutdown(self):
         self.server.server_close()
 
-    def getPort(self):
+    def get_port(self):
         return self.server.server_port
 
     def serve_till_fulfilled(self, root, timeout):

@@ -28,12 +28,13 @@ def test_min_sanity():
     def stop():
         calls.append('Stop')
 
-    res = tweb2.NaiveWSGIRoot(app, stop)
+    res = tweb2.NaiveWSGIRoot(stop)
 
     req = server.Request(None, "GET", "/x/y", "HTTP/1.1",
                          0, http_headers.Headers())
     req._parseURL() # !
 
+    res.app = app
     resp = res.renderHTTP(req)
 
     assert calls == [('GET', '/x/y'), 'Stop']
@@ -52,7 +53,7 @@ def test_POST():
         data = environ['wsgi.input'].read()
         return ['+%s+' % data]
     
-    res = tweb2.NaiveWSGIRoot(app, None)
+    res = tweb2.NaiveWSGIRoot(None)
 
     req = server.Request(None, "POST", "/x/y", "HTTP/1.1",
                          0, http_headers.Headers())
@@ -68,6 +69,7 @@ def test_POST():
 
     req.stream = FakeStream()
 
+    res.app = app
     dresp = res.renderHTTP(req)
     assert isinstance(dresp, defer.Deferred)
 
@@ -99,9 +101,9 @@ def test_integration():
     class Root(resource.Resource):
         child_other = static.Data("OTHER\n", 'text/plain')
 
-    serverSide = tweb2.TWeb2ServerSide(0, app)
+    serverSide = tweb2.TWeb2ServerSide(0)
 
-    port = serverSide.getPort()
+    port = serverSide.get_port()
     
     import threading, urllib2
     def get(rel):
@@ -118,7 +120,8 @@ def test_integration():
         get('stop')
         done.set()    
     threading.Thread(target=requests).start()
-    
+
+    serverSide.set_app(app)
     serverSide.serve_till_fulfilled(Root(), 6*60)
 
     done.wait()

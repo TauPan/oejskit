@@ -8,8 +8,8 @@ def test_timeout():
         start_response('200 OK', [('content-type', 'text/plain')])
         return ['stuff\n']        
 
-    serverSide = wsgi.WSGIServerSide(0, app)
-    port = serverSide.getPort()
+    serverSide = wsgi.WSGIServerSide(0)
+    port = serverSide.get_port()
     
     import threading, urllib2
     def get(rel):
@@ -23,6 +23,7 @@ def test_timeout():
         results.append(get('whatever'))
     threading.Thread(target=requests).start()
 
+    serverSide.set_app(app)
     t0 = time.time()
     py.test.raises(socket.timeout, serverSide.serve_till_fulfilled, None, 3)
     t1 = time.time()
@@ -57,9 +58,9 @@ def test_integration():
                                           'text/plain')])
         return ["???\n"]        
 
-    serverSide = wsgi.WSGIServerSide(0, app)
+    serverSide = wsgi.WSGIServerSide(0)
 
-    port = serverSide.getPort()
+    port = serverSide.get_port()
     
     import threading, urllib2
     def get(rel):
@@ -77,6 +78,7 @@ def test_integration():
         done.set()    
     threading.Thread(target=requests).start()
 
+    serverSide.set_app(app)
     serverSide.serve_till_fulfilled(other, 60)
 
     done.wait()

@@ -9,10 +9,10 @@ from twisted_testing import support as reactor_supp
 # non-blocking
 class NaiveWSGIRoot(resource.Resource):
 
-    def __init__(self, app, stop):
-        self.fallback = None
-        self.app = app
+    def __init__(self, stop):
         self.stop = stop
+        self.app = None
+        self.fallback = None
     
     def locateChild(self, req, segments):
         if self.fallback:
@@ -61,17 +61,21 @@ class TWeb2ServerSide(object):
         from twisted.internet import reactor
         reactor_supp.cleanup(reactor)
 
-    def __init__(self, port, app):
+    def __init__(self, port):
         from twisted.internet import reactor
-        self.root = NaiveWSGIRoot(app, self._stop)
+        self.root = NaiveWSGIRoot(self._stop)
         site = server.Site(self.root)
         self.port = reactor.listenTCP(port, channel.HTTPFactory(site))
         self.stopDeferred = None
+        self.app = None
+
+    def set_app(self, app):
+        self.app = app
 
     def _stop(self):
         self.stopDeferred.callback(None)
 
-    def getPort(self):
+    def get_port(self):
         return self.port.getHost().port        
 
     def shutdown(self):
@@ -80,6 +84,7 @@ class TWeb2ServerSide(object):
     def serve_till_fulfilled(self, root, timeout):
         self.stopDeferred = defer.Deferred()
         try:
+            self.root.app = self.app
             self.root.fallback = root
             reactor_supp.consume(self.stopDeferred, timeout)
             # best effort to finish handling the last request

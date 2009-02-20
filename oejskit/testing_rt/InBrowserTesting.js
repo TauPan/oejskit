@@ -38,8 +38,23 @@ InBrowserTesting = {
 	xhr.send(serializeJSON({discrim: discrim, res: data}))
     },
 
-    ping: function() {
-	this.result('ping', 'ping')
+    nprepared: 0,
+    first_name: null,
+
+    prepare: function(name) {
+        var n  = this.nprepared
+        this.nprepared++
+	var panelsDiv = getElement("panels")
+        if (n == 0) {
+            document.title = name
+            this.first_name = name
+        } else {
+            document.title = this.first_name+" ... "+name
+            appendChildNodes(panelsDiv, HR())
+        }
+
+        appendChildNodes(panelsDiv, H1({}, name))
+	this.result('prepared', 'prepared:'+name)
     },
 
     doOpen: function(url, done) {	
@@ -52,7 +67,7 @@ InBrowserTesting = {
         }
 	var n = this.n;
         this.n += 1;
-        var label = P({}, url)
+        var label = H2({}, url)
 	var frame = createDOM('IFRAME', {"id": "panel-frame-"+n, 
 		                         "width": "70%", "height": "100px" })
         var expand = BUTTON("Expand")
