@@ -125,7 +125,7 @@ class TestServeFiles(object):
         assert calls == [('200 OK',
                           [('content-type', 'text/plain'),
                            ('cache-control', 'no-cache')])]
-        assert res == ['a.\n']
+        assert ''.join(res).strip() == 'a.' # xxx
 
         calls = []
         static = ServeFiles(self.root)

@@ -16,6 +16,7 @@ class WSGIServer(ThreadingMixIn, simple_server.WSGIServer):
         return (req_sock, addr)
 
 class WSGIServerSide(object):
+    http_version = '1.1'
 
     def __init__(self, port):
         self.app = None
@@ -61,6 +62,11 @@ class WSGIServerSide(object):
     def serve_till_fulfilled(self, root, timeout):
         self.server.socket.settimeout(2)
         self.root = root
+        # hack
+        # IE seem not honor any no-caching headers unless we declare
+        # to be serving HTTP/1.1
+        orig_http_version = simple_server.ServerHandler.http_version
+        simple_server.ServerHandler.http_version = self.http_version
         t0 = time.time()
         try:
             while time.time() - t0 <= timeout and not self.done:
@@ -71,6 +77,7 @@ class WSGIServerSide(object):
             if not self.done:
                 raise socket.timeout
         finally:
+            simple_server.ServerHandler.http_version = orig_http_version
             self.root = None
             self.done = False
         

@@ -94,6 +94,8 @@ class ServeTesting(Dispatch):
         return simplejson.dumps(cmd), 'text/json', False
 
     def result(self, env, data):
+        if data is None:
+            return '', 'text/plain', False # not clear why we get a GET
         data = simplejson.loads(data)
         self._results[data['discrim']] = data['res']
         env['oejskit.stop_serving']()

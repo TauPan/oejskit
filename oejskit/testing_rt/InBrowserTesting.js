@@ -13,12 +13,16 @@ InBrowserTesting = {
     poll: function() {
 	var self = this
 	callLater(0.25, function() {
-	    var d = loadJSONDoc("/browser_testing/cmd")
-	    d.addCallback(function(code) {
+            // use a post to keep caching issues at bay
+	    var d = doXHR("/browser_testing/cmd", {method: 'POST'})
+	    d.addCallback(function(req) {
 		self.poll()
+                var code = evalJSONRequest(req)
 		if (code == null) {
 		    return
 		}
+                // debug: 
+                // appendChildNodes('out', P({}, code))
 		eval(code)
 	    })
 	})

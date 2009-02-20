@@ -66,6 +66,9 @@ class BrowserTests(BrowserTestClass):
 class TestFirefox(BrowserTests):
     browserKind = "firefox"
 
+class TestIExplore(BrowserTests):
+    browserKind = "iexplore"
+
 class TestSafari(BrowserTests):
     browserKind = "safari"
 
