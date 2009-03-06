@@ -196,7 +196,10 @@ class Browser(object):
             raise NotImplementedError
         self.serverSide.shutdown()
 
-reuse_windows = False # XXX from conftest or option !
+try:
+    reuse_windows = py.test.config.getvalue("js_tests_reuse_browser_windows")
+except KeyError:
+    reuse_windows = False
 
 class BrowserFactory(object):
     _inst = None
@@ -322,7 +325,9 @@ class InBrowserSupport(object):
     @classmethod
     def install(supportCls, modDict, configs={}):
         inst = supportCls()
-        inst.staticDirsTest = {'/test/': os.path.dirname(modDict['__file__'])}
+        mod_path = os.path.dirname(modDict['__file__'])
+        
+        inst.staticDirsTest = {'/test/': mod_path}
         inst.jsReposTest = ['/test']
         inst.__dict__.update(configs)
         
@@ -350,7 +355,8 @@ class InBrowserSupport(object):
                 serverSide = inst.ServerSide
                 if serverSide is None:
                     try:
-                        serverSide = py.test.config.getvalue("js_tests_server_side")
+                        serverSide = py.test.config.getvalue(
+                            "js_tests_server_side", py.path.local(mod_path))
                     except KeyError:
                         serverSide = "oejskit.wsgi.WSGIServerSide" 
                         

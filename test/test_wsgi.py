@@ -51,7 +51,7 @@ def test_integration():
 
     def other(environ, start_response):
         path_info = environ['PATH_INFO']
-        if 'other' in path_info: # xxx precision
+        if path_info == '/other':
             start_response('200 OK', [('content-type', 'text/plain')])
             return ['OTHER\n']            
         start_response('404 Not Found', [('content-type',

@@ -69,7 +69,7 @@ class HTMLRewriter(saxutils.XMLGenerator):
     empty_end = '>'
 
     def __init__(self, out):
-        saxutils.XMLGenerator.__init__(self, out, encoding='ascii')
+        saxutils.XMLGenerator.__init__(self, out, encoding='utf-8')
         if not hasattr(self, '_write'): # pyxml vs not :(
             self._write = lambda data: self._out.write(data)
 
@@ -130,7 +130,8 @@ class HTMLRewriter(saxutils.XMLGenerator):
                   (doctype, publicId, systemId))
 
 def rewrite_html(html, Rewriter=HTMLRewriter, type='html',
-                 params={}): # xxx encoding
+                 params={}):
+    # xxx make encoding an option
     out = cStringIO.StringIO()
     rewriter = Rewriter(out, **params)
     rewriter.setType(type)

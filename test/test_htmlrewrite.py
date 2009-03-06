@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import py
 from oejskit.htmlrewrite import (rewrite_html, naive_sanity_check_html,
                                HTMLRewriter, _attrs)
@@ -35,7 +36,7 @@ class TestHtmlRewrite(object):
 </head>
 <body>
 <div>
-&nbsp;&#10;
+&nbsp;&#10;åöä
 <br />
 </div>
 </body>
@@ -90,7 +91,7 @@ class TestHtmlRewrite(object):
 </head>
 <body>
 <div>
-&nbsp;&#10;
+&nbsp;&#10;åöä
 <br>
 </div>
 </body>

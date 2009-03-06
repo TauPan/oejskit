@@ -137,7 +137,7 @@ class JsResolver(object):
                     segs = segs[len(repo):]
                     break
             else:
-                # xxx only for test running
+                # xxx only for test running and tweb2 specific
                 fp = self._findFP(segs)
                 path = module
 

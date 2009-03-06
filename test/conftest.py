@@ -1,11 +1,3 @@
-import py
+from oejskit.testing_options import addoptions
 
-option = py.test.config.addoptions("oejskit test suite options",
-            py.test.config.Option("--js-tests-server-side", action="store",
-                                  dest="js_tests_server_side",
-                                  type="string",
-                                  default="oejskit.wsgi.WSGIServerSide"
-                                  ))
-
-
-
+addoptions(reuse_browsers_windows=True, server_side=True)
