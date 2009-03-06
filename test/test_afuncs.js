@@ -63,6 +63,9 @@ test_aisDeeply: function() {
     var a = [l, l]
     aisDeeply(a, [[1, 2], [1, 2]])
 
+    var a = [new Date(1000)]
+    aisDeeply(a, [new Date(1000)])
+    araises(aisDeeply, a, [new Date(10000)])
 }
 
 }

@@ -106,12 +106,24 @@ function substitute(substitutions, func) {
         var val = substitutions[key]
         eval(key + ' = val')
     }
-    try {
-        return func()
-    } finally {
+    function cleanup(result) {
         for(var key in old_values) {
             var val = old_values[key]
             eval(key + ' = val')
+        }
+        return result
+    }
+
+    var res = null
+    try {
+        res = func()
+        if (res instanceof Deferred) {
+            res.addBoth(cleanup)
+        }
+        return res
+    } finally {
+        if (!(res instanceof Deferred)) {
+            cleanup()
         }
     }
 }
@@ -154,3 +166,47 @@ function testing_atomic_t(s) {
 _atomic_t = testing_atomic_t
 */
 
+/* ________________________________________________________________ */
+
+// xxx predicates & substitution infrastructure
+
+function _runStages(d, input, i, funcs) {
+    if (i >= funcs.length) {
+        if (d != null) {
+            d.callback(input)
+            return
+        }
+        return input
+    }
+
+    var func = funcs[i]
+    try {
+        var cur = func(input)
+    } catch(e) {
+        if(d == null) {
+            throw e;
+        }
+        d.errback(e)
+        return
+    }
+    if (cur instanceof Deferred) {
+        if (d == null) {
+            d = new  Deferred()
+            // xxx cleanup
+        }
+        // xxx errback, both cases
+        cur.addCallback(function(v) {
+            _runStages(d, v, i+1, funcs)
+        })
+        cur.addErrback(function(f) {
+            d.errback(f)
+        })
+        return d
+    }
+
+    return _runStages(d, cur, i+1, funcs)
+}
+
+function staged() {
+    return _runStages(null, undefined, 0, arguments) 
+}

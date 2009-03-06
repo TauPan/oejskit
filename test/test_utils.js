@@ -80,7 +80,7 @@ test_fakeKeyEvent: function() {
 
     var ff = !!document.createEvent
 
-    fakeKeyEvent(ta, "keypress", 65)
+    fakeKeyEvent(ta, "keypress", 65)    
     ais(keyCode, 65)
     if (ff) {
         ais(charCode, 65)
@@ -130,9 +130,39 @@ test_substitute: function() {
     ais(Substitute.x, 27)
     ais(substitute_me, "foo")
 
-}
+},
 
-/*test_testing__atomic_t: function() {
+test_substitute_deferred: function() {
+    Substitute.x = 27
+    substitute_me = "foo"
+
+    var values = []
+    var d = new Deferred()
+    var res = substitute({"Substitute.x" : 42, "substitute_me": "bar"}, function() {
+        values.push([Substitute.x, substitute_me])
+        return d
+    })
+
+    aok(res === d)
+    aisDeeply(values, [[42, "bar"]])
+    ais(Substitute.x, 42)
+    ais(substitute_me, "bar")
+
+    d.callback("return value")
+    ais(Substitute.x, 27)
+    ais(substitute_me, "foo")
+
+    var d = new Deferred()
+    var res = substitute({"Substitute.x" : 42, "substitute_me": "bar"}, function() {
+        return d
+    })
+    d.errback("error")
+    ais(Substitute.x, 27)
+    ais(substitute_me, "foo")
+},
+
+/*
+test_testing__atomic_t: function() {
     ais(testing_atomic_t('lower'), 'LOWER')
     ais(testing_atomic_t('Upper'), 'UPPER')
 
@@ -142,6 +172,172 @@ test_substitute: function() {
 
     ais(_t('lower', undefined, testing_atomic_t), 'LOWER')
     ais(_t('lower %s', 'foo', testing_atomic_t), 'LOWER foo')
-}*/
+},
+*/
+
+test_staged: function() {
+    var res = staged(function() {
+        return 42
+    })
+    ais(res, 42)
+
+    res = staged(
+        function() {
+            return 21
+        },
+        function(v) {
+            return 2*v
+        }
+      )
+    ais(res, 42)
+
+    var x = null
+    var y = 0
+    try {
+    res = staged(
+        function() {
+            throw "Bomb";
+            return 21
+        },
+        function(v) {
+            y = 1
+        }
+      )
+    } catch(e) {
+        x = e
+    }
+    ais(x, "Bomb")
+    ais(y, 0)
+
+    var x = null
+    var y = 0
+    try {
+    res = staged(
+        function() {
+            y = 1
+        },
+        function(v) {
+            throw "Bomb"
+        }
+      )
+    } catch(e) {
+        x = e
+    }
+    ais(x, "Bomb")
+    ais(y, 1)
+},
+
+test_staged_with_deferred: function() {
+    var dres = staged(function() {
+        return succeed(43)
+    })
+    aok(dres instanceof Deferred)
+    var  res
+    dres.addCallback(function(v) { res = v})
+    ais(res, 43)
+
+    dres = staged(
+        function() {
+            return succeed(21)
+        },
+        function(v) {
+            return 2*v+2
+        }
+      )
+    aok(dres instanceof Deferred)
+    dres.addCallback(function(v) { res = v})
+    ais(res, 44)
+
+    dres = staged(
+        function() {
+            return 21
+        },
+        function(v) {
+            return succeed(2*v)
+        }
+      )
+    aok(dres instanceof Deferred)
+    dres.addCallback(function(v) { res = v})
+    ais(res, 42)
+
+    dres = staged(
+        function() {
+            return succeed(20)
+        },
+        function(v) {
+            return succeed(2*v)
+        }
+      )
+    aok(dres instanceof Deferred)
+    dres.addCallback(function(v) { res = v})
+    ais(res, 40)
+
+    var w
+    dres = staged(
+        function() {
+            w = new Deferred()
+            w.addCallback(function(x) {
+                return succeed(x+3)
+            })
+            return w
+        },
+        function(v) {
+            return succeed(2*v)
+        }
+      )
+    aok(dres instanceof Deferred)
+    dres.addCallback(function(v) { res = v})
+    w.callback(19)
+    ais(res, 44)
+},
+
+test_staged_with_deferred_failures: function() {
+    var x = null
+    var y = 1
+    var dres = staged(
+        function() {
+            y = 1
+            return succeed(0)
+        },
+        function(v) {
+            throw "Bomb"
+        }
+    )
+    aok(dres instanceof Deferred)
+    ais(y, 1)
+    dres.addErrback(function(v) { x = v })
+    aok(x instanceof GenericError)
+    ais(x.message, 'Bomb')
+
+    var x = null
+    var y = 1
+    dres = staged(
+        function() {
+            y = 1
+            return fail("Bomb")
+        },
+        function(v) {
+            y = 2
+        }
+    )
+    aok(dres instanceof Deferred)
+    ais(y, 1)
+    dres.addErrback(function(v) { x = v })
+    aok(x instanceof GenericError)
+    ais(x.message, 'Bomb')
+},
+
+test_staged_applied: function() {
+    var x = null
+    return staged(
+        function() {
+            x = 3
+            return succeed(4)
+        },
+        function(v) {
+            ais(v, 4)
+            ais(x, 3)
+        })
+}
 
 }

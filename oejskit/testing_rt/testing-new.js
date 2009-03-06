@@ -276,6 +276,8 @@ Testing._deepCheck = function (e1, e2, stack, seen) {
         return true
     } else if (Testing._isa(e1, 'Array') && Testing._isa(e2, 'Array')) {
         return Testing._eqArray(e1, e2, stack, seen);
+    } else if (Testing._isa(e1, 'Date') && Testing._isa(e2, 'Date')) {
+	return e1.valueOf() == e2.valueOf()
     } else if (typeof e1 == "object" && typeof e2 == "object") {
         return Testing._eqAssoc(e1, e2, stack, seen);
     } else {
