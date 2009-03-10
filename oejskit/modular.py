@@ -56,8 +56,9 @@ class FP(object):
                                   
 class JsResolver(object):
 
-    def __init__(self, repoParents=None):
+    def __init__(self, repoParents=None, defaultRepos=None):
         self._depsData = {}
+        self.defaultRepos = defaultRepos
         repoParents = repoParents or {}
         self.setRepoParents(repoParents)
 
@@ -159,13 +160,24 @@ class JsResolver(object):
         acc[path] = deps
         return path
 
+    def _fsRepos(self, repos):
+        if repos is None:
+            repos = self.defaultRepos
+        fsRepos = self._findReposInFS(repos)
+        return fsRepos
+
     def resolveHTML(self, html, repos=None):
-        fsRepos = None
-        if repos:
-            fsRepos = self._findReposInFS(repos)
+        fsRepos = self._fsRepos(repos)
 
         params = {'jsResolver': self, 'fsRepos': fsRepos}
         return rewrite_html(html, HTMLResolver, params=params)
+
+    def findDeps(self, module, repos=None):
+        fsRepos = self._fsRepos(repos)        
+
+        return self._findDeps(module, fsRepos)
+
+
 
 class HTMLResolver(HTMLRewriter):
 

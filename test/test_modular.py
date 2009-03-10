@@ -85,7 +85,7 @@ class TestJsResolver(object):
         assert fp.exists()
 
 
-    def test_simpleDeps(self):
+    def test__simpleDeps(self):
         jsResolver = JsResolver()
 
         fsRepos = {os.path.join(weblibDir, 'mochikit'):
@@ -132,7 +132,7 @@ class TestJsResolver(object):
             '/lib/mochikit/MochiKit/DOM.js'],
             '/lib/mochikit/MochiKit/Base.js': [] }
 
-    def test_findDeps(self):
+    def test__findDeps(self):
         jsResolver = JsResolver()
 
         fsRepos = {os.path.join(weblibDir, 'mochikit'):
@@ -349,6 +349,7 @@ class TestJsResolver(object):
             else:
                 return [module]
 
+        jsResolver._fsRepos = lambda repos: None
         jsResolver._findDeps = _findDeps
 
         html2 = jsResolver.resolveHTML(html)
@@ -368,3 +369,20 @@ class TestJsResolver(object):
                         '/js/Foo.js', '/js/Bar.js', '/static/B.js',
                         '/js/Baz.js', '/static/C.js']
                         
+    def test_findDeps(self):
+        jsResolver = JsResolver({'/lib': weblibDir},
+                                defaultRepos=['/lib/mochikit'])
+        
+        res = jsResolver.findDeps("MochiKit.Signal")
+
+        assert res == ["/lib/mochikit/MochiKit/Base.js",
+                       "/lib/mochikit/MochiKit/DOM.js",
+                       "/lib/mochikit/MochiKit/Style.js",
+                       "/lib/mochikit/MochiKit/Signal.js"]
+
+
+        res = jsResolver.findDeps("/lib/mochikit/MochiKit/Style.js")
+
+        assert res == ["/lib/mochikit/MochiKit/Base.js",
+                       "/lib/mochikit/MochiKit/DOM.js",
+                       "/lib/mochikit/MochiKit/Style.js"]
