@@ -1,13 +1,8 @@
 import py
 import sys, os
 
-try:
-    py.test.fail("")
-except Exception, e:
-    Failed = e.__class__
-
 import oejskit.testing
-from oejskit.testing import InBrowserSupport, inBrowser
+from oejskit.testing import InBrowserSupport, inBrowser, JsFailed
 
 InBrowserSupport.install(globals())
 
@@ -52,16 +47,7 @@ class BrowserTests(BrowserTestClass):
         res = pg.eval("foo()")
         assert res == "foo"
 
-        fail = False
-        try:
-            pg.eval("bar()")
-        except Failed:
-            t, v, tb = sys.exc_info()
-            fail = True
-        except:
-            pass
-
-        assert fail        
+        py.test.raises(JsFailed, pg.eval, "bar()")
 
 class TestFirefox(BrowserTests):
     browserKind = "firefox"
@@ -168,15 +154,11 @@ class RunningTestTests(BrowserTestClass):
         assert res == ['test_failure', 'test_success']
         failed = False
         runner.runOneTest('test_success')
-        try:
-            runner.runOneTest('test_failure')
-        except Failed:
-            failed = True
-            t, v, tb = sys.exc_info()
-            assert v.msg.startswith("test_failure: FAILED: 2 == 1")
-        except:
-            pass
-        assert failed
+
+        failure = py.test.raises(JsFailed, runner.runOneTest, 'test_failure')
+        jsfailed = failure.value
+        assert jsfailed.name == 'test_failure'
+        assert jsfailed.msg.startswith("FAILED: 2 == 1")
 
     def test_inBrowser(self):
         @inBrowser
@@ -192,15 +174,12 @@ class RunningTestTests(BrowserTestClass):
             if 'test_success' in name:
                 run(name)
                 passed += 1
-            else:
-                try:
-                    run(name)
-                except Failed:
-                    t, v, tb = sys.exc_info()
-                    failed += 1
-                    assert v.msg.startswith("test_failure: FAILED: 2 == 1")
-                except:
-                    pass
+            else:             
+                failure = py.test.raises(JsFailed, run, name)
+                jsfailed = failure.value
+                assert jsfailed.name == 'test_failure'
+                assert jsfailed.msg.startswith("FAILED: 2 == 1")
+                failed += 1
 
         assert passed == 1
         assert failed == 1

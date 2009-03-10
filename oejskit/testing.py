@@ -232,6 +232,16 @@ class BrowserFactory(object):
 
 # ________________________________________________________________
 
+class JsFailed(Exception):
+
+    def __init__(self, name, msg):
+        self.name = name
+        self.msg = msg
+
+    def __str__(self):
+        return "%s: %s" % (self.name, self.msg)
+
+
 class PageContext(object):
 
     def __init__(self, browserController, root, url, timeout, index=None):
@@ -257,13 +267,13 @@ class PageContext(object):
     def eval(self, js):
         outcome = self._execute('eval', js)
         if outcome.get('error'):
-            py.test.fail('[%s] %s: %s' % (self.url, js, outcome['error']))
+            raise JsFailed('[%s] %s' % (self.url, js), outcome['error'])
         return outcome['result']
 
     def runOneTest(self, name):
         outcome = self._execute('runOneTest', name)
         if not outcome['result']:
-            py.test.fail('%s: %s' % (name, outcome['diag']))
+            raise JsFailed(name, outcome['diag'])
         if outcome['leakedNames']:
             py.test.fail('%s leaked global names: %s' % (name,
                                                        outcome['leakedNames']))

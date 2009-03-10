@@ -153,6 +153,8 @@ def rewrite_html(html, Rewriter=HTMLRewriter, type='html',
         parser.parse(source)
     else:
         parser = HTMLParsing(rewriter)
+        if isinstance(html, str):
+            html = html.decode("utf-8")
         parser.feed(html)
 
     return out.getvalue()

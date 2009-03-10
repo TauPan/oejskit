@@ -8,7 +8,11 @@ except ImportError:
 from twisted.internet import defer
 from twisted.web2 import (server, static, resource, http, channel, log,
                           http_headers, stream, responsecode)
-from twisted_testing import support as reactor_supp
+
+try:
+    from twisted_testing import support as reactor_supp
+except ImportError:
+    py.test.skip("needs twisted_testing")
 
 from oejskit import tweb2
 #from wsgiref.validate import validator
