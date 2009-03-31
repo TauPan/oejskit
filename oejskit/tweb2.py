@@ -65,6 +65,7 @@ class TWeb2ServerSide(object):
 
     @staticmethod
     def cleanup():
+        # xxx issues with reuse browser windows
         from twisted.internet import reactor
         reactor_supp.cleanup(reactor)
 

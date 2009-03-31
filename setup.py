@@ -3,13 +3,13 @@ try:
 except ImportError:
     from distutils.core import setup
     
-version = '0.8.2'
+version = '0.8.3'
 
 setup(
     name="oejskit",
     version=version,
     description='OE Javascript testing and utility kit',
-    #license='MIT', ?
+    license='MIT',
     author='Open End AB',
     #author_email=
     #url=    
