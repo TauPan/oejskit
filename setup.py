@@ -1,3 +1,9 @@
+#
+# Copyright (C) Open End AB 2007-2009, All rights reserved
+# See LICENSE.txt
+#
+
+# xxx half-done
 try:
     from setuptools import setup
 except ImportError:
