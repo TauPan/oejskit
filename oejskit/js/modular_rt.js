@@ -1,6 +1,10 @@
 /*
- Copyright (C) Open End AB 2007, All rights reserved
+
+Copyright (C) OpenEnd 2007-2009, All rights reserved.
+See LICENSE.txt
+
 */
+
 
 if (typeof(OpenEnd) == "undefined") {
     OpenEnd = {}
