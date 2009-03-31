@@ -1,8 +1,7 @@
 /*
 
-Copyright (C) OpenEnd 2007, All rights reserved
-
-Reviewed: 
+Copyright (C) OpenEnd 2007-2009, All rights reserved.
+See LICENSE.txt
 
 */
 

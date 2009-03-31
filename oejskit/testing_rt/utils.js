@@ -1,3 +1,10 @@
+/*
+
+Copyright (C) OpenEnd 2007-2009, All rights reserved.
+See LICENSE.txt
+
+*/
+
 
 // helper to do DOM operations achored in the document
 function insertTestNode() {
@@ -28,6 +35,10 @@ function insertTestNode() {
     appendChildNodes(body, cont)
     return testDiv
 }
+
+/* ________________________________________________________________ */
+
+// XXX Windmill has better stuff
 
 function fakeMouseEvent(target, kind, button) {
     var evt
@@ -99,6 +110,8 @@ function fakeKeyEvent(target, kind, keyCode, charCode, shiftKey) {
     return evt
 }
 
+/* ________________________________________________________________ */
+
 function substitute(substitutions, func) {
     var old_values = {}
     for(var key in substitutions) {
@@ -128,47 +141,7 @@ function substitute(substitutions, func) {
     }
 }
 
-/* ?
-function testing_atomic_t(s) {
-    var format = new RegExp('%(?:\\((\\w+)\\))?s', 'g')
-    var isFormat = format.exec(s)
-    var memo
-    var armored = s
-
-    if (isFormat) {
-        var c = 0
-        memo = {}
-        function armor(placeholder, name) {
-            if (name) {
-                var armored_placeholder = "%("+c+")s"
-                memo[c++] = name
-                return armored_placeholder
-
-            }
-            return "%s"
-        }
-        armored = s.replace(format, armor)
-    }
-    var translated  = armored.toUpperCase()
-    if (isFormat) {
-        function unarmor(placeholder, index) {
-            if(index) {
-                var name = memo[index]
-                return "%("+name+")s"
-            }
-            return "%s"
-        }
-        translated = translated.replace(/%(?:\((\w+)\))?S/g, unarmor)
-    }
-    return translated
-}
-
-_atomic_t = testing_atomic_t
-*/
-
 /* ________________________________________________________________ */
-
-// xxx predicates & substitution infrastructure
 
 function _runStages(d, input, i, funcs) {
     if (i >= funcs.length) {
