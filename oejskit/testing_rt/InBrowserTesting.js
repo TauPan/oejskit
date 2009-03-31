@@ -17,11 +17,10 @@ InBrowserTesting = {
 	    d.addCallback(function(req) {
 		self.poll()
                 var code = evalJSONRequest(req)
+                //appendChildNodes('out', P({}, "CODE: [" +code+"]"))
 		if (code == null) {
 		    return
 		}
-                // debug: 
-                // appendChildNodes('out', P({}, code))
 		eval(code)
 	    })
 	})

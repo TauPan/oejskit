@@ -34,6 +34,9 @@ class NaiveWSGIRoot(resource.Resource):
                 return self.renderHTTP(req, postData)
             d.addCallback(gotPostData, req, postData)
             return d
+
+        if self.app is None:
+            return http.Response(code=200, stream='null')  # xxx         
         
         code = [200]
         accumHeaders = http_headers.Headers()
@@ -95,6 +98,7 @@ class TWeb2ServerSide(object):
             from twisted.internet import reactor
             reactor.iterate(0)
         finally:
+            self.root.app = None
             self.root.fallback = None
             self.stopDeferred = None
       
