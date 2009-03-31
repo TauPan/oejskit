@@ -1,5 +1,6 @@
 #
-# Copyright (C) Open End AB 2007-2008, All rights reserved
+# Copyright (C) Open End AB 2007-2009, All rights reserved
+# See LICENSE.txt
 #
 """
 Python side infrastructure for running javascript tests in browsers

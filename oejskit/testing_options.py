@@ -1,3 +1,7 @@
+#
+# Copyright (C) Open End AB 2007-2009, All rights reserved
+# See LICENSE.txt
+#
 import py
 
 def addoptions(server_side=False, reuse_browsers_windows=True):

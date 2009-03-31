@@ -8,6 +8,7 @@ Copyright (c) 2005 Bob Ippolito. All rights reserved.
 
 */
 
+// XXX obsolete style
 if (typeof(JSAN) != "undefined") {
     JSAN.use("MochiKit.Base")
     JSAN.use("MochiKit.Iter")

@@ -1,5 +1,13 @@
+#
+# Copyright (C) Open End AB 2007-2009, All rights reserved
+# See LICENSE.txt
+#
+
 # painfully implementing some best-effort rewriting of X/HTML docs
 # using what is in the stdlib
+
+# assumes utf-8 right now
+
 import HTMLParser, cStringIO
 from xml.sax import saxutils
 from xml.sax import handler as saxhandler

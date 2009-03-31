@@ -1,6 +1,11 @@
 #
-# Copyright (C) Open End AB 2001-2007, All rights reserved
+# Copyright (C) Open End AB 2007-2009, All rights reserved
+# See LICENSE.txt
 #
+"""
+Support for server-side tracking/resolving of delclared dependencies
+between javascript 'modules'
+"""
 import sys, os
 import re
 

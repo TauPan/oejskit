@@ -1,3 +1,7 @@
+#
+# Copyright (C) Open End AB 2007-2009, All rights reserved
+# See LICENSE.txt
+#
 import time
 import socket
 from wsgiref import simple_server, handlers
