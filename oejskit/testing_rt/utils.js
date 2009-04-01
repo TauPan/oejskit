@@ -26,10 +26,10 @@ function insertTestNode() {
         caller = caller.caller
     }
 
-    var title = SPAN({"style": "color: red;"}, testName || firstName || "?")
+    var title = SPAN({"style": "color: #1594C2;"}, testName || firstName || "?")
     var testDiv = DIV()
 
-    var cont = DIV({"style": "border: solid 1px red; margin-bottom: 1em; " }, 
+    var cont = DIV({"style": "border: solid 1px #1594C2; margin-bottom: 1em; " }, 
                    title, testDiv)
 
     appendChildNodes(body, cont)
