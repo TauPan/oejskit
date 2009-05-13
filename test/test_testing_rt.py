@@ -52,11 +52,11 @@ class BrowserTests(BrowserTestClass):
 class TestFirefox(BrowserTests):
     browserKind = "firefox"
 
-class TestIExplore(BrowserTests):
-    browserKind = "iexplore"
+#class TestIExplore(BrowserTests):
+#    browserKind = "iexplore"
 
-class TestSafari(BrowserTests):
-    browserKind = "safari"
+#class TestSafari(BrowserTests):
+#    browserKind = "safari"
 
 # ________________________________________________________________
 
@@ -200,9 +200,9 @@ class RunningTestTests(BrowserTestClass):
 class TestRunningTestFirefox(RunningTestTests):
     browserKind = "firefox"
 
-class TestRunningTestIExplore(RunningTestTests):
-    browserKind = "iexplore"        
+#class TestRunningTestIExplore(RunningTestTests):
+#    browserKind = "iexplore"        
 
-class TestRunningTestSafari(RunningTestTests):
-    browserKind = "safari"
+#class TestRunningTestSafari(RunningTestTests):
+#    browserKind = "safari"
 

@@ -14,8 +14,8 @@ class UtilsTests(BrowserTestClass):
 class TestUtilsFirefox(UtilsTests):
     browserKind = "firefox"
 
-class TestUtilsIExplore(UtilsTests):
-    browserKind = "iexplore"        
+#class TestUtilsIExplore(UtilsTests):
+#    browserKind = "iexplore"        
 
-class TestUtilsSafari(UtilsTests):
-    browserKind = "safari"
+#class TestUtilsSafari(UtilsTests):
+#    browserKind = "safari"

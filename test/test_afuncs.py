@@ -14,8 +14,8 @@ class AFuncsTests(BrowserTestClass):
 class TestAFuncsFirefox(AFuncsTests):
     browserKind = "firefox"
 
-class TestAFuncsIExplore(AFuncsTests):
-    browserKind = "iexplore"        
+#class TestAFuncsIExplore(AFuncsTests):
+#    browserKind = "iexplore"        
 
-class TestAFuncsSafari(AFuncsTests):
-    browserKind = "safari"
+#class TestAFuncsSafari(AFuncsTests):
+#    browserKind = "safari"
