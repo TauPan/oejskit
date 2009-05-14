@@ -1,11 +1,8 @@
 import oejskit.testing
-from oejskit.testing import InBrowserSupport, inBrowser, JsFailed
+from oejskit.testing import BrowserTestClass, inBrowser, JsFailed
 
-class BrowserSupport(InBrowserSupport):
-    from oejskit.wsgi import WSGIServerSide
-    
-
-BrowserSupport.install(globals())
+class jstests_setup:
+    from oejskit.wsgi import WSGIServerSide as ServerSide
 
 
 class IntegrationStyleTests(BrowserTestClass):
@@ -20,6 +17,6 @@ class IntegrationStyleTests(BrowserTestClass):
                                 'test_integration_style.js', root=ok)    
 
 class TestIntegrationStyleFirefo(IntegrationStyleTests):
-    browserKind = 'firefox'
+    jstests_browser_kind = 'firefox'
 
 # ...

@@ -1,8 +1,5 @@
 import py
-from oejskit.testing import InBrowserSupport, inBrowser
-
-InBrowserSupport.install(globals())
-
+from oejskit.testing import BrowserTestClass, inBrowser
 
 class UtilsTests(BrowserTestClass):
 
@@ -12,10 +9,10 @@ class UtilsTests(BrowserTestClass):
 
 
 class TestUtilsFirefox(UtilsTests):
-    browserKind = "firefox"
+    jstests_browser_kind = "firefox"
 
 #class TestUtilsIExplore(UtilsTests):
-#    browserKind = "iexplore"        
+#    jstests_browser_kind = "iexplore"        
 
 #class TestUtilsSafari(UtilsTests):
-#    browserKind = "safari"
+#    jstests_browser_kind = "safari"

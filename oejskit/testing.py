@@ -27,6 +27,8 @@ class SetupBag(object):
         for prefix, typ in self._configs:
             cfg[prefix] = typ()
         for source in sources:
+            if not source:
+                continue
             for name in dir(source):
                 for prefix, typ in self._configs:
                     if name.startswith(prefix):
@@ -41,29 +43,10 @@ try:
 except KeyError:
     libDir = os.environ['WEBLIB'] # !
 
-# xxx kill
-class InBrowserSupport(object):
-    ServerSide = None
-    # !
-    staticDirs = { '/lib': libDir,
-                   '/browser_testing/rt': rtDir,
-                   '/oe-js': jsDir }                           
-    jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
 
-    @classmethod
-    def install(supportCls, modDict):
-        inst = supportCls()
-        mod_path = os.path.dirname(modDict['__file__'])
-        
-        inst.staticDirsTest = {'/test/': mod_path}
-        inst.jsReposTest = ['/test']
+class BrowserTestClass(BrowserController):
+    jstests_browser_kind = None
 
-        modDict['jstests_setup'] = inst
-
-        class BrowserTestClass(BrowserController):
-            browserKind = None
-
-        modDict['BrowserTestClass'] = BrowserTestClass
 
 # ________________________________________________________________
 
@@ -89,20 +72,23 @@ def inBrowser(test):
 # ________________________________________________________________
 
 class DefaultJsTestsSetup:
-    serverSide = None
-
+    ServerSide = None
+    # !
+    staticDirs = { '/lib': libDir,
+                   '/browser_testing/rt': rtDir,
+                   '/oe-js': jsDir }                           
+    jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
+    
 def _get_jstests_setup(item):
     module = item._getparent(py.test.collect.Module).obj
     plugins = item.config.pluginmanager.getplugins()
     plugins.append(module)
     setup = item.config.pluginmanager.listattr(attrname='jstests_setup',
                                                plugins=plugins)[-1]
-    if setup is None:
-        return DefaultJsTestsSetup
     return setup
 
 def _get_serverSide(item):
-    setup = _get_jstests_setup(item)
+    setup = _get_jstests_setup(item) or DefaultJsTestsSetup
     serverSide = setup.ServerSide
     if serverSide is None:
         serverSide = py.test.config.option.jstests_server_side
@@ -137,8 +123,7 @@ def attachBrowser(item):
         return
     
     modCollector = item._getparent(py.test.collect.Module)
-    browserKind = (getattr(cls, 'jstests_browser_kind', None) or
-                   getattr(cls, 'browserKind')) # xxx kill legacy
+    browserKind = getattr(cls, 'jstests_browser_kind')
                    
     # xxx wrong place
     if browserKind == 'iexplore' and sys.platform != 'win32':
@@ -150,12 +135,17 @@ def attachBrowser(item):
 
     setup = _get_jstests_setup(item)
 
+    mod_path = os.path.dirname(modCollector.obj.__file__)
+    class modSetup:    
+        staticDirsTest = {'/test/': mod_path}
+        jsReposTest = ['/test']        
+
     if not hasattr(modCollector, '_jstests_app'):
-        bootstrapSetupBag = SetupBag(setup)
+        bootstrapSetupBag = SetupBag(DefaultJsTestsSetup, setup, modSetup)
         app = ServeTesting(bootstrapSetupBag, rtDir)
         modCollector._jstests_app = app
 
-    setupBag = SetupBag(setup, cls)
+    setupBag = SetupBag(DefaultJsTestsSetup, setup, modSetup, cls)
     modName = modCollector.obj.__name__
 
     cls.browser = browser    

@@ -25,8 +25,7 @@ class JstestsPlugin(object):
     def pytest_pycollect_obj(self, collector, name, obj):
         if (collector.classnamefilter(name)) and \
             py.std.inspect.isclass(obj) and \
-            (hasattr(obj, 'jstests_browser_kind') or \
-             hasattr(obj, 'browserKind')):
+            hasattr(obj, 'jstests_browser_kind'):
             return ClassWithBrowser(name, parent=collector)
         return None
 

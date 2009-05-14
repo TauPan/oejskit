@@ -2,9 +2,7 @@ import py
 import sys, os
 
 import oejskit.testing
-from oejskit.testing import InBrowserSupport, inBrowser, JsFailed
-
-InBrowserSupport.install(globals())
+from oejskit.testing import BrowserTestClass, inBrowser, JsFailed
 
 
 class BrowserTests(BrowserTestClass):
@@ -50,13 +48,13 @@ class BrowserTests(BrowserTestClass):
         py.test.raises(JsFailed, pg.eval, "bar()")
 
 class TestFirefox(BrowserTests):
-    browserKind = "firefox"
+    jstests_browser_kind = "firefox"
 
 #class TestIExplore(BrowserTests):
-#    browserKind = "iexplore"
+#    jstests_browser_kind = "iexplore"
 
 #class TestSafari(BrowserTests):
-#    browserKind = "safari"
+#    jstests_browser_kind = "safari"
 
 # ________________________________________________________________
 
@@ -145,7 +143,7 @@ class RunningTestTests(BrowserTestClass):
         assert result['name'] == "test_leak"
         assert result['result']
         expected = ['LEAK']
-        if self.browserKind == 'iexplore':
+        if self.jstests_browser_kind == 'iexplore':
             expected = [] # name leak detection is not attempted on IE :(
         assert result['leakedNames'] == expected
 
@@ -198,11 +196,11 @@ class RunningTestTests(BrowserTestClass):
         assert res == "end"
 
 class TestRunningTestFirefox(RunningTestTests):
-    browserKind = "firefox"
+    jstests_browser_kind = "firefox"
 
 #class TestRunningTestIExplore(RunningTestTests):
-#    browserKind = "iexplore"        
+#    jstests_browser_kind = "iexplore"        
 
 #class TestRunningTestSafari(RunningTestTests):
-#    browserKind = "safari"
+#    jstests_browser_kind = "safari"
 
