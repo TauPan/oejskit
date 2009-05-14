@@ -174,7 +174,7 @@ class Browser(object):
         self.serverSide.shutdown()
 
 try:
-    reuse_windows = py.test.config.getvalue("js_tests_reuse_browser_windows")
+    reuse_windows = py.test.config.getvalue("jstests_reuse_browser_windows")
 except KeyError:
     reuse_windows = False
 
