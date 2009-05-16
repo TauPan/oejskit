@@ -3,3 +3,4 @@
 - simplify setup of browser controllers (?)
 - documentation!!!
 - integrate browser.py from OE other development line
+- what about looponfail and browsers teardown ??
