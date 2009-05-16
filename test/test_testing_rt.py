@@ -148,45 +148,18 @@ class RunningTestTests(BrowserTestClass):
         assert result['leakedNames'] == expected
 
     def test_gather(self):
-        res, runner = self.gatherTests("/test/examples/test_inBrowser.html")
+        b = self.browser
+        res, runner = b._gatherTests("/test/examples/test_inBrowser.html",
+                                     self.setupBag)
         assert res == ['test_failure', 'test_success']
         failed = False
-        runner.runOneTest('test_success')
+        runner._runTest('test_success', None, None)
 
-        failure = py.test.raises(JsFailed, runner.runOneTest, 'test_failure')
+        failure = py.test.raises(JsFailed, runner._runTest, 'test_failure',
+                                                             None, None)
         jsfailed = failure.value
         assert jsfailed.name == 'test_failure'
         assert jsfailed.msg.startswith("FAILED: 2 == 1")
-
-    def test_inBrowser(self):
-        @inBrowser
-        def test_inBrowser():
-            return self.gatherTests("/test/examples/test_inBrowser.html")
-
-        resultGen = test_inBrowser() # generator
-
-        passed = 0
-        failed = 0
-
-        for name, run, _ in resultGen:
-            if 'test_success' in name:
-                run(name)
-                passed += 1
-            else:             
-                failure = py.test.raises(JsFailed, run, name)
-                jsfailed = failure.value
-                assert jsfailed.name == 'test_failure'
-                assert jsfailed.msg.startswith("FAILED: 2 == 1")
-                failed += 1
-
-        assert passed == 1
-        assert failed == 1
-
-    # example
-    #@inBrowser
-    #def test_inBrowser(self):
-    #    browser = self.browser
-    #    return browser.gatherTests("/test/examples/test_inBrowser.html")
 
     def test_load(self):
         self.runTests("/browser_testing/load/test/examples/test_load.js")

@@ -1,3 +1,5 @@
+import py
+
 import oejskit.testing
 from oejskit.testing import BrowserTestClass, inBrowser, JsFailed
 
@@ -9,6 +11,7 @@ class IntegrationStyleTests(BrowserTestClass):
 
     @inBrowser
     def test_serve_and_get(self):
+        py.test.skip("WIP, broken style")
         def ok(environ, start_response):
             start_response('200 OK', [('content-type', 'text/plain')])
             return ['ok\n']

@@ -1,12 +1,11 @@
 import py
-from oejskit.testing import BrowserTestClass, inBrowser
+from oejskit.testing import BrowserTestClass, jstests_suite
 
 class AFuncsTests(BrowserTestClass):
 
-    @inBrowser
+    @jstests_suite('test_afuncs.js')
     def test_inbrowser(self):
-        return self.gatherTests("/browser_testing/load/test/test_afuncs.js")
-
+        return
 
 class TestAFuncsFirefox(AFuncsTests):
     jstests_browser_kind = "firefox"

@@ -116,11 +116,13 @@ def cleanupBrowsers(modCollector):
         serverSide = _get_serverSide(modCollector)
         serverSide.cleanup()
 
-def attachBrowser(item):
+def giveBrowser(item):
+    try:
+        return item._jstests_browser, item._jstests_setupBag
+    except AttributeError:
+        pass
+
     cls = item.obj
-    
-    if getattr(cls, 'browser'):
-        return
     
     modCollector = item._getparent(py.test.collect.Module)
     browserKind = getattr(cls, 'jstests_browser_kind')
@@ -148,7 +150,15 @@ def attachBrowser(item):
     setupBag = SetupBag(DefaultJsTestsSetup, setup, modSetup, cls)
     modName = modCollector.obj.__name__
 
-    cls.browser = browser    
-    cls.browser.prepare(modCollector._jstests_app, modName)
-                
-    cls.setupBag = setupBag
+    browser.prepare(modCollector._jstests_app, modName)
+
+    item._jstests_browser = browser
+    item._jstests_setupBag = setupBag
+
+    return browser, setupBag
+
+def jstests_suite(url):
+    def decorate(func):
+        func._jstests_suite_url = url
+        return func
+    return decorate

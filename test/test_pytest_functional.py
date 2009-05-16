@@ -36,3 +36,4 @@ def test_run(testdir, monkeypatch):
     result.stdout.fnmatch_lines(["*test_js.py .."])
 
 # xxx collectonly test
+# xxx test failure

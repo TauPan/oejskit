@@ -1,11 +1,11 @@
 import py
-from oejskit.testing import BrowserTestClass, inBrowser
+from oejskit.testing import BrowserTestClass, jstests_suite
 
 class UtilsTests(BrowserTestClass):
 
-    @inBrowser
+    @jstests_suite('test_utils.js')
     def test_inbrowser(self):
-        return self.gatherTests("/browser_testing/load/test/test_utils.js")
+        pass
 
 
 class TestUtilsFirefox(UtilsTests):

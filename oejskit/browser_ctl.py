@@ -167,6 +167,11 @@ class Browser(object):
             self.app.reset()
 
         return self.app.getResult(discrim)
+
+    def _gatherTests(self, url, setupBag):
+        res = self.send('InBrowserTesting.collectTests(%r)' % url,
+                        discrim="%s@collect" % url)
+        return res, PageContext(self, setupBag,  None, url)
         
     def shutdown(self, killBrowser=False):
         if killBrowser and self.process:
@@ -218,37 +223,42 @@ class JsFailed(Exception):
     def __str__(self):
         return "%s: %s" % (self.name, self.msg)
 
+class _BrowserController(object):
+    browser = None
+    setupBag = None
 
-class PageContext(object):
+    def send(self, action, discrim=None, root=None, timeout=None):
+        return self.browser.send(action, discrim=discrim, root=root,
+                                 setupBag=self.setupBag, timeout=timeout)
 
-    def __init__(self, browserController, root, url, timeout, index=None):
-        self.browserController = browserController
+class PageContext(_BrowserController):
+
+    def __init__(self, browser, setupBag, root, url, timeout=None, index=None):
+        self.browser = browser
+        self.setupBag = setupBag
         self.root = root
         self.timeout = timeout
         self.url = url
         self.count = 0
         self.index = index
 
-    def _execute(self, method, argument):
+    def _execute(self, method, argument, root, timeout):
         n = self.count
         self.count += 1
-        browser = self.browserController.browser
-        setupBag = self.browserController.setupBag
-        outcome = browser.send('InBrowserTesting.%s(%r, %s, %d)' %
+        outcome = self.send('InBrowserTesting.%s(%r, %s, %d)' %
                          (method, self.url, simplejson.dumps(argument), n),
                          discrim="%s@%d" % (self.url, n),
-                         root = self.root, setupBag=setupBag,
-                         timeout=self.timeout)
+                         root=root, timeout=timeout)
         return outcome
         
     def eval(self, js):
-        outcome = self._execute('eval', js)
+        outcome = self._execute('eval', js, self.root, self.timeout)
         if outcome.get('error'):
             raise JsFailed('[%s] %s' % (self.url, js), outcome['error'])
         return outcome['result']
 
-    def runOneTest(self, name):
-        outcome = self._execute('runOneTest', name)
+    def _runTest(self, name, root, timeout):
+        outcome = self._execute('runOneTest', name, root, timeout)
         if not outcome['result']:
             raise JsFailed(name, outcome['diag'])
         if outcome['leakedNames']:
@@ -256,34 +266,19 @@ class PageContext(object):
                                                        outcome['leakedNames']))
         
 
-class BrowserController(object):
-    browser = None
-    setupBag = None
-    default_root = None
-
-    def send(self, action, discrim=None, root=None, timeout=None):
-        root = root or self.default_root        
-        return self.browser.send(action, discrim=discrim, root=root,
-                                 setupBag=self.setupBag, timeout=timeout)
+class BrowserController(_BrowserController):
 
     def open(self, url, root=None, timeout=None):
         """
         open url in a sub-iframe of the browser testing page.
         the iframe for a url is reused!
         """
-        root = root or self.default_root
         res = self.send('InBrowserTesting.open(%r)' % url,
                         root=root, discrim=url, timeout=timeout)
-        return PageContext(self, root, url, timeout, res['panel'])
-
-    def gatherTests(self, url, root=None, timeout=None):
-        root = root or self.default_root
-        res = self.send('InBrowserTesting.collectTests(%r)' % url,
-                        discrim="%s@collect" % url, root = root,
-                        timeout=timeout)
-        return res, PageContext(self, root, url, timeout)
+        return PageContext(self.browser, self.setupBag, root, url,
+                                                        timeout, res['panel'])
 
     def runTests(self, url, root=None, timeout=None):
-        names, runner = self.gatherTests(url, root, timeout=timeout)
+        names, runner = self.browser._gatherTests(url, self.setupBag)
         for name in names:
-            runner.runOneTest(name)
+            runner._runTest(name, root, timeout)
