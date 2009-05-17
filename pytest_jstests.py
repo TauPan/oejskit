@@ -31,7 +31,7 @@ class JstestsPlugin(object):
             return JsTestSuite(name, parent=collector)
         return None
 
-    # xxx this really wants a teardown hook, both for --collectonly
+    # XXX this really wants a teardown hook, both for --collectonly
     # and runs
     def pytest_collectreport(self, rep):
         if isinstance(rep.colitem, py.test.collect.Module):
@@ -78,9 +78,9 @@ class JsTestSuite(py.test.collect.Collector):
 
     def _getsortvalue(self):
         return self.reportinfo()
-    # /xxx
+    # /XXX
 
-    def _getparent(self, cls): # xxx bad
+    def _getparent(self, cls): # XXX bad
         current = self
         while current and not isinstance(current, cls):
             current = current.parent
@@ -91,7 +91,7 @@ class JsTestSuite(py.test.collect.Collector):
         assert isinstance(self.parent, py.test.collect.Instance)
         self.parent.newinstance()
         self.obj = getattr(self.parent.obj, self.name)
-        from py.__.test.funcargs import fillfuncargs
+        from py.__.test.funcargs import fillfuncargs # XXX
         fillfuncargs(self)
         self._root = self.obj(**self.funcargs)
     
@@ -138,6 +138,6 @@ class JsTest(py.test.collect.Function):
     def _getsortvalue(self):
         fspath, lineno = self.parent._getfslineno()
         return fspath, lineno, self.name
-    # /xxx
+    # /XXX
 
 
