@@ -113,7 +113,7 @@ class JsTestSuite(py.test.collect.Collector):
         assert isinstance(clsitem, py.test.collect.Class)
         browser, setupBag = giveBrowser(clsitem)
         url = obj._jstests_suite_url
-        if not url.startswith('/'):
+        if not url.startswith('/'): # xxx wrong level
             url = "/browser_testing/load/test/%s" % url
         names, runner = browser._gatherTests(url, setupBag)
 
