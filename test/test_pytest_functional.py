@@ -3,20 +3,19 @@ import py
 
 pytest_plugins = ["pytester"]
 
-@py.test.mark.xfail("failing because of generator tests shortcomings")
 def test_run(testdir, monkeypatch):
     monkeypatch.setenv('PYTHONPATH',
                        py.path.local(__file__).dirpath().dirpath())
     
     p = testdir.makepyfile(test_js = """
-    from oejskit.testing import BrowserTestClass, inBrowser
+    from oejskit.testing import BrowserTestClass, jstests_suite
 
     class TestFirefox(BrowserTestClass):
          jstests_browser_kind = "firefox"
 
-         @inBrowser
+         @jstests_suite('test_tests.js')
          def test_tests(self):
-             return self.gatherTests("/browser_testing/load/test/test_tests.js")
+             pass
 
     """)
 

@@ -1,25 +1,26 @@
 import py
 
 import oejskit.testing
-from oejskit.testing import BrowserTestClass, inBrowser, JsFailed
+from oejskit.testing import BrowserTestClass, jstests_suite
 
 class jstests_setup:
     from oejskit.wsgi import WSGIServerSide as ServerSide
 
 
+def pytest_funcarg__ok_str(request):
+    return "ok\n"
+
 class IntegrationStyleTests(BrowserTestClass):
 
-    @inBrowser
-    def test_serve_and_get(self):
-        py.test.skip("WIP, broken style")
+    @jstests_suite('test_integration_style.js')
+    def test_serve_and_get(self, ok_str):
         def ok(environ, start_response):
             start_response('200 OK', [('content-type', 'text/plain')])
-            return ['ok\n']
+            return [ok_str]
 
-        return self.gatherTests('/browser_testing/load/test/'
-                                'test_integration_style.js', root=ok)    
+        return ok
 
-class TestIntegrationStyleFirefo(IntegrationStyleTests):
+class TestIntegrationStyleFirefox(IntegrationStyleTests):
     jstests_browser_kind = 'firefox'
 
 # ...

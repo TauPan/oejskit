@@ -31,9 +31,10 @@ class JstestsPlugin(object):
             return JsTestSuite(name, parent=collector)
         return None
 
+    # xxx this really wants a teardown hook, both for --collectonly
+    # and runs
     def pytest_collectreport(self, rep):
         if isinstance(rep.colitem, py.test.collect.Module):
-            print "^^^^^ CLEANUP ^^^^^" 
             from oejskit.testing import cleanupBrowsers
             cleanupBrowsers(rep.colitem.obj.__dict__)
 
@@ -47,11 +48,20 @@ class ClassWithBrowser(py.test.collect.Class):
         self.obj.setupBag = setupBag
         super(py.test.collect.Class, self).setup()
 
+# xxx too much duplication with the pylib itself
+
 class JsTestSuite(py.test.collect.Collector):
+    # this is a mixture between a collector, a setup method
+    # and a function item (it makes sense but it's messy to implement
+    # right now)
 
     def __init__(self, name, parent):
         super(JsTestSuite, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
+        self._root = None
+        self._finalizers = []
+        self._args = None
+        self.funcargs = {}
 
     def _getfslineno(self):
         try:
@@ -69,6 +79,32 @@ class JsTestSuite(py.test.collect.Collector):
     def _getsortvalue(self):
         return self.reportinfo()
     # /xxx
+
+    def _getparent(self, cls): # xxx bad
+        current = self
+        while current and not isinstance(current, cls):
+            current = current.parent
+        return current 
+
+    def setup(self):
+        self._root = None
+        assert isinstance(self.parent, py.test.collect.Instance)
+        self.parent.newinstance()
+        self.obj = getattr(self.parent.obj, self.name)
+        from py.__.test.funcargs import fillfuncargs
+        fillfuncargs(self)
+        self._root = self.obj(**self.funcargs)
+    
+    def addfinalizer(self, func):
+        self._finalizers.append(func)
+        
+    def teardown(self):
+        finalizers = self._finalizers
+        while finalizers:
+            call = finalizers.pop()
+            call()
+        super(py.test.collect.Collector, self).teardown()
+        self._root = None
         
     def collect(self):
         from oejskit.testing import giveBrowser        
@@ -80,13 +116,15 @@ class JsTestSuite(py.test.collect.Collector):
         if not url.startswith('/'):
             url = "/browser_testing/load/test/%s" % url
         names, runner = browser._gatherTests(url, setupBag)
-        # xxx root, funcargs for original function
+
+        def runTest(jstest):
+            runner._runTest(jstest, self._root, None)
+            
         l = []
         for jstest in names:
             name = "[%s]" % jstest
             function = JsTest(name=name, parent=self, 
-                              args=(jstest, None, None),
-                              callobj=runner._runTest)
+                              args=(jstest,), callobj=runTest)
             l.append(function)
         return l
 
