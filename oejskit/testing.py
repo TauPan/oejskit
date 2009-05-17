@@ -38,6 +38,7 @@ class SetupBag(object):
 
 rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 
+# xxx too early
 try:
     libDir = py.test.config.getvalue("jstests_weblib")
 except KeyError:
@@ -46,28 +47,6 @@ except KeyError:
 
 class BrowserTestClass(BrowserController):
     jstests_browser_kind = None
-
-
-# ________________________________________________________________
-
-def inBrowser(test):
-    """
-    py.test decorator, expects a test function returning the results of
-    a browser.runTests invocation, produces a generative test
-    reflecting back the browser-side tests one by one
-    """
-    overallName = test.__name__
-            
-    def runInBrowserTests(*args):
-        names, runner = test(*args)
-        assert names, ("%r no tests from the page: something is wrong" %
-                        runner.url)
-        for name in names:
-                yield name, runner.runOneTest, name
-
-    runInBrowserTests.__name__ = overallName
-    runInBrowserTests.place_as = test
-    return runInBrowserTests
 
 # ________________________________________________________________
 

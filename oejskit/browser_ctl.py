@@ -176,6 +176,7 @@ class Browser(object):
     def shutdown(self):
         self.serverSide.shutdown()
 
+# xxx too early
 try:
     reuse_windows = py.test.config.getvalue("jstests_reuse_browser_windows")
 except KeyError:

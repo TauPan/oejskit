@@ -2,7 +2,7 @@ import py
 import sys, os
 
 import oejskit.testing
-from oejskit.testing import BrowserTestClass, inBrowser, JsFailed
+from oejskit.testing import BrowserTestClass, JsFailed
 
 
 class BrowserTests(BrowserTestClass):
