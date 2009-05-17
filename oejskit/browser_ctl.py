@@ -173,9 +173,7 @@ class Browser(object):
                         discrim="%s@collect" % url)
         return res, PageContext(self, setupBag,  None, url)
         
-    def shutdown(self, killBrowser=False):
-        if killBrowser and self.process:
-            raise NotImplementedError
+    def shutdown(self):
         self.serverSide.shutdown()
 
 try:

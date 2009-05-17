@@ -33,6 +33,7 @@ class JstestsPlugin(object):
 
     def pytest_collectreport(self, rep):
         if isinstance(rep.colitem, py.test.collect.Module):
+            print "^^^^^ CLEANUP ^^^^^" 
             from oejskit.testing import cleanupBrowsers
             cleanupBrowsers(rep.colitem.obj.__dict__)
 
@@ -47,16 +48,34 @@ class ClassWithBrowser(py.test.collect.Class):
         super(py.test.collect.Class, self).setup()
 
 class JsTestSuite(py.test.collect.Collector):
-    # xxx sorting
 
     def __init__(self, name, parent):
         super(JsTestSuite, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
+
+    def _getfslineno(self):
+        try:
+            return self._fslineno
+        except AttributeError:
+            pass
+        self._fslineno = py.code.getfslineno(self.obj)
+        return self._fslineno
+
+    # xxx
+    def reportinfo(self):
+        fspath, lineno = self._getfslineno()
+        return fspath, lineno, self.name
+
+    def _getsortvalue(self):
+        return self.reportinfo()
+    # /xxx
         
     def collect(self):
         from oejskit.testing import giveBrowser        
         obj = self.obj
-        browser, setupBag = giveBrowser(self.parent.parent) # XXX assumption
+        clsitem = self.parent.parent
+        assert isinstance(clsitem, py.test.collect.Class)
+        browser, setupBag = giveBrowser(clsitem)
         url = obj._jstests_suite_url
         if not url.startswith('/'):
             url = "/browser_testing/load/test/%s" % url
@@ -64,10 +83,23 @@ class JsTestSuite(py.test.collect.Collector):
         # xxx root, funcargs for original function
         l = []
         for jstest in names:
-            name = "%s[%s]" %(self.name, jstest)
-            function = self.parent.Function(name=name, parent=self, 
-                                            args=(jstest, None, None),
-                                            callobj=runner._runTest)
+            name = "[%s]" % jstest
+            function = JsTest(name=name, parent=self, 
+                              args=(jstest, None, None),
+                              callobj=runner._runTest)
             l.append(function)
-        return l 
+        return l
+
+class JsTest(py.test.collect.Function):
+
+    # xxx
+    def reportinfo(self):
+        fspath, lineno = self.parent._getfslineno()
+        return fspath, lineno, self.getmodpath()
+
+    def _getsortvalue(self):
+        fspath, lineno = self.parent._getfslineno()
+        return fspath, lineno, self.name
+    # /xxx
+
 
