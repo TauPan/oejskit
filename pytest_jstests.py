@@ -130,14 +130,9 @@ class JsTestSuite(py.test.collect.Collector):
 
 class JsTest(py.test.collect.Function):
 
-    # xxx
     def reportinfo(self):
         fspath, lineno = self.parent._getfslineno()
         return fspath, lineno, self.getmodpath()
 
-    def _getsortvalue(self):
-        fspath, lineno = self.parent._getfslineno()
-        return fspath, lineno, self.name
-    # /XXX
 
 
