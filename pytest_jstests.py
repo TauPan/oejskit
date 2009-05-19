@@ -3,41 +3,43 @@
 # See LICENSE.txt
 #
 import py
-        
 
-class JstestsPlugin(object):
 
-    jstests_setup = None
+# hooks
 
-    def pytest_addoption(self, parser):
-        group = parser.addgroup("jstests", "oejskit test suite options")
-        group.addoption(
-            "--jstests-server-side", action="store",
-            dest="jstests_server_side",
-            type="string",
-            default="oejskit.wsgi.WSGIServerSide"
-            )
-        group.addoption(
-            "--jstests-reuse-browser-windows", action="store_true",
-            dest="jstests_reuse_browser_windows",
-            )
+jstests_setup = None
 
-    def pytest_pycollect_obj(self, collector, name, obj):
-        if (collector.classnamefilter(name)) and \
-            py.std.inspect.isclass(obj) and \
-            hasattr(obj, 'jstests_browser_kind'):
-            return ClassWithBrowser(name, parent=collector)
-        if hasattr(obj, '_jstests_suite_url'):
-            return JsTestSuite(name, parent=collector)
-        return None
+def pytest_addoption(parser):
+    group = parser.addgroup("jstests", "oejskit test suite options")
+    group.addoption(
+        "--jstests-server-side", action="store",
+        dest="jstests_server_side",
+        type="string",
+        default="oejskit.wsgi.WSGIServerSide"
+        )
+    group.addoption(
+        "--jstests-reuse-browser-windows", action="store_true",
+        dest="jstests_reuse_browser_windows",
+        )
 
-    # XXX this really wants a teardown hook, both for --collectonly
-    # and runs
-    def pytest_collectreport(self, rep):
-        if isinstance(rep.colitem, py.test.collect.Module):
-            from oejskit.testing import cleanupBrowsers
-            cleanupBrowsers(rep.colitem.obj.__dict__)
+def pytest_pycollect_obj(collector, name, obj):
+    if (collector.classnamefilter(name)) and \
+        py.std.inspect.isclass(obj) and \
+        hasattr(obj, 'jstests_browser_kind'):
+        return ClassWithBrowser(name, parent=collector)
+    if hasattr(obj, '_jstests_suite_url'):
+        return JsTestSuite(name, parent=collector)
+    return None
 
+# XXX this really wants a teardown hook, both for --collectonly
+# and runs
+def pytest_collectreport(rep):
+    if isinstance(rep.colitem, py.test.collect.Module):
+        from oejskit.testing import cleanupBrowsers
+        cleanupBrowsers(rep.colitem.obj.__dict__)
+
+# ________________________________________________________________
+# items
 
 class ClassWithBrowser(py.test.collect.Class):
 
