@@ -50,8 +50,6 @@ class ClassWithBrowser(py.test.collect.Class):
         self.obj.setupBag = setupBag
         super(py.test.collect.Class, self).setup()
 
-# xxx too much duplication with the pylib itself
-
 class JsTestSuite(py.test.collect.Collector):
     # this is a mixture between a collector, a setup method
     # and a function item (it makes sense but it's messy to implement
@@ -73,14 +71,9 @@ class JsTestSuite(py.test.collect.Collector):
         self._fslineno = py.code.getfslineno(self.obj)
         return self._fslineno
 
-    # xxx
     def reportinfo(self):
         fspath, lineno = self._getfslineno()
         return fspath, lineno, self.name
-
-    def _getsortvalue(self):
-        return self.reportinfo()
-    # /XXX
 
     def setup(self):
         self._root = None
