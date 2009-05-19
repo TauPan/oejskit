@@ -59,7 +59,7 @@ class DefaultJsTestsSetup:
     jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
     
 def _get_jstests_setup(item):
-    module = item._getparent(py.test.collect.Module).obj
+    module = item.getparent(py.test.collect.Module).obj
     plugins = item.config.pluginmanager.getplugins()
     plugins.append(module)
     setup = item.config.pluginmanager.listattr(attrname='jstests_setup',
@@ -103,7 +103,7 @@ def giveBrowser(item):
 
     cls = item.obj
     
-    modCollector = item._getparent(py.test.collect.Module)
+    modCollector = item.getparent(py.test.collect.Module)
     browserKind = getattr(cls, 'jstests_browser_kind')
                    
     # xxx wrong place

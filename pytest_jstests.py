@@ -82,12 +82,6 @@ class JsTestSuite(py.test.collect.Collector):
         return self.reportinfo()
     # /XXX
 
-    def _getparent(self, cls): # XXX bad
-        current = self
-        while current and not isinstance(current, cls):
-            current = current.parent
-        return current 
-
     def setup(self):
         self._root = None
         assert isinstance(self.parent, py.test.collect.Instance)
