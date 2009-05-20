@@ -59,7 +59,6 @@ class JsTestSuite(py.test.collect.Collector):
         super(JsTestSuite, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
         self._root = None
-        self._finalizers = []
         self._args = None
         self.funcargs = {}
 
@@ -83,15 +82,8 @@ class JsTestSuite(py.test.collect.Collector):
         from py.__.test.funcargs import fillfuncargs # XXX
         fillfuncargs(self)
         self._root = self.obj(**self.funcargs)
-    
-    def addfinalizer(self, func):
-        self._finalizers.append(func)
-        
+            
     def teardown(self):
-        finalizers = self._finalizers
-        while finalizers:
-            call = finalizers.pop()
-            call()
         super(py.test.collect.Collector, self).teardown()
         self._root = None
         
