@@ -38,22 +38,25 @@ class SetupBag(object):
 
 rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 
-# xxx too early
-try:
-    libDir = py.test.config.getvalue("jstests_weblib")
-except KeyError:
-    libDir = os.environ['WEBLIB'] # !
+def defaultJsTestsSetup():
+    try:
+        libDir = py.test.config.getvalue("jstests_weblib")
+    except KeyError:
+        libDir = os.environ['WEBLIB'] # !
+    
+    class DefaultJsTestsSetup:
+        ServerSide = None
+        # !
+        staticDirs = { '/lib': libDir,
+                       '/browser_testing/rt': rtDir,
+                       '/oe-js': jsDir }                           
+        jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
 
+    return DefaultJsTestsSetup
+
+    
 # ________________________________________________________________
 
-class DefaultJsTestsSetup:
-    ServerSide = None
-    # !
-    staticDirs = { '/lib': libDir,
-                   '/browser_testing/rt': rtDir,
-                   '/oe-js': jsDir }                           
-    jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
-    
 def _get_jstests_setup(item):
     module = item.getparent(py.test.collect.Module).obj
     plugins = item.config.pluginmanager.getplugins()
@@ -63,7 +66,9 @@ def _get_jstests_setup(item):
     return setup
 
 def _get_serverSide(item):
-    setup = _get_jstests_setup(item) or DefaultJsTestsSetup
+    setup = _get_jstests_setup(item)
+    if not setup:
+        setup = defaultJsTestsSetup()
     serverSide = setup.ServerSide
     if serverSide is None:
         serverSide = py.test.config.option.jstests_server_side
@@ -117,12 +122,14 @@ def giveBrowser(item):
         staticDirsTest = {'/test/': mod_path}
         jsReposTest = ['/test']        
 
+    defaultSetup = defaultJsTestsSetup()
+
     if not hasattr(modCollector, '_jstests_app'):
-        bootstrapSetupBag = SetupBag(DefaultJsTestsSetup, setup, modSetup)
+        bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
         app = ServeTesting(bootstrapSetupBag, rtDir)
         modCollector._jstests_app = app
 
-    setupBag = SetupBag(DefaultJsTestsSetup, setup, modSetup, cls)
+    setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
     modName = modCollector.obj.__name__
 
     browser.prepare(modCollector._jstests_app, modName)
