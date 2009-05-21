@@ -115,7 +115,6 @@ class JsTestSuite(py.test.collect.Collector):
         super(JsTestSuite, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
         self._root = None
-        self._args = None
         self.funcargs = {}
 
     def _getfslineno(self):
@@ -135,8 +134,7 @@ class JsTestSuite(py.test.collect.Collector):
         assert isinstance(self.parent, py.test.collect.Instance)
         self.parent.newinstance()
         self.obj = getattr(self.parent.obj, self.name)
-        from py.__.test.funcargs import fillfuncargs # XXX
-        fillfuncargs(self)
+        py.test.collect._fillfuncargs(self)
         self._root = self.obj(**self.funcargs)
             
     def teardown(self):
