@@ -2,7 +2,7 @@
 # Copyright (C) Open End AB 2007-2009, All rights reserved
 # See LICENSE.txt
 #
-import py
+import py, os
 
 
 # hooks
@@ -31,23 +31,77 @@ def pytest_pycollect_obj(collector, name, obj):
         return JsTestSuite(name, parent=collector)
     return None
 
-# XXX this really wants a teardown hook, both for --collectonly
-# and runs
-def pytest_collectreport(rep):
-    if isinstance(rep.colitem, py.test.collect.Module):
+class RunState:
+
+    def __init__(self, modcol):
+        self.modcol = modcol
+
+    def getglobal(self, name):
+        try:
+            return self.modcol.config.getvalue(name)
+        except KeyError:
+            raise AttributeError(name)
+
+    def getscoped(self, name):
+        pluginmanager = self.modcol.config.pluginmanager
+        plugins = pluginmanager.getplugins()
+        plugins.append(self.modcol.obj)
+        return pluginmanager.listattr(attrname=name, plugins=plugins)[-1]
+
+    @property
+    def testdir(self):
+        return os.path.dirname(self.modcol.obj.__file__)
+
+    @property
+    def testname(self):
+        return self.modcol.obj.__name__
+        
+
+_run = {}
+
+def get_state(item, collect=False):
+    modcol = item.getparent(py.test.collect.Module)
+    try:
+        return _run[modcol]
+    except KeyError:
+        pass
+    _run[modcol] = state = RunState(modcol)
+    if not collect:
+        modcol.config._setupstate.addfinalizer(collector=modcol,
+                                     finalizer=lambda: del_state(modcol))
+    return state
+
+def del_state(item):
+    modcol = item.getparent(py.test.collect.Module)    
+    state = _run.pop(modcol, None)
+    if state:
         from oejskit.testing import cleanupBrowsers
-        cleanupBrowsers(rep.colitem.obj.__dict__)
+        cleanupBrowsers(state)        
+
+def pytest_collectstart(collector):
+    if isinstance(collector, py.test.collect.Module):
+        get_state(collector, collect=True)
+
+def pytest_collectreport(rep):
+    collector = rep.colitem
+    if isinstance(collector, py.test.collect.Module):
+        del_state(collector)
+
+def pytest_unconfigure(config):
+    for colitem in _run.keys():
+        del_state(colitem)
 
 # ________________________________________________________________
 # items
 
+def give_browser(clsitem, attach=True):
+    from oejskit.testing import giveBrowser
+    return giveBrowser(get_state(clsitem), clsitem.obj, attach=attach)
+    
 class ClassWithBrowser(py.test.collect.Class):
 
     def setup(self):
-        from oejskit.testing import giveBrowser
-        browser, setupBag = giveBrowser(self)
-        self.obj.browser = browser
-        self.obj.setupBag = setupBag
+        browser, setupBag = give_browser(self)
         super(py.test.collect.Class, self).setup()
 
 class JsTestSuite(py.test.collect.Collector):
@@ -92,7 +146,7 @@ class JsTestSuite(py.test.collect.Collector):
         obj = self.obj
         clsitem = self.parent.parent
         assert isinstance(clsitem, py.test.collect.Class)
-        browser, setupBag = giveBrowser(clsitem)
+        browser, setupBag = give_browser(clsitem, attach=False)
         url = obj._jstests_suite_url
         if not url.startswith('/'): # xxx wrong level
             url = "/browser_testing/load/test/%s" % url

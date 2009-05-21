@@ -176,20 +176,15 @@ class Browser(object):
     def shutdown(self):
         self.serverSide.shutdown()
 
-# xxx too early
-try:
-    reuse_windows = py.test.config.getvalue("jstests_reuse_browser_windows")
-except KeyError:
-    reuse_windows = False
-
 class BrowserFactory(object):
     _inst = None
 
-    def __new__(cls):
+    def __new__(cls, reuse_windows):
         if reuse_windows and cls._inst:
             return cls._inst
         obj = object.__new__(BrowserFactory)
         obj._browsers = {}
+        obj.reuse_windows = reuse_windows
         if reuse_windows:
             cls._inst = obj
         return obj
@@ -205,7 +200,7 @@ class BrowserFactory(object):
             return browser
 
     def shutdownAll(self):
-        if not reuse_windows:
+        if not self.reuse_windows:
             _browsers = self._browsers
             while _browsers:
                 _, browser = _browsers.popitem()

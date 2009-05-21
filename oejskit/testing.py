@@ -13,6 +13,28 @@ from oejskit.browser_ctl import ServeTesting, BrowserFactory, BrowserController
 # convenience
 from oejskit.browser_ctl import JsFailed
 
+def _getglobal(state, name, default):
+    try:
+        return state.getglobal(name)
+    except AttributeError:
+        return default
+
+def _getscoped(state, name):
+    try:
+        return getattr(state, name)
+    except AttributeError:
+        pass
+    try:
+        return state.getscoped(name)
+    except AttributeError:
+        return None
+
+def _ensure(obj, name, default):
+    try:
+        return getattr(obj, name)
+    except AttributeError:
+        setattr(obj, name, default)
+        return default
 
 class SetupBag(object):
     _configs = [('staticDirs', dict),
@@ -38,11 +60,8 @@ class SetupBag(object):
 
 rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 
-def defaultJsTestsSetup():
-    try:
-        libDir = py.test.config.getvalue("jstests_weblib")
-    except KeyError:
-        libDir = os.environ['WEBLIB'] # !
+def defaultJsTestsSetup(state):
+    libDir = _getglobal(state, 'jstests_weblib', os.environ.get('WEBLIB'))
     
     class DefaultJsTestsSetup:
         ServerSide = None
@@ -57,21 +76,14 @@ def defaultJsTestsSetup():
     
 # ________________________________________________________________
 
-def _get_jstests_setup(item):
-    module = item.getparent(py.test.collect.Module).obj
-    plugins = item.config.pluginmanager.getplugins()
-    plugins.append(module)
-    setup = item.config.pluginmanager.listattr(attrname='jstests_setup',
-                                               plugins=plugins)[-1]
-    return setup
-
-def _get_serverSide(item):
-    setup = _get_jstests_setup(item)
+def _get_serverSide(state):
+    setup = _getscoped(state, "jstests_setup")
     if not setup:
-        setup = defaultJsTestsSetup()
+        setup = defaultJsTestsSetup(state)
     serverSide = setup.ServerSide
     if serverSide is None:
-        serverSide = py.test.config.option.jstests_server_side
+        serverSide = _getglobal(state, "jstests_server_side",
+                                "oejskit.wsgi.WSGIServerSide")
                         
     if isinstance(serverSide, str):
         p = serverSide.split('.')
@@ -81,30 +93,34 @@ def _get_serverSide(item):
 
     return serverSide
    
-def getBrowser(modCollector, browserKind):
-    try:
-        browsers = modCollector._jstests_browsers
-    except AttributeError:
-        browsers = modCollector._jstests_browsers = BrowserFactory()
-
-    serverSide = _get_serverSide(modCollector)
+def getBrowser(state, browserKind):
+    browsers =  _ensure(state, '_jstests_browsers', None)
+    if browsers is None:
+        reuse_windows = _getglobal(state,
+                                   "jstests_reuse_browser_windows", False)
+        browsers = BrowserFactory(reuse_windows)
+        state._jstests_browsers = browsers
+        
+    serverSide = _get_serverSide(state)
     return browsers.get(browserKind, serverSide)
 
-def cleanupBrowsers(modCollector):
-    if hasattr(modCollector, '_jstests_browsers'):
-        modCollector._jstests_browsers.shutdownAll()
-        serverSide = _get_serverSide(modCollector)
+def cleanupBrowsers(state):
+    if hasattr(state, '_jstests_browsers'):
+        state._jstests_browsers.shutdownAll()
+        serverSide = _get_serverSide(state)
         serverSide.cleanup()
+        del state._jstests_browsers
+        try:
+            del state._jstests_browser_setups
+        except AttributeError:
+            pass
 
-def giveBrowser(item):
+def giveBrowser(state, cls, attach=True):
+    browser_setups = _ensure(state, '_jstests_browser_setups', {})
     try:
-        return item._jstests_browser, item._jstests_setupBag
-    except AttributeError:
+        return browser_setups[cls]
+    except KeyError:
         pass
-
-    cls = item.obj
-    
-    modCollector = item.getparent(py.test.collect.Module)
     browserKind = getattr(cls, 'jstests_browser_kind')
                    
     # xxx wrong place
@@ -113,29 +129,30 @@ def giveBrowser(item):
     if browserKind == 'safari' and sys.platform != 'darwin':
         py.test.skip("safari expects mac os x")                        
 
-    browser = getBrowser(modCollector, browserKind)
+    browser = getBrowser(state, browserKind)
 
-    setup = _get_jstests_setup(item)
+    setup = _getscoped(state, 'jstests_setup')
 
-    mod_path = os.path.dirname(modCollector.obj.__file__)
     class modSetup:    
-        staticDirsTest = {'/test/': mod_path}
+        staticDirsTest = {'/test/': state.testdir}
         jsReposTest = ['/test']        
 
-    defaultSetup = defaultJsTestsSetup()
+    defaultSetup = defaultJsTestsSetup(state)
 
-    if not hasattr(modCollector, '_jstests_app'):
+    if not hasattr(state, '_jstests_app'):
         bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
         app = ServeTesting(bootstrapSetupBag, rtDir)
-        modCollector._jstests_app = app
+        state._jstests_app = app
 
     setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
-    modName = modCollector.obj.__name__
 
-    browser.prepare(modCollector._jstests_app, modName)
+    browser.prepare(state._jstests_app, state.testname)
 
-    item._jstests_browser = browser
-    item._jstests_setupBag = setupBag
+    browser_setups[cls] = browser, setupBag
+
+    if attach:
+        cls.browser = browser
+        cls.setupBag = setupBag
 
     return browser, setupBag
 
@@ -149,4 +166,3 @@ def jstests_suite(url):
 
 class BrowserTestClass(BrowserController):
     jstests_browser_kind = None
-
