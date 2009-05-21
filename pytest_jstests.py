@@ -67,7 +67,9 @@ def get_state(item, collect=False):
         pass
     _run[modcol] = state = RunState(modcol)
     if not collect:
-        modcol.config._setupstate.addfinalizer(collector=modcol,
+        #print "ADD FINALIZER", os.getpid()
+        #import traceback; traceback.print_stack()        
+        modcol.config._setupstate.addfinalizer(colitem=modcol,
                                      finalizer=lambda: del_state(modcol))
     return state
 

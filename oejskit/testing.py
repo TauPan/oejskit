@@ -106,6 +106,8 @@ def getBrowser(state, browserKind):
 
 def cleanupBrowsers(state):
     if hasattr(state, '_jstests_browsers'):
+        #print 'CLEANUP', os.getpid()
+        #import traceback; traceback.print_stack()
         state._jstests_browsers.shutdownAll()
         serverSide = _get_serverSide(state)
         serverSide.cleanup()

@@ -101,7 +101,7 @@ def test_collectonly_cleanup(testdir, monkeypatch):
     assert sanity
 
 
-def test_gen_run_cleanup(testdir, monkeypatch):
+def test_looponfail_cleanup(testdir, monkeypatch):
     # xxx too much white boxy 
     monkeypatch.setenv('PYTHONPATH',
                        py.path.local(__file__).dirpath().dirpath())
@@ -110,7 +110,7 @@ def test_gen_run_cleanup(testdir, monkeypatch):
 
     testdir.plugins.extend(["jstests"])
 
-    items, rec = testdir.inline_genitems(p)
+    items, rec = testdir.inline_genitems('-s', p)
     assert len(items) == 2
 
     item0 = items[0]
@@ -118,10 +118,16 @@ def test_gen_run_cleanup(testdir, monkeypatch):
     plugin = item0.config.pluginmanager.getplugin("jstests")
     check_clean(plugin)
 
+    # NB if item0 is directly used things explode
+    # that's not what looponfails does though
+    item1 = item0._fromtrail(item0._totrail(), item0.config)
+
     from py.__.test.runner import basic_run_report
 
-    basic_run_report(item0)
-    item0.config._setupstate.teardown_all() # XXX?
+    testrep = basic_run_report(item1)
+    item1.config._setupstate.teardown_all()
+
+    assert testrep.passed, str(testrep)
 
     check_clean(plugin)
 
