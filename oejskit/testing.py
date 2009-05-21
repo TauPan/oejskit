@@ -44,10 +44,6 @@ try:
 except KeyError:
     libDir = os.environ['WEBLIB'] # !
 
-
-class BrowserTestClass(BrowserController):
-    jstests_browser_kind = None
-
 # ________________________________________________________________
 
 class DefaultJsTestsSetup:
@@ -136,8 +132,14 @@ def giveBrowser(item):
 
     return browser, setupBag
 
+# ________________________________________________________________
+
 def jstests_suite(url):
     def decorate(func):
         func._jstests_suite_url = url
         return func
     return decorate
+
+class BrowserTestClass(BrowserController):
+    jstests_browser_kind = None
+
