@@ -85,7 +85,7 @@ def pytest_collectstart(collector):
         get_state(collector, collect=True)
 
 def pytest_collectreport(rep):
-    collector = rep.colitem
+    collector = rep.collector
     if isinstance(collector, py.test.collect.Module):
         del_state(collector)
 
