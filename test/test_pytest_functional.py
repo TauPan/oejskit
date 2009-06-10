@@ -108,12 +108,18 @@ def test_looponfail_cleanup(testdir, monkeypatch):
 
     p = make_tests(testdir)
 
-    testdir.plugins.extend(["jstests"])
+    testreps = []
+    def pytest_runtest_logreport(rep):
+        testreps.append(rep)
+
+    testdir.plugins.extend(["jstests",
+                  {'pytest_runtest_logreport': pytest_runtest_logreport}])
 
     items, rec = testdir.inline_genitems('-s', p)
     assert len(items) == 2
-
     item0 = items[0]
+    # xxx not completely the right point
+    item0.config.pluginmanager.do_configure(item0.config)
 
     plugin = item0.config.pluginmanager.getplugin("jstests")
     check_clean(plugin)
@@ -122,12 +128,13 @@ def test_looponfail_cleanup(testdir, monkeypatch):
     # that's not what looponfails does though
     item1 = item0._fromtrail(item0._totrail(), item0.config)
 
-    from py.__.test.runner import basic_run_report
-
-    testrep = basic_run_report(item1)
-    item1.config._setupstate.teardown_all()
-
+    item1.config.hook.pytest_runtest_protocol(item=item1)
+    assert len(testreps) == 1
+    testrep = testreps[0]
     assert testrep.passed, str(testrep)
+
+    # cleanup
+    item1.config._setupstate.teardown_all()
 
     check_clean(plugin)
 
