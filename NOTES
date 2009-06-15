@@ -1,4 +1,5 @@
-- auto collection for various browsers
+- switch to use 'any'as browser kind in our own tests, setup nightly run to check IE7 too
+- integrate browser.py from OE other development line
 - autocollect js files (optionally)
 - different prefix for jstest_suite functions?
 - address xxxs
@@ -6,7 +7,6 @@
 - how are people supposed to get/setup MochiKit?
 - improve parameter configuration?
 - documentation/talk!!!
-- integrate browser.py from OE other development line
 
 - css/styling of the test page contents
 - better traceback printing
