@@ -27,7 +27,9 @@ def pytest_pycollect_obj(collector, name, obj):
         py.std.inspect.isclass(obj) and \
         hasattr(obj, 'jstests_browser_kind'):
         browserKind = obj.jstests_browser_kind
-        return ClassWithBrowser(name, parent=collector, browserKind=browserKind)
+        return ClassWithBrowserCollector(name,
+                                         parent=collector,
+                                         browserKind=browserKind)
     if hasattr(obj, '_jstests_suite_url'):
         return JsTestSuite(name, parent=collector)
     return None
@@ -105,11 +107,36 @@ def give_browser(clsitem, attach=True):
 def detach_browser(clsitem):
     from oejskit.testing import detachBrowser
     detachBrowser(clsitem.obj)
-   
+
+class ClassWithBrowserCollector(py.test.collect.Collector):
+    def __init__(self, name, parent, browserKind):
+        super(ClassWithBrowserCollector, self).__init__(name, parent)
+        self.obj = getattr(self.parent.obj, name)
+        self.browserKind = browserKind
+       
+    def collect(self):
+        l = []
+        kinds = [self.browserKind] # xxx expand!
+        for kind in kinds:
+            name = "[=%s]" % kind
+            classWithBrowser = ClassWithBrowser(name, self, self.obj, kind)
+            l.append(classWithBrowser)
+        return l
+
+    def reportinfo(self):
+        try:
+            return self._fslineno, self.name
+        except AttributeError:
+            pass        
+        fspath, lineno = py.code.getfslineno(self.obj)
+        self._fslineno = fspath, lineno
+        return fspath, lineno, self.name
+    
 class ClassWithBrowser(py.test.collect.Class):
 
-    def __init__(self, name, parent, browserKind):
+    def __init__(self, name, parent, cls, browserKind):
         super(ClassWithBrowser, self).__init__(name, parent)
+        self.obj = cls
         self.browserKind = browserKind
 
     def setup(self):
