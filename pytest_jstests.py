@@ -101,12 +101,20 @@ def give_browser(clsitem, attach=True):
     browserKind = getattr(clsitem.obj, 'jstests_browser_kind')  
     return giveBrowser(get_state(clsitem), clsitem.obj, browserKind,
                                                         attach=attach)
+
+def detach_browser(clsitem):
+    from oejskit.testing import detachBrowser
+    detachBrowser(clsitem.obj)
     
 class ClassWithBrowser(py.test.collect.Class):
 
     def setup(self):
-        browser, setupBag = give_browser(self)
+        browser, setupBag = give_browser(self, attach=True)
         super(py.test.collect.Class, self).setup()
+
+    def teardown(self):
+        super(py.test.collect.Class, self).teardown()
+        detach_browser(self)
 
 class JsTestSuite(py.test.collect.Collector):
     # this is a mixture between a collector, a setup method

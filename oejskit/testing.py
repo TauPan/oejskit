@@ -120,42 +120,44 @@ def cleanupBrowsers(state):
 def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
     try:
-        return browser_setups[(cls, browserKind)]
+        browser, setupBag = browser_setups[(cls, browserKind)]
     except KeyError:
-        pass
-                   
-    # xxx wrong place
-    if browserKind == 'iexplore' and sys.platform != 'win32':
-        py.test.skip("iexplorer can be tested only on windows")
-    if browserKind == 'safari' and sys.platform != 'darwin':
-        py.test.skip("safari expects mac os x")                        
+        # xxx wrong place
+        if browserKind == 'iexplore' and sys.platform != 'win32':
+            py.test.skip("iexplorer can be tested only on windows")
+        if browserKind == 'safari' and sys.platform != 'darwin':
+            py.test.skip("safari expects mac os x")                        
 
-    browser = getBrowser(state, browserKind)
+        browser = getBrowser(state, browserKind)
 
-    setup = _getscoped(state, 'jstests_setup')
+        setup = _getscoped(state, 'jstests_setup')
 
-    class modSetup:    
-        staticDirsTest = {'/test/': state.testdir}
-        jsReposTest = ['/test']        
+        class modSetup:    
+            staticDirsTest = {'/test/': state.testdir}
+            jsReposTest = ['/test']        
 
-    defaultSetup = defaultJsTestsSetup(state)
+        defaultSetup = defaultJsTestsSetup(state)
 
-    if not hasattr(state, '_jstests_app'):
-        bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
-        app = ServeTesting(bootstrapSetupBag, rtDir)
-        state._jstests_app = app
+        if not hasattr(state, '_jstests_app'):
+            bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
+            app = ServeTesting(bootstrapSetupBag, rtDir)
+            state._jstests_app = app
 
-    setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
+        setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
 
-    browser.prepare(state._jstests_app, state.testname)
+        browser.prepare(state._jstests_app, state.testname)
 
-    browser_setups[(cls, browserKind)] = browser, setupBag
+        browser_setups[(cls, browserKind)] = browser, setupBag
 
     if attach:
         cls.browser = browser
         cls.setupBag = setupBag
 
     return browser, setupBag
+
+def detachBrowser(cls):
+    del cls.setupBag
+    del cls.browser
 
 # ________________________________________________________________
 
