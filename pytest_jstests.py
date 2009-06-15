@@ -36,7 +36,7 @@ def pytest_addoption(parser):
         )
 
 
-def pytest_pycollect_obj(collector, name, obj):
+def pytest_pycollect_makeitem(collector, name, obj):
     if (collector.classnamefilter(name)) and \
         py.std.inspect.isclass(obj) and \
         hasattr(obj, 'jstests_browser_kind'):
