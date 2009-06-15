@@ -98,7 +98,9 @@ def pytest_unconfigure(config):
 
 def give_browser(clsitem, attach=True):
     from oejskit.testing import giveBrowser
-    return giveBrowser(get_state(clsitem), clsitem.obj, attach=attach)
+    browserKind = getattr(clsitem.obj, 'jstests_browser_kind')  
+    return giveBrowser(get_state(clsitem), clsitem.obj, browserKind,
+                                                        attach=attach)
     
 class ClassWithBrowser(py.test.collect.Class):
 
@@ -141,7 +143,6 @@ class JsTestSuite(py.test.collect.Collector):
         self._root = None
         
     def collect(self):
-        from oejskit.testing import giveBrowser        
         obj = self.obj
         clsitem = self.parent.parent
         assert isinstance(clsitem, py.test.collect.Class)

@@ -117,13 +117,12 @@ def cleanupBrowsers(state):
         except AttributeError:
             pass
 
-def giveBrowser(state, cls, attach=True):
+def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
     try:
         return browser_setups[cls]
     except KeyError:
         pass
-    browserKind = getattr(cls, 'jstests_browser_kind')
                    
     # xxx wrong place
     if browserKind == 'iexplore' and sys.platform != 'win32':
