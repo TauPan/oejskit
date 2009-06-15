@@ -9,6 +9,15 @@ import py, os
 
 jstests_setup = None
 
+jstests_cmdline_browser_specs = {
+    'any': ['firefox'] # fallback
+}
+
+def cmdline_browser_spec(option, optstr, value, parser):
+    name, choices = value.split('=')
+    choices = choices.split(',')
+    jstests_cmdline_browser_specs[name] = choices
+
 def pytest_addoption(parser):
     group = parser.addgroup("jstests", "oejskit test suite options")
     group.addoption(
@@ -21,6 +30,11 @@ def pytest_addoption(parser):
         "--jstests-reuse-browser-windows", action="store_true",
         dest="jstests_reuse_browser_windows",
         )
+    group.addoption(
+        "--jstests-browser-spec", action="callback", type="string",
+        callback=cmdline_browser_spec
+        )
+
 
 def pytest_pycollect_obj(collector, name, obj):
     if (collector.classnamefilter(name)) and \
@@ -108,6 +122,29 @@ def detach_browser(clsitem):
     from oejskit.testing import detachBrowser
     detachBrowser(clsitem.obj)
 
+def expand_browsers(config, kind):
+    if kind is None:
+        kind = 'any'
+
+    # the command line takes precedence
+    try:
+        return jstests_cmdline_browser_specs[kind]
+    except KeyError:
+        pass
+
+    try:
+        specs = config.getvalue('jstests_browser_specs')
+    except KeyError:
+        pass
+    else:
+        try:
+            return specs[kind]
+        except KeyError:
+            pass
+
+    # assume kind identifies a single browser
+    return [kind]
+
 class ClassWithBrowserCollector(py.test.collect.Collector):
     def __init__(self, name, parent, browserKind):
         super(ClassWithBrowserCollector, self).__init__(name, parent)
@@ -116,7 +153,7 @@ class ClassWithBrowserCollector(py.test.collect.Collector):
        
     def collect(self):
         l = []
-        kinds = [self.browserKind] # xxx expand!
+        kinds = expand_browsers(self.config, self.browserKind)
         for kind in kinds:
             name = "[=%s]" % kind
             classWithBrowser = ClassWithBrowser(name, self, self.obj, kind)
