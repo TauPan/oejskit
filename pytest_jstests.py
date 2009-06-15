@@ -105,19 +105,19 @@ def give_browser(clsitem, attach=True):
 def detach_browser(clsitem):
     from oejskit.testing import detachBrowser
     detachBrowser(clsitem.obj)
-    
+   
 class ClassWithBrowser(py.test.collect.Class):
 
     def __init__(self, name, parent, browserKind):
-        super(py.test.collect.Class, self).__init__(name, parent)
+        super(ClassWithBrowser, self).__init__(name, parent)
         self.browserKind = browserKind
 
     def setup(self):
         browser, setupBag = give_browser(self, attach=True)
-        super(py.test.collect.Class, self).setup()
+        super(ClassWithBrowser, self).setup()
 
     def teardown(self):
-        super(py.test.collect.Class, self).teardown()
+        super(ClassWithBrowser, self).teardown()
         detach_browser(self)
 
 class JsTestSuite(py.test.collect.Collector):
@@ -151,7 +151,7 @@ class JsTestSuite(py.test.collect.Collector):
         self._root = self.obj(**self.funcargs)
             
     def teardown(self):
-        super(py.test.collect.Collector, self).teardown()
+        super(JsTestSuite, self).teardown()
         self._root = None
         
     def collect(self):
