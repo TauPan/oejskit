@@ -108,9 +108,8 @@ class ClassWithBrowser(py.test.collect.Class):
 
 class JsTestSuite(py.test.collect.Collector):
     # this is a mixture between a collector, a setup method
-    # and a function item (it makes sense but it's messy to implement
-    # right now)
-
+    # and a function item
+    
     def __init__(self, name, parent):
         super(JsTestSuite, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
