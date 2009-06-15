@@ -120,7 +120,7 @@ def cleanupBrowsers(state):
 def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
     try:
-        return browser_setups[cls]
+        return browser_setups[(cls, browserKind)]
     except KeyError:
         pass
                    
@@ -149,7 +149,7 @@ def giveBrowser(state, cls, browserKind, attach=True):
 
     browser.prepare(state._jstests_app, state.testname)
 
-    browser_setups[cls] = browser, setupBag
+    browser_setups[(cls, browserKind)] = browser, setupBag
 
     if attach:
         cls.browser = browser
