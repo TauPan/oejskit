@@ -1,7 +1,12 @@
 - auto collection for various browsers
-- fix xxxs
-- documentation!!!
-- integrate browser.py from OE other development line
 - autocollect js files (optionally)
 - different prefix for jstest_suite functions?
-- how are people suppose to get/setup MochiKit?
+- address xxxs
+
+- how are people supposed to get/setup MochiKit?
+- improve parameter configuration?
+- documentation/talk!!!
+- integrate browser.py from OE other development line
+
+- css/styling of the test page contents
+- better traceback printing
