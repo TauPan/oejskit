@@ -137,6 +137,8 @@ def giveBrowser(state, cls, browserKind, attach=True):
 
         defaultSetup, libDir = defaultJsTestsSetup(state)
 
+        # keep the server side state of browser cmds/responses
+        # isolated with one app per browser
         if browserKind not in apps:
             bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
             app = ServeTesting(bootstrapSetupBag, rtDir, libDir)
