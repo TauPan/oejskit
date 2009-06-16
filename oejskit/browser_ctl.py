@@ -12,6 +12,7 @@ import simplejson
 
 from oejskit.serving import Serve, ServeFiles, Dispatch
 from oejskit.modular import JsResolver
+from oejskit.browser import check_browser, start_browser
 
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
 <head>
@@ -119,6 +120,7 @@ class Browser(object):
     testing_rt/testing.html
     """
     def __init__(self, name, ServerSide):
+        # xxx check browser
         self.name = name
         self.process = None
         self.default_timeout = 30
@@ -132,18 +134,7 @@ class Browser(object):
  
     def _startup_browser(self):
         url = self.makeurl('/browser_testing/')
-        if MANUAL:
-            print "open", url
-            raw_input()
-        elif sys.platform == 'win32':
-            import win32api
-            win32api.ShellExecute(0, None, self.name, url, None, 1)
-        else:
-            name = self.name
-            if sys.platform == 'darwin':
-                name = "open -a " + name.title()            
-            print "%s %s" % (name, url)
-            self.process = subprocess.Popen("%s %s" % (name, url), shell=True)
+        start_browser(self.name, url, manual=MANUAL)
 
     def prepare(self, app, name="suite"):
         self.app = app

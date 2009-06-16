@@ -122,7 +122,7 @@ def giveBrowser(state, cls, browserKind, attach=True):
     try:
         browser, setupBag = browser_setups[(cls, browserKind)]
     except KeyError:
-        # xxx wrong place
+        # xxx wrong place, user check_browser
         if browserKind == 'iexplore' and sys.platform != 'win32':
             py.test.skip("iexplorer can be tested only on windows")
         if browserKind == 'safari' and sys.platform != 'darwin':
