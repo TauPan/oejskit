@@ -161,6 +161,8 @@ class Browser(object):
         return self.app.getResult(discrim)
 
     def _gatherTests(self, url, setupBag):
+        if not url.startswith('/'):
+            url = "/browser_testing/load/test/%s" % url        
         res = self.send('InBrowserTesting.collectTests(%r)' % url,
                         discrim="%s@collect" % url)
         return res, PageContext(self, setupBag,  None, url)
