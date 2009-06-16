@@ -12,7 +12,8 @@ def setup_module(mod):
 def teardown_module(mod):
     assert mod.flag
 
-class IntegrationStyleTests(BrowserTestClass):
+class TestIntegrationStyle(BrowserTestClass):
+    jstests_browser_kind = 'supported'
 
     def pytest_funcarg__ok_str(self, request):
         def set_flag():
@@ -29,7 +30,3 @@ class IntegrationStyleTests(BrowserTestClass):
 
         return ok
 
-class TestIntegrationStyleFirefox(IntegrationStyleTests):
-    jstests_browser_kind = 'firefox'
-
-# ...

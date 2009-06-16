@@ -123,27 +123,31 @@ def detach_browser(clsitem):
     detachBrowser(clsitem.obj)
 
 def expand_browsers(config, kind):
+    from oejskit.testing import checkBrowser
+    
     if kind is None:
         kind = 'any'
 
     # the command line takes precedence
+    kinds = None
     try:
-        return jstests_cmdline_browser_specs[kind]
+        kinds =  jstests_cmdline_browser_specs[kind]
     except KeyError:
-        pass
-
-    try:
-        specs = config.getvalue('jstests_browser_specs')
-    except KeyError:
-        pass
-    else:
         try:
-            return specs[kind]
+            specs = config.getvalue('jstests_browser_specs')
         except KeyError:
             pass
+        else:
+            try:
+                kinds = specs[kind]
+            except KeyError:
+                pass
 
     # assume kind identifies a single browser
-    return [kind]
+    if kinds is None:
+        kinds = [kind]
+
+    return [kind for kind in kinds if checkBrowser(kind)] 
 
 class ClassWithBrowserCollector(py.test.collect.Collector):
     def __init__(self, name, parent, browserKind):
@@ -154,6 +158,8 @@ class ClassWithBrowserCollector(py.test.collect.Collector):
     def collect(self):
         l = []
         kinds = expand_browsers(self.config, self.browserKind)
+        if not kinds:
+            py.test.skip("no browser of kind %s" % self.browserKind)
         for kind in kinds:
             name = "[=%s]" % kind
             classWithBrowser = ClassWithBrowser(name, self, self.obj, kind)

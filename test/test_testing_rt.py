@@ -5,7 +5,8 @@ import oejskit.testing
 from oejskit.testing import BrowserTestClass, JsFailed
 
 
-class BrowserTests(BrowserTestClass):
+class TestBrowser(BrowserTestClass):
+    jstests_browser_kind = 'supported'
 
     def test_simple(self):
         send = self.browser.send
@@ -70,18 +71,10 @@ class BrowserTests(BrowserTestClass):
         title = pg.eval("document.title")
         assert title == "FORM"
 
-class TestFirefox(BrowserTests):
-    jstests_browser_kind = "firefox"
-
-#class TestIExplore(BrowserTests):
-#    jstests_browser_kind = "iexplore"
-
-#class TestSafari(BrowserTests):
-#    jstests_browser_kind = "safari"
-
 # ________________________________________________________________
 
-class RunningTestTests(BrowserTestClass):
+class TestRunningTest(BrowserTestClass):
+    jstests_browser_kind = 'supported'
 
     def classify(self, results):
         passed = {}
@@ -190,13 +183,3 @@ class RunningTestTests(BrowserTestClass):
     def test_sanity(self):
         res = self.send('InBrowserTesting.result("end")')
         assert res == "end"
-
-class TestRunningTestFirefox(RunningTestTests):
-    jstests_browser_kind = "firefox"
-
-#class TestRunningTestIExplore(RunningTestTests):
-#    jstests_browser_kind = "iexplore"        
-
-#class TestRunningTestSafari(RunningTestTests):
-#    jstests_browser_kind = "safari"
-

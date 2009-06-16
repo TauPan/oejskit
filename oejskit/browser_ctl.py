@@ -12,7 +12,7 @@ import simplejson
 
 from oejskit.serving import Serve, ServeFiles, Dispatch
 from oejskit.modular import JsResolver
-from oejskit.browser import check_browser, start_browser
+from oejskit.browser import start_browser
 
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
 <head>

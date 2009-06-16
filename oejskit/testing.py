@@ -117,17 +117,15 @@ def cleanupBrowsers(state):
         except AttributeError:
             pass
 
+def checkBrowser(browserKind):
+    from oejskit.browser import check_browser
+    return check_browser(browserKind)
+
 def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
     try:
         browser, setupBag = browser_setups[(cls, browserKind)]
     except KeyError:
-        # xxx wrong place, user check_browser
-        if browserKind == 'iexplore' and sys.platform != 'win32':
-            py.test.skip("iexplorer can be tested only on windows")
-        if browserKind == 'safari' and sys.platform != 'darwin':
-            py.test.skip("safari expects mac os x")                        
-
         browser = getBrowser(state, browserKind)
 
         setup = _getscoped(state, 'jstests_setup')
