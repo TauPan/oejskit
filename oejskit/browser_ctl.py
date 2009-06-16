@@ -36,7 +36,7 @@ load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
 
 class ServeTesting(Dispatch):
 
-    def __init__(self, bootstrapSetupBag, rtDir):
+    def __init__(self, bootstrapSetupBag, rtDir, libDir):
         self.bootstrapSetupBag = bootstrapSetupBag
         repoParents = {}
         repoParents.update(bootstrapSetupBag.staticDirs)
@@ -46,12 +46,14 @@ class ServeTesting(Dispatch):
         self._results = {}
         
         self.rt = ServeFiles(rtDir)
+        self.lib = ServeFiles(libDir)
         self.extra = None
         map = {
             '/browser_testing/': self.home,
             '/browser_testing/cmd': Serve(self.cmd),
             '/browser_testing/result': Serve(self.result),
             '/browser_testing/rt/': self.rt,
+            '/browser_testing/lib/': self.lib,
             '/browser_testing/load/': Serve(self.load),
             '/': self.varpart
             }

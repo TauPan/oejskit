@@ -71,7 +71,7 @@ def defaultJsTestsSetup(state):
                        '/oe-js': jsDir }                           
         jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
 
-    return DefaultJsTestsSetup
+    return DefaultJsTestsSetup, libDir
 
     
 # ________________________________________________________________
@@ -79,7 +79,7 @@ def defaultJsTestsSetup(state):
 def _get_serverSide(state):
     setup = _getscoped(state, "jstests_setup")
     if not setup:
-        setup = defaultJsTestsSetup(state)
+        setup, _  = defaultJsTestsSetup(state)
     serverSide = setup.ServerSide
     if serverSide is None:
         serverSide = _getglobal(state, "jstests_server_side",
@@ -136,11 +136,11 @@ def giveBrowser(state, cls, browserKind, attach=True):
             staticDirsTest = {'/test/': state.testdir}
             jsReposTest = ['/test']        
 
-        defaultSetup = defaultJsTestsSetup(state)
+        defaultSetup, libDir = defaultJsTestsSetup(state)
 
         if not hasattr(state, '_jstests_app'):
             bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
-            app = ServeTesting(bootstrapSetupBag, rtDir)
+            app = ServeTesting(bootstrapSetupBag, rtDir, libDir)
             state._jstests_app = app
 
         setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
