@@ -159,7 +159,7 @@ class TestRunningTest(BrowserTestClass):
         assert result['name'] == "test_leak"
         assert result['result']
         expected = ['LEAK']
-        if self.jstests_browser_kind == 'iexplore':
+        if self.browser.name == 'iexplore':
             expected = [] # name leak detection is not attempted on IE :(
         assert result['leakedNames'] == expected
 
