@@ -123,6 +123,7 @@ def checkBrowser(browserKind):
 
 def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
+    apps = _ensure(state, '_jstests_apps', {})
     try:
         browser, setupBag = browser_setups[(cls, browserKind)]
     except KeyError:
@@ -136,14 +137,14 @@ def giveBrowser(state, cls, browserKind, attach=True):
 
         defaultSetup, libDir = defaultJsTestsSetup(state)
 
-        if not hasattr(state, '_jstests_app'):
+        if browserKind not in apps:
             bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
             app = ServeTesting(bootstrapSetupBag, rtDir, libDir)
-            state._jstests_app = app
+            apps[browserKind] = app
 
         setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
 
-        browser.prepare(state._jstests_app, state.testname)
+        browser.prepare(apps[browserKind], state.testname)
 
         browser_setups[(cls, browserKind)] = browser, setupBag
 
