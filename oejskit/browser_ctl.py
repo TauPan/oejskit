@@ -122,10 +122,9 @@ class Browser(object):
     testing_rt/testing.html
     """
     def __init__(self, name, ServerSide):
-        # xxx check browser
         self.name = name
         self.process = None
-        self.default_timeout = 30
+        self.default_timeout = 60
         self.app = None
         self.serverSide = ServerSide(PORT)
         self._startup_browser()
