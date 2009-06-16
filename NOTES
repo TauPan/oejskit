@@ -1,5 +1,4 @@
 - switch to use 'any'as browser kind in our own tests, setup nightly run to check IE7 too
-- integrate browser.py from OE other development line
 - autocollect js files (optionally)
 - different prefix for jstest_suite functions?
 - address xxxs
