@@ -165,11 +165,10 @@ def expand_browsers(config, kind):
 
     return [kind for kind in kinds if checkBrowser(kind)] 
 
-class ClassWithBrowserCollector(py.test.collect.Collector):
-    def __init__(self, name, parent, browserKind):
-        super(ClassWithBrowserCollector, self).__init__(name, parent)
-        self.obj = getattr(self.parent.obj, name)
-        self.browserKind = browserKind
+# collection
+
+class BrowsersCollector(py.test.collect.Collector):
+    Child = None
        
     def collect(self):
         l = []
@@ -178,24 +177,37 @@ class ClassWithBrowserCollector(py.test.collect.Collector):
             py.test.skip("no browser of kind %s" % self.browserKind)
         for kind in kinds:
             name = "[=%s]" % kind
-            classWithBrowser = ClassWithBrowser(name, self, self.obj, kind)
-            l.append(classWithBrowser)
+            child = self.Child(name, self, kind)
+            l.append(child)
         return l
 
-    def reportinfo(self):
-        try:
-            return self._fslineno, self.name
-        except AttributeError:
-            pass        
-        fspath, lineno = py.code.getfslineno(self.obj)
-        self._fslineno = fspath, lineno
-        return fspath, lineno, self.name
+
+class JsSuiteCollector(py.test.collect.Collector):
+    _root = None
+
+    def _collect(self, state_item, url):
+        browser, setupBag = give_browser(state_item, attach=False)
+        
+        names, runner = browser._gatherTests(url, setupBag)
+
+        def runTest(jstest):
+            runner._runTest(jstest, self._root, None)
+            
+        l = []
+        for jstest in names:
+            name = "[%s]" % jstest
+            function = JsTest(name=name, parent=self, 
+                              args=(jstest,), callobj=runTest)
+            l.append(function)
+        return l
+
+# browser test classes collection
     
 class ClassWithBrowser(py.test.collect.Class):
 
-    def __init__(self, name, parent, cls, browserKind):
+    def __init__(self, name, parent, browserKind):
         super(ClassWithBrowser, self).__init__(name, parent)
-        self.obj = cls
+        self.obj = parent.obj
         self.browserKind = browserKind
 
     def setup(self):
@@ -206,7 +218,25 @@ class ClassWithBrowser(py.test.collect.Class):
         super(ClassWithBrowser, self).teardown()
         detach_browser(self)
 
-class JsTestSuite(py.test.collect.Collector):
+
+class ClassWithBrowserCollector(BrowsersCollector):
+    Child = ClassWithBrowser
+    
+    def __init__(self, name, parent, browserKind):
+        super(ClassWithBrowserCollector, self).__init__(name, parent)
+        self.obj = getattr(self.parent.obj, name)
+        self.browserKind = browserKind
+
+    def reportinfo(self):
+        try:
+            return self._fslineno, self.name
+        except AttributeError:
+            pass        
+        fspath, lineno = py.code.getfslineno(self.obj)
+        self._fslineno = fspath, lineno
+        return fspath, lineno, self.name
+
+class JsTestSuite(JsSuiteCollector):
     # this is a mixture between a collector, a setup method
     # and a function item
     
@@ -244,20 +274,9 @@ class JsTestSuite(py.test.collect.Collector):
         obj = self.obj
         clsitem = self.parent.parent
         assert isinstance(clsitem, py.test.collect.Class)
-        browser, setupBag = give_browser(clsitem, attach=False)
         url = obj._jstests_suite_url
-        names, runner = browser._gatherTests(url, setupBag)
+        return self._collect(clsitem, url)
 
-        def runTest(jstest):
-            runner._runTest(jstest, self._root, None)
-            
-        l = []
-        for jstest in names:
-            name = "[%s]" % jstest
-            function = JsTest(name=name, parent=self, 
-                              args=(jstest,), callobj=runTest)
-            l.append(function)
-        return l
 
 class JsTest(py.test.collect.Function):
 
@@ -267,27 +286,7 @@ class JsTest(py.test.collect.Function):
 
 # js files
 
-# XXX share more code
-
-class JsFile(py.test.collect.File):
-
-    def __init__(self, fspath, parent):
-        super(JsFile, self).__init__(fspath, parent)
-        self.browserKind = fspath.purebasename.split('_')[-1]
-
-    def collect(self):
-        l = []
-        kinds = expand_browsers(self.config, self.browserKind)
-        if not kinds:
-            py.test.skip("no browser of kind %s" % self.browserKind)
-        for kind in kinds:
-            name = "[=%s]" % kind
-            suite = JsFileSuite(name, self, kind)
-            l.append(suite)
-        return l
-
-
-class JsFileSuite(py.test.collect.Collector):
+class JsFileSuite(JsSuiteCollector):
 
     def __init__(self, name, parent, browserKind):
         super(JsFileSuite, self).__init__(name, parent)
@@ -307,17 +306,13 @@ class JsFileSuite(py.test.collect.Collector):
     # nothing special to do in teardown
 
     def collect(self):
-        browser, setupBag = give_browser(self, attach=False)
         url = self.parent.fspath.basename
-        names, runner = browser._gatherTests(url, setupBag)
+        return self._collect(self, url)
 
-        def runTest(jstest):
-            runner._runTest(jstest, None, None)
-            
-        l = []
-        for jstest in names:
-            name = "[%s]" % jstest
-            function = JsTest(name=name, parent=self, 
-                              args=(jstest,), callobj=runTest)
-            l.append(function)
-        return l
+class JsFile(py.test.collect.File, BrowsersCollector):
+    Child = JsFileSuite
+
+    def __init__(self, fspath, parent):
+        super(JsFile, self).__init__(fspath, parent)
+        self.browserKind = fspath.purebasename.split('_')[-1]
+
