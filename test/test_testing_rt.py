@@ -47,6 +47,29 @@ class BrowserTests(BrowserTestClass):
 
         py.test.raises(JsFailed, pg.eval, "bar()")
 
+    def test_travel(self):
+        pg = self.open('/test/examples/test_form.html')
+
+        res = pg.travel("document.forms['travel'].submit()")
+        assert res == 'reloaded'
+
+        title = pg.eval("document.title")
+        assert title == "DEST"
+
+    def test_takes(self):
+        pg = self.open('/test/examples/test_form.html', take="a")
+
+        res = pg.travel("document.forms['travel'].submit()")
+        assert res == 'reloaded'
+
+        title = pg.eval("document.title")
+        assert title == "DEST"
+
+        pg = self.open('/test/examples/test_form.html', take="b")
+
+        title = pg.eval("document.title")
+        assert title == "FORM"
+
 class TestFirefox(BrowserTests):
     jstests_browser_kind = "firefox"
 

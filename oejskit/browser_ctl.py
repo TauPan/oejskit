@@ -167,6 +167,7 @@ class Browser(object):
         return res, PageContext(self, setupBag,  None, url)
         
     def shutdown(self):
+        self.send('BYE', discrim='BYE')        
         self.serverSide.shutdown()
 
 class BrowserFactory(object):
@@ -220,12 +221,12 @@ class _BrowserController(object):
 
 class PageContext(_BrowserController):
 
-    def __init__(self, browser, setupBag, root, url, timeout=None, index=None):
+    def __init__(self, browser, setupBag, root, label, timeout=None, index=None):
         self.browser = browser
         self.setupBag = setupBag
         self.root = root
         self.timeout = timeout
-        self.url = url
+        self.label = label
         self.count = 0
         self.index = index
 
@@ -233,16 +234,20 @@ class PageContext(_BrowserController):
         n = self.count
         self.count += 1
         outcome = self.send('InBrowserTesting.%s(%r, %s, %d)' %
-                         (method, self.url, simplejson.dumps(argument), n),
-                         discrim="%s@%d" % (self.url, n),
+                         (method, self.label, simplejson.dumps(argument), n),
+                         discrim="%s@%d" % (self.label, n),
                          root=root, timeout=timeout)
         return outcome
         
-    def eval(self, js):
-        outcome = self._execute('eval', js, self.root, self.timeout)
+    def eval(self, js, variant='eval'):
+        outcome = self._execute(variant, js, self.root, self.timeout)
         if outcome.get('error'):
-            raise JsFailed('[%s] %s' % (self.url, js), outcome['error'])
+            raise JsFailed('[%s] %s' % (self.label, js), outcome['error'])
         return outcome['result']
+
+    def travel(self, js):
+        return self.eval(js, variant='travel')
+    
 
     def _runTest(self, name, root, timeout):
         outcome = self._execute('runOneTest', name, root, timeout)
@@ -255,14 +260,18 @@ class PageContext(_BrowserController):
 
 class BrowserController(_BrowserController):
 
-    def open(self, url, root=None, timeout=None):
+    def open(self, url, root=None, timeout=None, take=None):
         """
         open url in a sub-iframe of the browser testing page.
         the iframe for a url is reused!
         """
-        res = self.send('InBrowserTesting.open(%r)' % url,
-                        root=root, discrim=url, timeout=timeout)
-        return PageContext(self.browser, self.setupBag, root, url,
+        label = url
+        if take:
+            label = "%s >%s<" % (url, take)
+        
+        res = self.send('InBrowserTesting.open(%r, %r)' % (url, label),
+                        root=root, discrim=label, timeout=timeout)
+        return PageContext(self.browser, self.setupBag, root, label,
                                                         timeout, res['panel'])
 
     def runTests(self, url, root=None, timeout=None):
