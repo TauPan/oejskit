@@ -1,10 +1,9 @@
-- autocollect js files (optionally)
-- different prefix for jstest_suite functions?
-- address xxxs
-
 - how are people supposed to get/setup MochiKit?
 - improve parameter configuration?
 - documentation/talk!!!
+- finish setup.py
 
 - css/styling of the test page contents
 - better traceback printing
+
+- different prefix for jstest_suite functions?
