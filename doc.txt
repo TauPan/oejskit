@@ -1,7 +1,7 @@
 jskit
 =======
 
-jskit contains infrastructure and in particular a py.test plugin to
+jskit contains infrastructure and in particular a py.test (XXX link) plugin to
 enable running tests for JavaScript code inside browsers directly
 using py.test as the test driver. Running inside the browsers comes
 with some speed cost, on the other hand it means for example the code
@@ -17,4 +17,44 @@ jskit also contains contain code to help modularizing JavaScript code
 which can be used to describe and track dependencies dynamically
 during development and that can help resolving them statically when
 deploying/packaging.
+
+Basics of writing and running tests
+------------------------------------
+
+For the simplest cases jskit allows to write tests simply as just
+JavaScript files. As an example one could have a jstest_example_any.js
+in a test directory in a project::
+
+    Tests = {
+
+    test_simple: function() {
+        ais(21*2, 42)
+    }
+
+    }
+
+``jstest_*.js`` is the globbing pattern used by jskit to recognize
+JavaScript test files. Each of these need to contain a ``Tests``
+object with test methods starting with ``test_``. ``ais`` is one of
+the assertion functions predefined by jskit, it raises an exception
+causing the test to fail if the two arguments are not equal (in
+JavaScript ``=`` sense).
+
+To run the test we need to use py.test with the jskit plugin
+activated, a ``conftest.py`` file at the top of the project with::
+
+    pytest_plugins = ["jstests"]
+
+should work. (XXX pointer to plugin usage docs)
+
+The suffix ``any`` separated by an underscore (``_``) in the test file name controls the kind of browsers the test should be run against, ``any`` is predefined by jskit to be
+
+- Firefox and Safari on Mac OS X
+- Internet Explorer and Firefox on Windows
+- Firefox (started as ``firefox``) otherwise (e.g. Linux)
+
+later we'll see how to define other groups of browsers.
+
+XXX Run!
+
 
