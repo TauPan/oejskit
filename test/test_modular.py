@@ -4,7 +4,8 @@ import oejskit.modular
 from oejskit.modular import JsResolver
 from oejskit.htmlrewrite import naive_sanity_check_html
 
-weblibDir = os.environ['WEBLIB']
+# use the well known MochiKit we include ourselves
+weblibDir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'weblib')
 
 class TestJsResolver(object):
 
