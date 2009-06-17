@@ -3,13 +3,19 @@
 # See LICENSE.txt
 #
 
+# assumes setuptools and bdist_egg!
+
 # xxx half-done
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-    
+from setuptools import setup
+import os
+
 version = '0.8.3'
+
+def weblib():
+    l = []
+    for dirname, dirnames, fnames in os.walk("weblib"):
+        l.append((dirname, [os.path.join(dirname, fname) for fname in fnames]))
+    return l
 
 setup(
     name="oejskit",
@@ -19,9 +25,12 @@ setup(
     author='Open End AB',
     #author_email=
     #url=    
+    py_modules = ['pytest_jstests'],
     packages=['oejskit'],
     zip_safe=False,
-    include_package_data=True,
+    data_files=[
+    ('', ['LICENSE.txt']),
+    ] + weblib(),
     install_requires=[
         "simplejson"
     ],
