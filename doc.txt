@@ -1,0 +1,20 @@
+jskit
+=======
+
+jskit contains infrastructure and in particular a py.test plugin to
+enable running tests for JavaScript code inside browsers directly
+using py.test as the test driver. Running inside the browsers comes
+with some speed cost, on the other hand it means for example the code
+is tested against the real-word DOM implementations. 
+
+The approach also enables to write integration tests such that the
+JavaScript code is tested against server-side Python code mocked as
+necessary. Any server-side framework that can already be exposed
+through WSGI (or for which a subset of WSGI can be written to
+accommodate the jskit own needs XXX pointer ) can play along.
+
+jskit also contains contain code to help modularizing JavaScript code
+which can be used to describe and track dependencies dynamically
+during development and that can help resolving them statically when
+deploying/packaging.
+
