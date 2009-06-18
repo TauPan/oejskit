@@ -1,7 +1,9 @@
-- improve parameter configuration?
-- documentation/talk!!!
-- finish setup.py
+- documentation WIP
+- talk!!!
+- finish setup.py WIP
 - make sure there's a way to control MochiKit export mode and reasonable defaults
+- better error if jstests_setup is wrong/missing bits
+- what about no tests ???
 
 - css/styling of the test page contents
 - better traceback printing
