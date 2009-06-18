@@ -155,3 +155,18 @@ Assertion functions and helpers
 .. a* / insertTestNode
 
 XXX
+
+Browser specifications
+-----------------------
+
+XXX
+
+Integration testing
+--------------------
+
+XXX
+
+Remote browsers
+-----------------
+
+XXX
