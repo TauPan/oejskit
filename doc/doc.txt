@@ -22,6 +22,9 @@ jskit depends on simplejson. It also uses MochiKit - of which it ships a
 version within itself for convenience - for its own working though in
 does not imposes its usage on tested code.
 
+
+XXX history
+
 Basics of writing and running tests
 ------------------------------------
 
@@ -72,4 +75,75 @@ Running the test is just a matter of invoking ``py.test`` that has an installed 
     ====================================== 1 passed in 2.52 seconds =======================================
 
 (concretely here I'm using a `virtualenv` with both the `py.lib` and the ``oejskit`` egg installed in it)
+
+Tests from different ``Tests`` objects are run isolated in IFRAMEs
+which will also display test results enumerating both assertions and
+tests, not just tests. Each JavaScript ``test_`` method is run and its
+result reported by py.test as it would for Python tests. ``test_``
+methods from a ``Tests`` object are run in alphabetical order.
+
+
+Finding JavaScript
+-------------------
+
+Tests of course need to be able to load and refer to tested
+code. Let's assume for example that JavaScript code lives under the
+``static/js`` directory in the project, for example there could be a
+file ``ex.js`` there::
+
+    function ok() {
+        return "ok"
+    }
+
+jskit way to refer to tested code is based on its modularity
+functionality, though for the simplest cases this is involve just
+providing enough information such that parts of the URL space can be
+mapped back to parts of the filesystem where JavaScript lives. 
+
+Adding the following to the ``conftest.py`` of the project::
+
+    class jstests_setup:
+        staticDirs = {
+           '/static': os.path.join(os.path.dirname(__file__), 'static')
+        }
+        jsRepos = ['/static']
+
+tells jskit to serve files from the ``static`` directory (the value in
+the ``staticDirs`` mapping) for the ``static`` subtree of the URL space
+(the key).
+
+The values in ``jsRepos`` list which prefixes of the URL space contain
+JavaScript, they play a bigger role when using the full modularity
+functionality, they are ncessary for the simple case too though.
+
+With this configuration we can write a test ``jstest_ok_any.js`` for
+the ``ok`` function in ``ex.js`` that looks like this::
+
+    OpenEnd.require("/static/js/ex.js")
+
+    Tests = {
+    test_ok: function() {
+       var res = ok()
+       ais(res, "ok")
+    }
+    }
+
+With the information provided jskit can infer that ``ex.js`` is needed for the test and serve it.
+
+Running all the tests now should give::
+
+    $ ../v/bin/py.test
+    inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
+    ========================================= test session starts =========================================
+    python: platform linux2 -- Python 2.5.2
+    test object 1: /u/pedronis/scratch/oejskit-play/proj
+
+    test/jstest_example_any.js .
+    test/jstest_ok_any.js .
+
+    ====================================== 2 passed in 5.06 seconds =======================================
+
+
+Test failures
+--------------
 

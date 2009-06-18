@@ -85,7 +85,7 @@ def _get_serverSide(state):
     setup = _getscoped(state, "jstests_setup")
     if not setup:
         setup, _  = defaultJsTestsSetup(state)
-    serverSide = setup.ServerSide
+    serverSide = getattr(setup, 'ServerSide', None)
     if serverSide is None:
         serverSide = _getglobal(state, "jstests_server_side",
                                 "oejskit.wsgi.WSGIServerSide")

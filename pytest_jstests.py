@@ -64,7 +64,11 @@ class RunState:
         plugins = pluginmanager.getplugins()
         if hasattr(self.collector, 'obj'):
             plugins.append(self.collector.obj)
-        return pluginmanager.listattr(attrname=name, plugins=plugins)[-1]
+        values = pluginmanager.listattr(attrname=name, plugins=plugins)
+        values = [value for value in values if value is not None]
+        if values:
+            return values[-1]
+        return None
 
     @property
     def testdir(self):
