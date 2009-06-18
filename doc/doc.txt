@@ -83,8 +83,8 @@ result reported by py.test as it would for Python tests. ``test_``
 methods from a ``Tests`` object are run in alphabetical order.
 
 
-Finding JavaScript
--------------------
+Finding JavaScript code
+------------------------
 
 Tests of course need to be able to load and refer to tested
 code. Let's assume for example that JavaScript code lives under the
@@ -147,3 +147,11 @@ Running all the tests now should give::
 Test failures
 --------------
 
+XXX
+
+Assertion functions and helpers
+--------------------------------
+
+.. a* / insertTestNode
+
+XXX
