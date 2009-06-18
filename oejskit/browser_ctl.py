@@ -165,6 +165,9 @@ class Browser(object):
             url = "/browser_testing/load/test/%s" % url        
         res = self.send('InBrowserTesting.collectTests(%r)' % url,
                         discrim="%s@collect" % url)
+
+        assert res, ("%r no tests from the page: something is wrong" % url)
+
         return res, PageContext(self, setupBag,  None, url)
         
     def shutdown(self):
