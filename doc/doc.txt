@@ -18,6 +18,10 @@ which can be used to describe and track dependencies dynamically
 during development and that can help resolving them statically when
 deploying/packaging.
 
+jskit depends on simplejson. It also uses MochiKit - of which it ships a
+version within itself for convenience - for its own working though in
+does not imposes its usage on tested code.
+
 Basics of writing and running tests
 ------------------------------------
 
@@ -40,13 +44,6 @@ the assertion functions predefined by jskit, it raises an exception
 causing the test to fail if the two arguments are not equal (in
 JavaScript ``=`` sense).
 
-To run the test we need to use py.test with the jskit plugin
-activated, a ``conftest.py`` file at the top of the project with::
-
-    pytest_plugins = ["jstests"]
-
-should work. (XXX pointer to plugin usage docs)
-
 The suffix ``any`` separated by an underscore (``_``) in the test file name controls the kind of browsers the test should be run against, ``any`` is predefined by jskit to be
 
 - Firefox and Safari on Mac OS X
@@ -55,6 +52,24 @@ The suffix ``any`` separated by an underscore (``_``) in the test file name cont
 
 later we'll see how to define other groups of browsers.
 
-XXX Run!
+To run the test we need to use py.test with the jskit plugin
+activated, a ``conftest.py`` file at the top of the project with::
 
+    pytest_plugins = ["jstests"]
+
+should work. (XXX pointer to plugin usage docs)
+
+Running the test is just a matter of invoking ``py.test`` that has an installed jskit available on the Python path::
+
+    $ ../v/bin/py.test test/
+    inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
+    ========================================= test session starts =========================================
+    python: platform linux2 -- Python 2.5.2
+    test object 1: /u/pedronis/scratch/oejskit-play/proj/test
+
+    test/jstest_example_any.js .
+
+    ====================================== 1 passed in 2.52 seconds =======================================
+
+(concretely here I'm using a `virtualenv` with both the `py.lib` and the ``oejskit`` egg installed in it)
 
