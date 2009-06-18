@@ -23,17 +23,21 @@ setup(
     description='OE Javascript testing and utility kit',
     license='MIT',
     author='Open End AB',
+    #xxx
     #author_email=
     #url=    
     py_modules = ['pytest_jstests'],
     packages=['oejskit'],
     zip_safe=False,
+    include_package_data=True,
     data_files=[
     ('', ['LICENSE.txt']),
     ] + weblib(),
+    # xxx docs
     install_requires=[
         "simplejson"
     ],
+    #xxx
     #classifiers=[
     #],
 )
