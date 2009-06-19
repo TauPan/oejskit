@@ -224,4 +224,37 @@ executed with a browser available to control.
 Remote browsers
 -----------------
 
-XXX
+setup::
+
+    Z:\>c:\Python26\python.exe browser.py gentoken
+    eca424b610245337c80f32e3a08c50c6
+
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c5
+    0c6
+    serving browsers on 10010...
+
+run::
+
+    $ export JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6 
+    $ export JSTESTS_REMOTE_BROWSERS=bigboard:10010:iexplore
+    $ ../v/bin/py.test --jstests-browser-spec any=iexplore,firefox
+    inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
+    ======================================================= test session starts ========================================================
+    python: platform linux2 -- Python 2.5.2 -- /u/pedronis/scratch/oejskit-play/v/bin/python
+    test object 1: /u/pedronis/scratch/oejskit-play/proj
+
+    test/jstest_example_any.js:1: proj.test.jstest_example_any.js[=iexplore][test_simple] PASS
+    test/jstest_example_any.js:1: proj.test.jstest_example_any.js[=firefox][test_simple] PASS
+    test/jstest_ok_any.js:1: proj.test.jstest_ok_any.js[=iexplore][test_ok] PASS
+    test/jstest_ok_any.js:1: proj.test.jstest_ok_any.js[=firefox][test_ok] PASS
+    test/test_integration.py:7: TestIntegration[=iexplore].integration_server_side[test_add] PASS
+    test/test_integration.py:7: TestIntegration[=iexplore].integration_server_side[test_sub] PASS
+    test/test_integration.py:7: TestIntegration[=firefox].integration_server_side[test_add] PASS
+    test/test_integration.py:7: TestIntegration[=firefox].integration_server_side[test_sub] PASS
+
+    ==================================================== 8 passed in 28.39 seconds =====================================================
+
+    $ ../v/bin/python -m oejskit.browser cleanup iexplore
+
+    $ ../v/bin/python -m oejskit.browser shutdown-servers
+
