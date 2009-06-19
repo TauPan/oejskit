@@ -62,7 +62,7 @@ def _parse_authorized(line, nonce):
 
 # local and do()
 
-BROWERS = ['firefox', 'iexplore']
+BROWSERS = ['firefox', 'iexplore', 'safari']
 
 _win_extra = {
     'firefox': ('mozilla firefox', 0),
@@ -120,14 +120,16 @@ def _win_start(name, url):
         
 
 def start_browser_local(name, url, manual=False):
-    if name not in BROWERS:
+    if name not in BROSWERS:
         return
     if sys.platform == 'win32':
         _win_start(name, url)
     else:
         if sys.platform == 'darwin':
-            name = "open -a " + name.title()            
-        os.system("%s %s &" % (name, url))
+            name = "open -a " + name.title()
+        start_cmd = "%s %s &" % (name, url)
+        print start_cmd
+        os.system(start_cmd)
 
 def cleanup_browser_local(name):    
     if sys.platform != 'win32':
