@@ -120,7 +120,7 @@ def _win_start(name, url):
         
 
 def start_browser_local(name, url, manual=False):
-    if name not in BROSWERS:
+    if name not in BROWSERS:
         return
     if sys.platform == 'win32':
         _win_start(name, url)
