@@ -29,7 +29,7 @@ Basics of writing and running tests
 ------------------------------------
 
 For the simplest cases jskit allows to write tests simply as just
-JavaScript files. As an example one could have a jstest_example_any.js
+JavaScript files. As an example one could have a ``jstest_example_any.js``
 in a test directory in a project::
 
     Tests = {
@@ -156,15 +156,70 @@ Assertion functions and helpers
 
 XXX
 
-Browser specifications
------------------------
+Browser kind specifications
+----------------------------
 
 XXX
 
 Integration testing
 --------------------
 
-XXX
+One central jskit feature is the ability to run JavaScript tests
+against server-side Python code setup through test code. For example
+one can add a ``test_integration.py``::
+
+    from oejskit.testing import jstests_suite     
+    import cgi
+
+    class TestIntegration(object):
+        jstests_browser_kind = 'any'
+
+        @jstests_suite('test_integration.js')
+        def integration_server_side(self):
+            def server(environ, start_response):
+                p = environ['PATH_INFO']
+                start_response('200 OK', [('content-type', 'text/plain')])
+                q = cgi.parse_qs(environ['QUERY_STRING'])
+                if p == '/add':
+                    a, b = int(q['a'][0]), int(q['b'][0])
+                    return [str(a+b)]
+                elif p == '/sub':
+                    a, b = int(q['a'][0]), int(q['b'][0])
+                    return [str(a-b)]                
+                return []
+
+            return server
+        
+with a parallelly located ``test_integration.js``::
+
+    OpenEnd.require("/static/js/get.js")
+
+    Tests = {
+
+    test_add: function() {
+        var res = http_get("/add?a=2&b=3")
+        ais(parseInt(res), 5)
+    },
+
+    test_sub: function() {
+        var res = http_get("/sub?a=6&b=2")
+        ais(parseInt(res), 4)
+    }
+
+    }
+
+This test code will result in the tests in `test_integration.js`` to
+be run while the testing framework is serving the WSGI application
+``server`` at the root of the URL space. The tests will be run for
+each browser identified by the kind put in
+``jstests_browser_kind``. Both ``jstests_browser_kind`` and the
+decorator ``jstests_suite`` are required to achieve this behavior,
+``jstests_browser_kind`` marks that the tests in the class need to be
+executed with a browser available to control.
+
+``get.js`` here defines ``http_get`` a simple function wrapping  XMLHttpRequest t do synchronous GET requests.
+
+.. XXX pointer to open/eval/travel
 
 Remote browsers
 -----------------
