@@ -3,7 +3,7 @@
 # See LICENSE.txt
 #
 
-# assumes setuptools and bdist_egg!
+# assumes setuptools is already installed and bdist_egg!
 
 # xxx half-done
 from setuptools import setup
