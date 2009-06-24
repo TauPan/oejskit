@@ -178,7 +178,32 @@ XXX
 Browser kind specifications
 ----------------------------
 
-XXX
+On top of the predefined ``any``, browser kind groupings against which
+to run tests can be defined that are meaningful to one's project. As
+we have seen these are used as suffixes for test files or as values
+for the later introduced ``jstests_browser_kind`` class attribute.
+
+All is needed is to define a ``jstest_browser_specs`` mapping in the ``conftest.py`` file, with the kinds as keys and lists of browser names as values::
+
+    jstests_browser_specs = {
+        'supported': ['firefox', 'iexplore', 'safari'],
+        'extrafeatures': ['safari']
+    }
+
+browser names themselves can also be used directly as kinds. Given the
+mapping ``jstests_basic_supported.js``,
+``jstests_extras_extrafeatures.js`` and in any case
+``jstests_details_firefox.js`` or ``jstests_details_iexplore.js``
+would be meaningful JavaScript test file names.
+
+With the plugin activated a ``py.test`` command-line option
+``--jstests-browser-spec=JSTESTS_BROWSER_SPEC`` can also be used to
+define browser kinds as in::
+
+     --jstests-browser-spec any=firefox,safari --jstests-browser-spec extra=safari
+
+As we see here ``any`` itself can be redefined this way or via the
+mapping.
 
 Integration testing
 --------------------
@@ -246,6 +271,8 @@ executed with a browser available to control.
 
 Remote browsers
 -----------------
+
+.. xxx explanation, simplify
 
 setup::
 
