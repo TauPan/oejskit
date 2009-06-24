@@ -152,9 +152,28 @@ XXX
 Assertion functions and helpers
 --------------------------------
 
-.. a* / insertTestNode
+jskit predefine a set of functions to make assertions in tests,
+JavaScript not having an assertion statement at all
 
-XXX
+- ``aok(condition [, label])`` which will succeed respectively fail
+  depending on the JavaScript truth value of ``condition``
+
+- ``ais(value, expected [, label])`` which will succeed respectively
+  fail depending on whether ``value`` and ``expected`` are equal in
+  JavaScript ``=`` operator sense
+
+- ``aisDeeply(value, expected [, label])`` which differently from ``ais``
+  will recursively compare containers (JavaScript non-primitive
+  objects and arrays) succeeding when they have the same
+  properties/indexes sets with matching values in ``aisDeeply`` sense,
+  for primitive objects it behaves like ``ais``
+
+There's another predefined helper ``insertTestNode`` which will return
+a new ``DIV`` node at the end of test page styled with a border and
+labeled with the test name, the node can then be used to host DOM
+fragments to be manipulated by the test. If a test using this feature
+fails it should then be easy to identify the relevant DOM part and
+eyeball it or inspect with tools such as Firebug.
 
 Browser kind specifications
 ----------------------------
@@ -210,8 +229,12 @@ with a parallelly located ``test_integration.js``::
 
 This test code will result in the tests in `test_integration.js`` to
 be run while the testing framework is serving the WSGI application
-``server`` at the root of the URL space. The tests will be run for
-each browser identified by the kind put in
+``server`` at the root of the URL space. The code in
+``integration_server_side`` will be run once before the JavaScript
+tests in the suite will be run, in a sense it is akin to a setup
+method but `funcargs` (XXX pointer) can be requested in its arguments.
+
+The tests will be run for each browser identified by the kind put in
 ``jstests_browser_kind``. Both ``jstests_browser_kind`` and the
 decorator ``jstests_suite`` are required to achieve this behavior,
 ``jstests_browser_kind`` marks that the tests in the class need to be
@@ -229,8 +252,7 @@ setup::
     Z:\>c:\Python26\python.exe browser.py gentoken
     eca424b610245337c80f32e3a08c50c6
 
-    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c5
-    0c6
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6
     serving browsers on 10010...
 
 run::
