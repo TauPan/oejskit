@@ -143,12 +143,6 @@ Running all the tests now should give::
 
     ====================================== 2 passed in 5.06 seconds =======================================
 
-
-Test failures
---------------
-
-XXX
-
 Assertion functions and helpers
 --------------------------------
 
@@ -174,6 +168,12 @@ labeled with the test name, the node can then be used to host DOM
 fragments to be manipulated by the test. If a test using this feature
 fails it should then be easy to identify the relevant DOM part and
 eyeball it or inspect with tools such as Firebug.
+
+Test failures
+--------------
+
+XXX
+
 
 Browser kind specifications
 ----------------------------
