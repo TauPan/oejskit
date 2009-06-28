@@ -1,11 +1,13 @@
 jskit
 =======
 
-jskit contains infrastructure and in particular a py.test (XXX link) plugin to
+jskit contains infrastructure and in particular a `py.test`_  plugin to
 enable running tests for JavaScript code inside browsers directly
 using py.test as the test driver. Running inside the browsers comes
 with some speed cost, on the other hand it means for example the code
 is tested against the real-word DOM implementations. 
+
+.. _`py.test`: http://codespeak.net/py/dist/test/test.html
 
 The approach also enables to write integration tests such that the
 JavaScript code is tested against server-side Python code mocked as
@@ -18,10 +20,11 @@ which can be used to describe and track dependencies dynamically
 during development and that can help resolving them statically when
 deploying/packaging.
 
-jskit depends on simplejson. It also uses MochiKit (xxx ref) - of
+jskit depends on simplejson. It also uses `MochiKit`_ - of
 which it ships a version within itself for convenience - for its own
 working though in does not imposes its usage on tested code.
 
+.. _`MochiKit`: http://mochikit.com/
 
 XXX history
 
@@ -60,7 +63,9 @@ activated, a ``conftest.py`` file at the top of the project with::
 
     pytest_plugins = ["jstests"]
 
-should work. (XXX pointer to plugin usage docs)
+should work (see also the `py.test and plugin usage docs`_).
+
+.. _`py.test and plugin usage docs`: http://codespeak.net/py/dist/test/extend.html
 
 Running the test is just a matter of invoking ``py.test`` that has an installed jskit available on the Python path::
 
@@ -257,7 +262,9 @@ be run while the testing framework is serving the WSGI application
 ``server`` at the root of the URL space. The code in
 ``integration_server_side`` will be run once before the JavaScript
 tests in the suite will be run, in a sense it is akin to a setup
-method but `funcargs` (XXX pointer) can be requested in its arguments.
+method but `funcargs`_  can be requested in its arguments.
+
+.. _`funcargs`: http://codespeak.net/py/dist/test/funcargs.html
 
 The tests will be run for each browser identified by the kind put in
 ``jstests_browser_kind``. Both ``jstests_browser_kind`` and the
