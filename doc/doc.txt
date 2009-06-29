@@ -177,7 +177,32 @@ eyeball it or inspect with tools such as Firebug.
 Test failures
 --------------
 
-XXX
+Given a failing test like (``proj/fail/jstest_fail_any.js``)::
+
+    Tests = {
+
+    test_fail: function() {
+        aisDeeply([1].concat([2, 3]), [1,[2,3]])
+    }
+
+    }
+
+this is part of the kind of output to be expected at least when the test is run against Firefox which provides proper traceback information::
+
+    ...
+               raise JsFailed(name, outcome['diag'])
+    E           JsFailed: test_fail: FAILED:     Structures begin differing at:
+    E           got[1] = 2
+    E           expected[1] = 2,3
+    E           
+    E           stack: Error()@:0
+    E           ("isDeeply in test_fail in ?","    Structures begin differing at:\r\ngot[1] = 2\r\nexpected[1] = 2,3\r\n")@http://localhost:49279/browser_testing/rt/testing-new.js:199
+    E           (false,"isDeeply in test_fail in ?","    Structures begin differing at:\r\ngot[1] = 2\r\nexpected[1] = 2,3\r\n")@http://localhost:49279/browser_testing/rt/testing-new.js:217
+    E           ([object Array],[object Array])@http://localhost:49279/browser_testing/rt/testing-new.js:427
+    E           ()@http://localhost:49279/test/jstest_fail_any.js:6
+    ...
+
+Notice that the line numbers and involved JavaScript files are presented (``@http://localhost:49279/test/jstest_fail_any.js:6``).
 
 
 Browser kind specifications
