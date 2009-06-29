@@ -9,7 +9,7 @@
 from setuptools import setup
 import os
 
-version = '0.8.4'
+version = '0.8.5'
 
 def weblib():
     l = []
