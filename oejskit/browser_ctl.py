@@ -14,6 +14,11 @@ from oejskit.serving import Serve, ServeFiles, Dispatch
 from oejskit.modular import JsResolver
 from oejskit.browser import start_browser
 
+script_template = """
+  <script type="text/javascript" src="%s">
+  </script>  
+"""
+
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
 <head>
   <script type="text/javascript" src="/oe-js/modular_rt.js"></script>
@@ -22,6 +27,7 @@ load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
   <script type="text/javascript" src="/browser_testing/rt/utils.js">
   </script>  
 
+  %s
   <script type="text/javascript" src="%s">
   </script>  
 </head>
@@ -48,6 +54,7 @@ class ServeTesting(Dispatch):
         self.rt = ServeFiles(rtDir)
         self.lib = ServeFiles(libDir)
         self.extra = None
+        self.jsScripts = None
         map = {
             '/browser_testing/': self.home,
             '/browser_testing/cmd': Serve(self.cmd),
@@ -72,6 +79,7 @@ class ServeTesting(Dispatch):
         self.extra = Dispatch(extraMap)
 
         self.repos = setupBag.jsRepos
+        self.jsScripts = setupBag.jsScripts
         self._cmd['CMD'] = action
 
     def reset(self):
@@ -103,7 +111,11 @@ class ServeTesting(Dispatch):
         return self.notFound(start_response)
 
     def load(self, env, path):
-        page = load_template % env['PATH_INFO']
+        scripts = []
+        for url in self.jsScripts:
+            scripts.append(script_template % url)
+        scripts = ''.join(scripts)
+        page = load_template % (scripts, env['PATH_INFO'])
         page = self.jsResolver.resolveHTML(page, repos=self.repos)
         return page, 'text/html'
 
