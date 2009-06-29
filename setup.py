@@ -9,7 +9,7 @@
 from setuptools import setup
 import os
 
-version = '0.8.3'
+version = '0.8.4'
 
 def weblib():
     l = []
@@ -23,9 +23,8 @@ setup(
     description='OE Javascript testing and utility kit',
     license='MIT',
     author='Open End AB',
-    #xxx
-    #author_email=
-    #url=    
+    #author_mail=
+    url='http://bitbucket.org/pedronis/js-infrastructure/',
     py_modules = ['pytest_jstests'],
     packages=['oejskit'],
     zip_safe=False,
@@ -37,7 +36,17 @@ setup(
     install_requires=[
         "simplejson"
     ],
-    #xxx
-    #classifiers=[
-    #],
+    classifiers=[
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: POSIX',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: MacOS :: MacOS X',
+    'Topic :: Software Development :: Testing',
+    'Topic :: Software Development :: Quality Assurance',
+    'Topic :: Utilities',
+    'Programming Language :: Python',
+    'Programming Language :: JavaScript'    
+    ],
 )
