@@ -31,8 +31,7 @@ setup(
     include_package_data=True,
     data_files=[
     ('', ['LICENSE.txt']),
-    ] + weblib(),
-    # xxx docs
+    ] + weblib() + [('doc', ['doc/doc.html', 'doc/style.css'])],
     install_requires=[
         "simplejson"
     ],
