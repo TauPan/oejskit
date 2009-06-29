@@ -2,15 +2,22 @@
 # Copyright (C) Open End AB 2007-2009, All rights reserved
 # See LICENSE.txt
 #
-import py, os
+import py, os, sys
 
 
 # hooks
 
 jstests_setup = None
 
+any_browser = ['firefox']
+
+if sys.platform == 'win32':
+    any_browser.append('iexplore')
+elif sys.platform == 'darwin':
+    any_browser.append('safari')
+
 jstests_cmdline_browser_specs = {
-    'any': ['firefox'] # fallback
+    'any': any_browser
 }
 
 def cmdline_browser_spec(option, optstr, value, parser):
