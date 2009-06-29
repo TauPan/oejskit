@@ -20,7 +20,7 @@ def weblib():
 setup(
     name="oejskit",
     version=version,
-    description='OE Javascript testing and utility kit',
+    description='Open End JavaScript testing and utility kit',
     license='MIT',
     author='Open End AB',
     #author_mail=
