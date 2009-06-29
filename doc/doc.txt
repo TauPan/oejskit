@@ -26,7 +26,7 @@ working though in does not imposes its usage on tested code.
 
 .. _`MochiKit`: http://mochikit.com/
 
-XXX history
+jskit was initially developed by Open End AB and is released under the MIT license.
 
 Basics of writing and running tests
 ------------------------------------
@@ -304,17 +304,26 @@ executed with a browser available to control.
 Remote browsers
 -----------------
 
-.. xxx explanation, simplify
+Contained in the ``oejskit`` package there is a module ``browser.py``
+which can be used as standalone script. The script can be run as a
+server that allows starting browsers on a remote machine, this means
+that the platforms for the python/server-side test code and the
+platforms for target browsers don't need to coincide. The script can
+be simply be copied as standalone file and it just needs a plain
+python installed without further dependencies to run. The script uses
+HMAC and a secret token to secure its access though it is still
+recommend to run it behind a firewall.
 
-setup::
+Setup servers to start browsers on the the relevant machine::
 
-    Z:\>c:\Python26\python.exe browser.py gentoken
-    eca424b610245337c80f32e3a08c50c6
-
-    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6
+    Z:\>c:\Python26\python.exe browser.py server 10010
+    JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6  
     serving browsers on 10010...
 
-run::
+On the machine that will drive the tests set one environment variable
+with the secret token, and another that lists separated by spaces
+``<hostname>:<port>:<browsers-separated-by-commas>`` for the browser
+servers::
 
     $ export JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6 
     $ export JSTESTS_REMOTE_BROWSERS=bigboard:10010:iexplore
@@ -335,7 +344,21 @@ run::
 
     ==================================================== 8 passed in 28.39 seconds =====================================================
 
+Firefox is not listed in the environment variable, so a local one is started or reused.
+
+There are also commands to shutdown browsers, respectively servers,
+they will also consider the environment variables to find their targets::
+
     $ ../v/bin/python -m oejskit.browser cleanup iexplore
 
     $ ../v/bin/python -m oejskit.browser shutdown-servers
+
+For convenience when setting up multiple machines there is the
+possibility to first generate a token and pass it in as an argument to
+the ``server`` command::
+
+    Z:\>c:\Python26\python.exe browser.py gentoken
+    eca424b610245337c80f32e3a08c50c6
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6  
+    serving browsers on 10010...
 

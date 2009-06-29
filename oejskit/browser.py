@@ -23,6 +23,9 @@ def _remote_map(_cached={}):
             remote_map[browser] = addr
     return remote_map
 
+def _gentoken():
+    return binascii.hexlify(os.urandom(16))
+
 _token_cache = []
 def _read_token():
     if _token_cache:
@@ -179,8 +182,13 @@ def do(cmd_list, suite):
         flags, args = parser.parse_args(cmd_list[1:])
         if len(args) > 0:
             port = int(args[0])
-        if len(args) > 1:
-            os.environ['JSTESTS_REMOTE_BROWSERS_TOKEN'] = args[1]
+        if 'JSTESTS_REMOTE_BROWSERS_TOKEN' not in os.environ:
+            if len(args) > 1:
+                tok = args[1]
+            else:
+                tok = _gentoken()
+                print 'JSTESTS_REMOTE_BROWSERS_TOKEN=%s' % tok
+            os.environ['JSTESTS_REMOTE_BROWSERS_TOKEN'] = tok
         if flags.win_to_top:
             os.environ['JSTESTS_BROWSERS_WIN_TO_TOP'] = '1'
         cmd_func(port, log=flags.log)
@@ -298,7 +306,7 @@ def shutdown_servers():
         _send_cmd(addr, ['shutdown'])
 
 def gentoken():
-    print binascii.hexlify(os.urandom(16))
+    print _gentoken()
                       
 
 CMDLINE = {
