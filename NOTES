@@ -1,7 +1,5 @@
-- documentation WIP
 - talk!!!
-- finish setup.py WIP
-- fix 'any' to work as documented
+
 - make sure there's a way to control MochiKit export mode and reasonable defaults
 - better error if jstests_setup is wrong/missing bits
 - not ideal feedback if we fail to start a browser
