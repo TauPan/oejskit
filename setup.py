@@ -17,14 +17,27 @@ def weblib():
         l.append((dirname, [os.path.join(dirname, fname) for fname in fnames]))
     return l
 
+def long_descr():
+    lines = open('doc/doc.txt', 'r').readlines()
+    start = []
+    for line in lines:
+        if 'rest of the docs' in line:
+            break
+        start.append(line)
+    start.append("`rest of the docs... <http://www2.openend.se:/~pedronis/oejskit/doc/doc.html#rest-of-the-docs>`_")
+    descr = ''.join(start)
+    return descr
+
 setup(
     name="oejskit",
     version=version,
     description='Open End JavaScript testing and utility kit',
+    long_description=long_descr(),
     license='MIT',
     author='Open End AB',
     #author_mail=
     url='http://bitbucket.org/pedronis/js-infrastructure/',
+    platforms=['linux', 'osx', 'win32'],
     py_modules = ['pytest_jstests'],
     packages=['oejskit'],
     zip_safe=False,

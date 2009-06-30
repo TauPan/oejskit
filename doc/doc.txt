@@ -26,7 +26,9 @@ working though in does not imposes its usage on tested code.
 
 .. _`MochiKit`: http://mochikit.com/
 
-jskit was initially developed by Open End AB and is released under the MIT license.
+jskit was initially developed by *Open End* AB and is released under the MIT license.
+
+.. _`rest of the docs`:
 
 Basics of writing and running tests
 ------------------------------------
