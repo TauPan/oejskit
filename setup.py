@@ -24,7 +24,9 @@ def long_descr():
         if 'rest of the docs' in line:
             break
         start.append(line)
-    start.append("`rest of the docs... <http://www2.openend.se:/~pedronis/oejskit/doc/doc.html#rest-of-the-docs>`_")
+    start.append("`rest of the docs... <http://www2.openend.se:/~pedronis/oejskit/doc/doc.html#rest-of-the-docs>`_\n\n")
+    start.append("`Europython 2009 talk with examples <http://www2.openend.se:/~pedronis/oejskit/talk>`_\n\n")
+    start.append("Discussions and feedback should go to py-dev at codespeak.net\n")
     descr = ''.join(start)
     return descr
 
@@ -35,7 +37,7 @@ setup(
     long_description=long_descr(),
     license='MIT',
     author='Open End AB',
-    #author_mail=
+    author_email='py-dev@codespeak.net,pedronis@openend.se', # with hpk approval at ep09
     url='http://bitbucket.org/pedronis/js-infrastructure/',
     platforms=['linux', 'osx', 'win32'],
     py_modules = ['pytest_jstests'],
