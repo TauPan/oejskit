@@ -26,6 +26,7 @@ def long_descr():
         start.append(line)
     start.append("`rest of the docs... <http://www2.openend.se:/~pedronis/oejskit/doc/doc.html#rest-of-the-docs>`_\n\n")
     start.append("`Europython 2009 talk with examples <http://www2.openend.se:/~pedronis/oejskit/talk>`_\n\n")
+    start.append("The project repository lives at http://bitbucket.org/pedronis/js-infrastructure/\n\n")
     start.append("Discussions and feedback should go to py-dev at codespeak.net\n")
     descr = ''.join(start)
     return descr
