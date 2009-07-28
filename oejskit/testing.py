@@ -6,7 +6,6 @@
 Python side infrastructure for running javascript tests in browsers
 """
 import sys, os
-import py
 
 from oejskit.modular import jsDir
 from oejskit.browser_ctl import ServeTesting, BrowserFactory, BrowserController

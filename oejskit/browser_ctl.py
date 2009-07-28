@@ -270,7 +270,7 @@ class PageContext(_BrowserController):
         if not outcome['result']:
             raise JsFailed(name, outcome['diag'])
         if outcome['leakedNames']:
-            py.test.fail('%s leaked global names: %s' % (name,
+            raise RuntimeError('%s leaked global names: %s' % (name,
                                                        outcome['leakedNames']))
         
 
