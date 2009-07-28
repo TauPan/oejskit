@@ -7,7 +7,6 @@ Controlling browsers for javascript testing
 """
 import sys, urllib
 import subprocess
-import py
 import simplejson
 
 from oejskit.serving import Serve, ServeFiles, Dispatch
