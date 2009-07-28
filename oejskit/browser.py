@@ -286,7 +286,10 @@ def _invoke(cmd_list):
 def check_browser(name):
     if _check_remote(name): # assume remote implies supported
         return True
+    # xxx naive
     if name == 'iexplore' and sys.platform != 'win32':
+        return False
+    if name == 'safari' and sys.platform != 'darwin':
         return False
     return True
 

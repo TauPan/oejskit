@@ -4,7 +4,7 @@ from oejskit import unittest_support
 class ProjectJSTestSuite(unittest_support.JSTestSuite):
 
     jstests_browser_specs = {
-        'supported': ['firefox', 'iexplore', 'safari'],
+        'supported': ['firefox', 'iexplore', 'safari']
     }
 
 
