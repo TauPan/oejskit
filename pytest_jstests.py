@@ -8,16 +8,10 @@ import py, os, sys
 # hooks
 
 jstests_setup = None
-
-any_browser = ['firefox']
-
-if sys.platform == 'win32':
-    any_browser.append('iexplore')
-elif sys.platform == 'darwin':
-    any_browser.append('safari')
+from oejskit import util
 
 jstests_cmdline_browser_specs = {
-    'any': any_browser
+    'any': util.any_browser()
 }
 
 def cmdline_browser_spec(option, optstr, value, parser):
