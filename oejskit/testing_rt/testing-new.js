@@ -147,8 +147,8 @@ Testing._globalNames = function() {
     window.location
     window.addEventListener
     var names =  keys(window)
-    // Firebug attributes
-    return names.concat(['_firebug','_FirebugConsole'])
+    // Firebug attributes + FF3.5
+    return names.concat(['_firebug','_FirebugConsole', 'getInterface'])
 }
 
 Testing.runOne = function (which, done) {
