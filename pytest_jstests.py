@@ -113,8 +113,8 @@ def pytest_collectstart(collector):
     if isinstance(collector, (py.test.collect.Module, JsFile)):
         get_state(collector, collect=True)
 
-def pytest_collectreport(rep):
-    collector = rep.collector
+def pytest_collectreport(report):
+    collector = report.collector
     if isinstance(collector, (py.test.collect.Module, JsFile)):
         del_state(collector)
 

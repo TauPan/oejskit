@@ -109,8 +109,8 @@ def test_looponfail_cleanup(testdir, monkeypatch):
     p = make_tests(testdir)
 
     testreps = []
-    def pytest_runtest_logreport(rep):
-        testreps.append(rep)
+    def pytest_runtest_logreport(report):
+        testreps.append(report)
 
     testdir.plugins.extend(["jstests",
                   {'pytest_runtest_logreport': pytest_runtest_logreport}])
