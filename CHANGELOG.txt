@@ -1,0 +1,7 @@
+0.8.6
+++++++
+
+* fixes for py.test 1.0 final compatibility
+* experimental glue to standard library unittest.py (no docs yet)
+
+

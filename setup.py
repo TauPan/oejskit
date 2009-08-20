@@ -28,6 +28,8 @@ def long_descr():
     start.append("`Europython 2009 talk with examples <http://www2.openend.se:/~pedronis/oejskit/talk>`_\n\n")
     start.append("The project repository lives at http://bitbucket.org/pedronis/js-infrastructure/\n\n")
     start.append("Discussions and feedback should go to py-dev at codespeak.net\n")
+    start.append("\nChangelog\n-----------\n")
+    start.append(open('CHANGELOG.txt', 'r').read())    
     descr = ''.join(start)
     return descr
 
@@ -46,7 +48,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     data_files=[
-    ('', ['LICENSE.txt']),
+    ('', ['LICENSE.txt', 'CHANGELOG.txt']),
     ] + weblib() + [('doc', ['doc/doc.html', 'doc/style.css'])],
     install_requires=[
         "simplejson"
