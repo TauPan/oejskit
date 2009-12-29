@@ -34,7 +34,6 @@ def test_run(testdir, monkeypatch):
     p = make_tests(testdir)
     
     testdir.plugins.append("jstests")
-    testdir.prepare()
 
     result = testdir.runpytest(p)
 
@@ -48,7 +47,6 @@ def test_collectonly(testdir, monkeypatch):
     p = make_tests(testdir)    
     
     testdir.plugins.append("jstests")
-    testdir.prepare()
 
     result = testdir.runpytest('--collectonly', p)
 
