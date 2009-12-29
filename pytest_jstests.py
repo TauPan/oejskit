@@ -20,7 +20,7 @@ def cmdline_browser_spec(option, optstr, value, parser):
     jstests_cmdline_browser_specs[name] = choices
 
 def pytest_addoption(parser):
-    group = parser.addgroup("jstests", "oejskit test suite options")
+    group = parser.getgroup("jstests", "oejskit test suite options")
     group.addoption(
         "--jstests-server-side", action="store",
         dest="jstests_server_side",
