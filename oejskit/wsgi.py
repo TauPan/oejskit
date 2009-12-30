@@ -67,7 +67,7 @@ class WSGIServerSide(object):
         self.server.socket.settimeout(2)
         self.root = root
         # hack
-        # IE seem not honor any no-caching headers unless we declare
+        # IE seems not honor any no-caching headers unless we declare
         # to be serving HTTP/1.1
         orig_http_version = simple_server.ServerHandler.http_version
         simple_server.ServerHandler.http_version = self.http_version
