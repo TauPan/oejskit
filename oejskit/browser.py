@@ -65,12 +65,26 @@ def _parse_authorized(line, nonce):
 
 # local and do()
 
-BROWSERS = ['firefox', 'iexplore', 'safari']
+class Error(Exception):
+    pass
+
+KNOWN_BROWSERS = ['firefox', 'iexplore', 'safari']
 
 _win_extra = {
     'firefox': ('mozilla firefox', 0),
     'iexplore': ('internet explorer', 1)
     }
+
+browsers = {} # optionally filled later by do(['server', ...])
+
+def _browser_name_and_parms(name):
+    if name not in browsers:
+        return name, ""
+    cmdline = browsers[name]
+    parts = cmdline.split(None, 1)
+    if len(parts) == 1:
+        parts.append("")
+    return parts
 
 class _WinToTop(object):
 
@@ -85,8 +99,11 @@ class _WinToTop(object):
         return res
 
     def __init__(self, name):
-        self._do = bool(os.environ.get('JSTESTS_BROWSERS_WIN_TO_TOP'))
-        self.sig, self.expected_delta = _win_extra[name]
+        if name in _win_extra:
+            self._do = bool(os.environ.get('JSTESTS_BROWSERS_WIN_TO_TOP'))
+            self.sig, self.expected_delta = _win_extra[name]
+        else:
+            self._do = False
         self._before = None
 
     def before(self):
@@ -114,32 +131,45 @@ class _WinToTop(object):
             w = list(got)[0]
             win32gui.BringWindowToTop(w)
 
-def _win_start(name, url):
+def _win_start(name, parms):
     import win32api
     to_top = _WinToTop(name)
-    to_top.before()    
-    win32api.ShellExecute(0, None, name, url, None, 1) # SW_SHOWNORMAL
+    to_top.before()
+    try:
+        win32api.ShellExecute(0, None, name, parms, None, 1) # SW_SHOWNORMAL
+    except win32api.error:
+        raise Error("failed to run: %s %s" % (name, parms))
     to_top.to_top()
         
 
 def start_browser_local(name, url, manual=False):
-    if name not in BROWSERS:
-        return
-    if sys.platform == 'win32':
-        _win_start(name, url)
+    name, parms = _browser_name_and_parms(name)
+    if parms:
+        parms += " "+url
     else:
-        if sys.platform == 'darwin':
+        parms = url
+    
+    if sys.platform == 'win32':
+        _win_start(name, parms)
+    else:
+        if sys.platform == 'darwin' and name.lower() in KNOWN_BROWSERS:
             name = "open -a " + name.title()
-        start_cmd = "%s %s &" % (name, url)
+        start_cmd = "%s %s" % (name, parms)
         print start_cmd
-        os.system(start_cmd)
+        args = start_cmd.split()
+        pid = os.spawnvp(os.P_NOWAIT, args[0], args)
+        # catch most common cases of startup problems
+        time.sleep(0.5)
+        _, status = os.waitpid(pid, os.WNOHANG)
+        if status != 0:
+            raise Error("failed to run: %s" % start_cmd) 
 
 def cleanup_browser_local(name):    
     if sys.platform != 'win32':
         return
-    if name not in BROWERS:
-        return    
-    img = name+".exe"
+    name, _ = _browser_name_and_parms(name)
+    if not name.lower().endswith('.exe'):
+        img = name+".exe"
 
     def nt_check_for_running(img):
         return img in os.popen('tasklist'
@@ -180,11 +210,20 @@ def do(cmd_list, suite):
         parser.add_option('--log', type='string')
         parser.add_option('--win-to-top', action='store_true', default=False)
         flags, args = parser.parse_args(cmd_list[1:])
-        if len(args) > 0:
-            port = int(args[0])
+        other = []
+        for arg in args:
+            if '=' in arg:
+                user_def_name, cmdline = arg.split('=', 1)
+                cmdline = cmdline.strip()
+                global browsers
+                browsers[user_def_name] = cmdline
+            else:
+                other.append(arg)
+        if len(other) > 0:
+            port = int(other[0])
         if 'JSTESTS_REMOTE_BROWSERS_TOKEN' not in os.environ:
-            if len(args) > 1:
-                tok = args[1]
+            if len(other) > 1:
+                tok = other[1]
             else:
                 tok = _gentoken()
                 print 'JSTESTS_REMOTE_BROWSERS_TOKEN=%s' % tok
@@ -232,8 +271,12 @@ def server(port, log):
                 if cmd_list[0] == 'shutdown':
                     f.write("ok\n")
                     return
-                do(cmd_list, LOCAL)
-                f.write("ok\n")
+                try:
+                    do(cmd_list, LOCAL)
+                except Error, e:
+                    f.write("%s\n" % e)
+                else:
+                    f.write("ok\n")
             finally:
                 f.close()
                 cl.close()
@@ -259,7 +302,8 @@ def _send_cmd(addr, cmd_list):
         f.write(msg+"\n")
         ok = f.readline()
         if ok != "ok\n":
-            raise RuntimeError("invoking %s remotely failed" % cmd_list)
+            raise RuntimeError("invoking %s remotely failed: %s" %
+                               (cmd_list, ok.strip()))
     finally:
         f.close()
         s.close()

@@ -50,4 +50,9 @@ class TestSecurityFunctions():
         parsed = browser._parse_authorized("start ff", nonce)
         assert parsed is None                        
     
-    
+class TestStartBrowser(object):
+
+    def test_nonexistent_browser(self):
+        py.test.raises(browser.Error, browser.start_browser_local,
+                                      'nonExistent',
+                                      'http://localhost:99')

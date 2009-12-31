@@ -3,7 +3,9 @@
 
 * fix own-tests-only issues and warnings with py.test 1.1.x
 * document the glue to standard library unittest.py 
-...
+* better error reporting when a browser cannot be started
+* flexible ``user-defined-name=commandline`` control over browser names
+  for ``browser.py server`` with documentation
 
 0.8.6
 ++++++

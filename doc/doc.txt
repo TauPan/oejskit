@@ -367,6 +367,33 @@ the ``server`` command::
     Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6  
     serving browsers on 10010...
 
+It is possible to give user-defined name for greater flexibility to
+browsers or browser command lines, for example to run tests against
+both Internet Explorer 7 and 8 one could run ``browser.py`` on a
+Windows machine with the latter this way::
+
+    Z:\>c:\Python26\python.exe browser.py gentoken
+    eca424b610245337c80f32e3a08c50c6
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie8=iexplore  
+    serving browsers on 10010...
+
+and on other with the older IE7 with::
+
+    Y:\>c:\Python25\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie7=iexplore  
+    serving browsers on 10010...
+
+A series of definitions with ``user-defined-name=command-line`` can be
+specified after the main ``browser.py server``
+parameters. ``user-defined-names`` can then be used as browser names
+and in browser specifications, like::
+
+     --jstests-browser-spec any=firefox,ie7,ie8
+
+If it makes sense a full command line can be specified::
+
+    Y:\>c:\Python25\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 "ff-testing=...\firefox.exe -P testing" ie7=iexplore
+
+
 Support for ``unittest.py`` based test suites
 ----------------------------------------------
 

@@ -152,7 +152,7 @@ class Browser(object):
         self.app = app
         self.serverSide.set_app(app)
         r = self.send('InBrowserTesting.prepare(%r)' % name,
-                      discrim='prepared:%s' % name)
+                      discrim='prepared:%s' % name, timeout=20)
         assert r == 'prepared'        
 
     def send(self, action, discrim=None, root=None, timeout=None,
