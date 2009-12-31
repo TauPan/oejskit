@@ -1,8 +1,6 @@
 - make sure there's a way to control MochiKit export mode and reasonable defaults
-- more indirection to name browsers, support iexplore8 -> iexplore or starting specific firefox profiles ...
 - use some bits of the talk to give more concreteness to the docs
 - better error if jstests_setup is wrong/missing bits
-- not ideal feedback if we fail to start a browser
 - consider making a source distribution too
 
 - css/styling of the test page contents
