@@ -6,4 +6,6 @@
 - css/styling of the test page contents
 - better traceback printing
 
+- create tracker?
+
 - different prefix for jstest_suite functions?
