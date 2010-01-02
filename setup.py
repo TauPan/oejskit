@@ -5,9 +5,8 @@
 
 # assumes setuptools is already installed and bdist_egg!
 
-# xxx half-done
 from setuptools import setup
-import os
+import os, sys
 
 version = '0.8.7'
 
@@ -33,6 +32,11 @@ def long_descr():
     descr = ''.join(start)
     return descr
 
+def need_simplejson():
+    if sys.version_info < (2.6):
+        return ["simplejson"]
+    return []
+
 setup(
     name="oejskit",
     version=version,
@@ -49,9 +53,7 @@ setup(
     data_files=[
     ('', ['LICENSE.txt', 'CHANGELOG.txt']),
     ] + weblib() + [('doc', ['doc/doc.html', 'doc/style.css'])],
-    install_requires=[
-        "simplejson"
-    ],
+    install_requires=need_simplejson(),
     classifiers=[
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
@@ -66,6 +68,6 @@ setup(
     'Programming Language :: JavaScript'    
     ],
     entry_points = {
-    'pytest11': ['jstests = oejskit.pytest_jstests'],
+    'pytest11': ['pytest_jstests = oejskit.pytest_jstests'],
     }
 )

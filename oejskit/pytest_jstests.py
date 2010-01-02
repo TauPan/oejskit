@@ -22,20 +22,21 @@ def cmdline_browser_spec(option, optstr, value, parser):
 def pytest_addoption(parser):
     group = parser.getgroup("jstests", "oejskit test suite options")
     group.addoption(
+        "--jstests-reuse-browser-windows", action="store_true",
+        dest="jstests_reuse_browser_windows",
+        help="don't use one tab/windows per test file"
+        )
+    group.addoption(
+        "--jstests-browser-spec", action="callback", type="string",
+        callback=cmdline_browser_spec,
+        help="define browser specs like: supported=firefox,safari"
+        )
+    group.addoption(
         "--jstests-server-side", action="store",
         dest="jstests_server_side",
         type="string",
         default="oejskit.wsgi.WSGIServerSide"
         )
-    group.addoption(
-        "--jstests-reuse-browser-windows", action="store_true",
-        dest="jstests_reuse_browser_windows",
-        )
-    group.addoption(
-        "--jstests-browser-spec", action="callback", type="string",
-        callback=cmdline_browser_spec
-        )
-
 
 def pytest_pycollect_makeitem(collector, name, obj):
     if (collector.classnamefilter(name)) and \

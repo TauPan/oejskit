@@ -5,6 +5,7 @@
   for ``browser.py server`` with documentation
 * document the glue to standard library unittest.py 
 * better error reporting when a browser cannot be started
+* use json module included in Python >=2.6, simplejson otherwise
 * move the py.test plugin into the oejskit package, expose it through a pytest11 setuptools entry point
 * fix own-tests-only issues and warnings with py.test 1.1.x 
 

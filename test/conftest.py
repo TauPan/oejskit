@@ -1,4 +1,4 @@
-pytest_plugins = "jstests"
+import py
 
 option_jstests_reuse_browser_windows = True
 

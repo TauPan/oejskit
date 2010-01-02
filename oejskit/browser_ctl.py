@@ -7,7 +7,10 @@ Controlling browsers for javascript testing
 """
 import sys, urllib
 import subprocess
-import simplejson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 from oejskit.serving import Serve, ServeFiles, Dispatch
 from oejskit.modular import JsResolver
@@ -94,12 +97,12 @@ class ServeTesting(Dispatch):
 
     def cmd(self, env, data):
         cmd = self._cmd.pop('CMD', None)
-        return simplejson.dumps(cmd), 'text/json', False
+        return json.dumps(cmd), 'text/json', False
 
     def result(self, env, data):
         if data is None:
             return '', 'text/plain', False # not clear why we get a GET
-        data = simplejson.loads(data)
+        data = json.loads(data)
         self._results[data['discrim']] = data['res']
         env['oejskit.stop_serving']()
         return 'ok\n', 'text/plain', False
@@ -249,7 +252,7 @@ class PageContext(_BrowserController):
         n = self.count
         self.count += 1
         outcome = self.send('InBrowserTesting.%s(%r, %s, %d)' %
-                         (method, self.label, simplejson.dumps(argument), n),
+                         (method, self.label, json.dumps(argument), n),
                          discrim="%s@%d" % (self.label, n),
                          root=root, timeout=timeout)
         return outcome

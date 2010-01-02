@@ -34,7 +34,7 @@ def test_run(testdir, monkeypatch):
 
     p = make_tests(testdir)
     
-    testdir.plugins.append("jstests")
+    #testdir.plugins.append("jstests")
 
     result = testdir.runpytest(p)
 
@@ -47,7 +47,7 @@ def test_collectonly(testdir, monkeypatch):
 
     p = make_tests(testdir)    
     
-    testdir.plugins.append("jstests")
+    #testdir.plugins.append("jstests")
 
     result = testdir.runpytest('--collectonly', p)
 
@@ -62,7 +62,8 @@ def check_clean(plugin):
         assert not hasattr(state, '_jstests_browser_setups')        
 
 def test_run_cleanup(testdir, monkeypatch):
-    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11', 'jstests') 
+    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11',
+                                            'pytest_jstests') 
     p = make_tests(testdir)
 
     sanity = []
@@ -79,7 +80,8 @@ def test_run_cleanup(testdir, monkeypatch):
     assert sanity
 
 def test_collectonly_cleanup(testdir, monkeypatch):
-    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11', 'jstests')
+    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11',
+                                            'pytest_jstests')
     p = make_tests(testdir)
 
     sanity = []
@@ -98,7 +100,8 @@ def test_collectonly_cleanup(testdir, monkeypatch):
 
 def test_looponfail_cleanup(testdir, monkeypatch):
     # xxx too much white boxy
-    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11', 'jstests')
+    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11',
+                                            'pytest_jstests')
     p = make_tests(testdir)
 
     testreps = []
