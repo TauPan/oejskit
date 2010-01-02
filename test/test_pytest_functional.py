@@ -1,5 +1,6 @@
 import os
 import py
+import pkg_resources
 
 pytest_plugins = "pytester"
 
@@ -42,7 +43,7 @@ def test_run(testdir, monkeypatch):
 
 def test_collectonly(testdir, monkeypatch):
     monkeypatch.setenv('PYTHONPATH',
-                       py.path.local(__file__).dirpath().dirpath())
+                       py.path.local(__file__).dirpath().dirpath())    
 
     p = make_tests(testdir)    
     
@@ -61,9 +62,7 @@ def check_clean(plugin):
         assert not hasattr(state, '_jstests_browser_setups')        
 
 def test_run_cleanup(testdir, monkeypatch):
-    monkeypatch.setenv('PYTHONPATH',
-                       py.path.local(__file__).dirpath().dirpath())
-
+    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11', 'jstests') 
     p = make_tests(testdir)
 
     sanity = []
@@ -72,7 +71,7 @@ def test_run_cleanup(testdir, monkeypatch):
         check_clean(plugin)
         sanity.append(None)
     
-    testdir.plugins.extend(["jstests",
+    testdir.plugins.extend([plugin,
                             {'pytest_unconfigure': pytest_unconfigure}])
 
     testdir.inline_run(p)
@@ -80,9 +79,7 @@ def test_run_cleanup(testdir, monkeypatch):
     assert sanity
 
 def test_collectonly_cleanup(testdir, monkeypatch):
-    monkeypatch.setenv('PYTHONPATH',
-                       py.path.local(__file__).dirpath().dirpath())
-
+    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11', 'jstests')
     p = make_tests(testdir)
 
     sanity = []
@@ -91,7 +88,7 @@ def test_collectonly_cleanup(testdir, monkeypatch):
         check_clean(plugin)        
         sanity.append(None)        
     
-    testdir.plugins.extend(["jstests",
+    testdir.plugins.extend([plugin,
                             {'pytest_unconfigure': pytest_unconfigure}])
 
     testdir.inline_run('--collectonly', p)
@@ -100,17 +97,15 @@ def test_collectonly_cleanup(testdir, monkeypatch):
 
 
 def test_looponfail_cleanup(testdir, monkeypatch):
-    # xxx too much white boxy 
-    monkeypatch.setenv('PYTHONPATH',
-                       py.path.local(__file__).dirpath().dirpath())
-
+    # xxx too much white boxy
+    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11', 'jstests')
     p = make_tests(testdir)
 
     testreps = []
     def pytest_runtest_logreport(report):
         testreps.append(report)
 
-    testdir.plugins.extend(["jstests",
+    testdir.plugins.extend([plugin,
                   {'pytest_runtest_logreport': pytest_runtest_logreport}])
 
     items, rec = testdir.inline_genitems('-s', p)

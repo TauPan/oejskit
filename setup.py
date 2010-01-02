@@ -43,7 +43,6 @@ setup(
     author_email='py-dev@codespeak.net,pedronis@openend.se', # with hpk approval at ep09
     url='http://bitbucket.org/pedronis/js-infrastructure/',
     platforms=['linux', 'osx', 'win32'],
-    py_modules = ['pytest_jstests'],
     packages=['oejskit'],
     zip_safe=False,
     include_package_data=True,
@@ -66,4 +65,7 @@ setup(
     'Programming Language :: Python',
     'Programming Language :: JavaScript'    
     ],
+    entry_points = {
+    'pytest11': ['jstests = oejskit.pytest_jstests'],
+    }
 )
