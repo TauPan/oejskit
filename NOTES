@@ -1,6 +1,4 @@
 - make sure there's a way to control MochiKit export mode and reasonable defaults
-- use some bits of the talk to give more concreteness to the docs
-- better error if jstests_setup is wrong/missing bits
 - consider making a source distribution too
 - use 2.6 json if available
 
@@ -9,4 +7,6 @@
 
 - create tracker?
 
+- use some bits of the talk to give more concreteness to the docs
+- better error if jstests_setup is wrong/missing bits
 - different prefix for jstest_suite functions?
