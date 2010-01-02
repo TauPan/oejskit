@@ -2,6 +2,7 @@
 - use some bits of the talk to give more concreteness to the docs
 - better error if jstests_setup is wrong/missing bits
 - consider making a source distribution too
+- use 2.6 json if available
 
 - css/styling of the test page contents
 - better traceback printing
