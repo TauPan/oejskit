@@ -1,6 +1,7 @@
-- make sure there's a way to control MochiKit export mode and reasonable defaults
-- consider making a source distribution too
+- add --help strings
 - use 2.6 json if available
+- consider making a source distribution too
+- make sure there's a way to control MochiKit export mode and reasonable defaults
 
 - css/styling of the test page contents
 - better traceback printing
