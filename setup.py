@@ -34,7 +34,6 @@ def long_descr():
 
 def need_simplejson():
     if sys.version_info < (2, 6):
-        print "SIMPLEJSON"
         return ["simplejson"]
     return []
 
