@@ -122,7 +122,12 @@ def test_looponfail_cleanup(testdir, monkeypatch):
 
     # NB if item0 is directly used things explode
     # that's not what looponfails does though
-    item1 = item0._fromtrail(item0._totrail(), item0.config)
+    try:
+        # <= 1.1.1
+        item1 = item0._fromtrail(item0._totrail(), item0.config)
+    except AttributeError:
+        rootcol = item0.config._rootcol
+        item1 = rootcol.fromtrail(rootcol.totrail(item0))
 
     item1.config.hook.pytest_runtest_protocol(item=item1)
     assert len(testreps) == 1
