@@ -1,3 +1,12 @@
+0.8.8
++++++
+
+* improved code to check for the presence of browsers which is used to skip
+  tests, this means that listing non-present browsers in browser specs
+  should not provoke problems
+* workaround to bug in FF3.5 triggered by the global var leak detection code,
+  no leak detection with FF3.5 :(
+
 0.8.7
 +++++
 
