@@ -68,8 +68,6 @@ def _parse_authorized(line, nonce):
 class Error(Exception):
     pass
 
-KNOWN_BROWSERS = ['firefox', 'iexplore', 'safari']
-
 _win_extra = {
     'firefox': ('mozilla firefox', 0),
     'iexplore': ('internet explorer', 1)
@@ -157,8 +155,6 @@ def start_browser_local(name, url, manual=False):
     if sys.platform == 'win32':
         _win_start(name, parms)
     else:
-        if sys.platform == 'darwin' and name.lower() in KNOWN_BROWSERS:
-            name = "open -a " + name.title()
         start_cmd = "%s %s" % (name, parms)
         print start_cmd
         args = start_cmd.split()
@@ -375,6 +371,18 @@ def check_browser(name):
             cand = os.path.join(prog_dir, exename)
             if os.path.exists(cand):
                 return cand
+    if sys.platform == 'darwin':
+        import MacOS
+        from Carbon import Launch, LaunchServices
+        app_name = name.title()+'.app'
+        try:
+            ref, _ = Launch.LSFindApplicationForInfo(
+                               LaunchServices.kLSUnknownCreator,
+                               None, app_name)
+        except MacOS.Error:
+            pass
+        else:
+            return "open -a %s" % app_name
            
     return None
 

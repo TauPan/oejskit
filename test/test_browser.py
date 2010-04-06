@@ -82,6 +82,17 @@ class TestCheckBrowser(object):
         assert res
         assert res.lower() == str(tmpdir.join('Safari').join('Safari.exe')).lower()
 
+    def test_safari_on_mac(self):
+        if sys.platform != 'darwin':
+            py.test.skip("Mac OS X only")
+        res = browser.check_browser('safari')
+        assert res
+
+        res = browser.check_browser('Safari')
+        assert res
+
+        assert res == "open -a Safari.app"
+
     
 class TestStartBrowser(object):
 
