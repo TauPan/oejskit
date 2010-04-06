@@ -79,12 +79,17 @@ browsers = {} # optionally filled later by do(['server', ...])
 
 def _browser_name_and_parms(name):
     if name not in browsers:
-        return name, ""
-    cmdline = browsers[name]
-    parts = cmdline.split(None, 1)
-    if len(parts) == 1:
-        parts.append("")
-    return parts
+       parms = ""
+    else:
+        cmdline = browsers[name]
+        parts = cmdline.split(None, 1)
+        if len(parts) == 1:
+            parts.append("")
+        name, parms = parts
+    checked_name = check_browser(name)
+    if checked_name is None:
+        raise Error("browser %s not found" % name)
+    return checked_name, parms
 
 class _WinToTop(object):
 
@@ -168,6 +173,7 @@ def cleanup_browser_local(name):
     if sys.platform != 'win32':
         return
     name, _ = _browser_name_and_parms(name)
+    img = os.path.basename(name)
     if not name.lower().endswith('.exe'):
         img = name+".exe"
 
@@ -327,15 +333,50 @@ def _invoke(cmd_list):
         cmd_list = map(delocalhost, cmd_list)
         _send_cmd(addr, cmd_list)
 
+def _listdir(dir):
+    return [os.path.join(dir, child) for child in os.listdir(dir)]
+
 def check_browser(name):
     if _check_remote(name): # assume remote implies supported
         return True
-    # xxx naive
-    if name == 'iexplore' and sys.platform != 'win32':
-        return False
-    if name == 'safari' and sys.platform != 'darwin':
-        return False
-    return True
+    if sys.platform != 'win32':
+        res = os.system("which %s" % name)
+        if res == 0:
+            return name
+    else:
+        PATH = os.environ.get('PATH')
+        exename = name
+        if not exename.lower().endswith('.exe'):
+            exename += '.exe'            
+
+        if PATH is not None:
+            for p in PATH.split(';'):
+                if os.path.isfile(os.path.join(p, exename)):
+                    return name
+        import _winreg
+        app_paths = None
+        try:
+            app_paths = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                         r"Software\Microsoft\Windows\CurrentVersion\App Paths")
+            p = _winreg.QueryValue(app_paths, exename)
+            if os.path.exists(p):
+                return name
+        except WindowsError:
+            pass
+        finally:
+            if app_paths is not None:
+                app_paths.Close()
+        from win32com.shell import shell, shellcon
+        program_files = shell.SHGetSpecialFolderPath(0,
+                               shellcon.CSIDL_PROGRAM_FILES)
+        for prog_dir in _listdir(program_files):
+            if not os.path.isdir(prog_dir):
+                continue
+            cand = os.path.join(prog_dir, exename)
+            if os.path.exists(cand):
+                return cand
+           
+    return None
 
 def start_browser(name, url, manual=False):
     if manual:

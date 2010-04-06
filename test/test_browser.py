@@ -1,4 +1,4 @@
-import py, os, binascii
+import py, sys, os, binascii, tempfile, shutil
 
 from oejskit import browser
 
@@ -49,6 +49,39 @@ class TestSecurityFunctions():
 
         parsed = browser._parse_authorized("start ff", nonce)
         assert parsed is None                        
+
+
+class TestCheckBrowser(object):
+
+    def test_on_path(self, tmpdir, monkeypatch):
+        f = os.open(os.path.join(str(tmpdir), 'xbrowser.exe'),
+                    os.O_CREAT, 0700)
+        os.close(f)
+        monkeypatch.setenv('PATH', str(tmpdir), prepend=os.pathsep)
+
+        assert browser.check_browser('xbrowser.exe') == 'xbrowser.exe'
+
+        assert not browser.check_browser('not-existent-browser.exe')
+
+    def test_win32_registry(self):
+        if sys.platform != 'win32':
+            py.test.skip("windows only")
+        assert browser.check_browser('iexplore') == 'iexplore'
+        assert browser.check_browser('IEXPLORE.exe') == 'IEXPLORE.exe'
+
+    def test_win32_fallback(self, tmpdir, monkeypatch):
+        if sys.platform != 'win32':
+            py.test.skip("windows only")        
+        tmpdir.ensure('Safari', dir=1).join('Safari.exe').write("")
+        old__listdir = browser._listdir
+        def test_listdir(dir):
+            assert os.path.isdir(dir)
+            return old__listdir(str(tmpdir))            
+        monkeypatch.setattr(browser, '_listdir', test_listdir)
+        res = browser.check_browser('safari')
+        assert res
+        assert res.lower() == str(tmpdir.join('Safari').join('Safari.exe')).lower()
+
     
 class TestStartBrowser(object):
 
