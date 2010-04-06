@@ -75,6 +75,59 @@ _win_extra = {
 
 browsers = {} # optionally filled later by do(['server', ...])
 
+def _check_local(name):    
+    if sys.platform != 'win32':
+        res = os.system("which %s" % name)
+        if res == 0:
+            return name
+    else:
+        PATH = os.environ.get('PATH')
+        exename = name
+        if not exename.lower().endswith('.exe'):
+            exename += '.exe'            
+
+        if PATH is not None:
+            for p in PATH.split(';'):
+                if os.path.isfile(os.path.join(p, exename)):
+                    return name
+        import _winreg
+        app_paths = None
+        try:
+            app_paths = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
+                         r"Software\Microsoft\Windows\CurrentVersion\App Paths")
+            p = _winreg.QueryValue(app_paths, exename)
+            if os.path.exists(p):
+                return name
+        except WindowsError:
+            pass
+        finally:
+            if app_paths is not None:
+                app_paths.Close()
+        from win32com.shell import shell, shellcon
+        program_files = shell.SHGetSpecialFolderPath(0,
+                               shellcon.CSIDL_PROGRAM_FILES)
+        for prog_dir in _listdir(program_files):
+            if not os.path.isdir(prog_dir):
+                continue
+            cand = os.path.join(prog_dir, exename)
+            if os.path.exists(cand):
+                return cand
+    if sys.platform == 'darwin':
+        import MacOS
+        from Carbon import Launch, LaunchServices
+        app_name = name.title()+'.app'
+        try:
+            ref, _ = Launch.LSFindApplicationForInfo(
+                               LaunchServices.kLSUnknownCreator,
+                               None, app_name)
+        except MacOS.Error:
+            pass
+        else:
+            return "open -a %s" % app_name
+           
+    return None
+
+
 def _browser_name_and_parms(name):
     if name not in browsers:
        parms = ""
@@ -84,7 +137,7 @@ def _browser_name_and_parms(name):
         if len(parts) == 1:
             parts.append("")
         name, parms = parts
-    checked_name = check_browser(name)
+    checked_name = _check_local(name)
     if checked_name is None:
         raise Error("browser %s not found" % name)
     return checked_name, parms
@@ -335,56 +388,7 @@ def _listdir(dir):
 def check_browser(name):
     if _check_remote(name): # assume remote implies supported
         return True
-    if sys.platform != 'win32':
-        res = os.system("which %s" % name)
-        if res == 0:
-            return name
-    else:
-        PATH = os.environ.get('PATH')
-        exename = name
-        if not exename.lower().endswith('.exe'):
-            exename += '.exe'            
-
-        if PATH is not None:
-            for p in PATH.split(';'):
-                if os.path.isfile(os.path.join(p, exename)):
-                    return name
-        import _winreg
-        app_paths = None
-        try:
-            app_paths = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                         r"Software\Microsoft\Windows\CurrentVersion\App Paths")
-            p = _winreg.QueryValue(app_paths, exename)
-            if os.path.exists(p):
-                return name
-        except WindowsError:
-            pass
-        finally:
-            if app_paths is not None:
-                app_paths.Close()
-        from win32com.shell import shell, shellcon
-        program_files = shell.SHGetSpecialFolderPath(0,
-                               shellcon.CSIDL_PROGRAM_FILES)
-        for prog_dir in _listdir(program_files):
-            if not os.path.isdir(prog_dir):
-                continue
-            cand = os.path.join(prog_dir, exename)
-            if os.path.exists(cand):
-                return cand
-    if sys.platform == 'darwin':
-        import MacOS
-        from Carbon import Launch, LaunchServices
-        app_name = name.title()+'.app'
-        try:
-            ref, _ = Launch.LSFindApplicationForInfo(
-                               LaunchServices.kLSUnknownCreator,
-                               None, app_name)
-        except MacOS.Error:
-            pass
-        else:
-            return "open -a %s" % app_name
-           
-    return None
+    return _check_local(name)
 
 def start_browser(name, url, manual=False):
     if manual:
