@@ -138,7 +138,10 @@ Testing._FAILSKIP = {name: null, message: null, label: null}
 
 Testing._globalNames = function() {
     if (window.navigator && 
-        window.navigator.appName == "Microsoft Internet Explorer") {
+        window.navigator.appName == "Microsoft Internet Explorer" ||
+         // workaround https://bugzilla.mozilla.org/show_bug.cgi?id=504078
+         // turning this off on FF3.5
+	 /Firefox\/3\.5/.exec(window.navigator.userAgent)) {
         // finding the global names is unreliable on IE :(
         return []
     }
@@ -147,7 +150,7 @@ Testing._globalNames = function() {
     window.location
     window.addEventListener
     var names =  keys(window)
-    // Firebug attributes + FF3.5
+    // Firebug attributes + FF3.5+
     return names.concat(['_firebug','_FirebugConsole', 'getInterface'])
 }
 
