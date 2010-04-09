@@ -144,7 +144,10 @@ class Browser(object):
         self._startup_browser()
 
     def makeurl(self, relative):
-        baseurl = "http://localhost:%d/" % self.serverSide.get_port()
+        if hasattr(self.serverSide, "get_baseurl"):
+            baseurl = self.serverSide.get_baseurl()
+        else:
+            baseurl = "http://localhost:%d/" % self.serverSide.get_port()
         return urllib.basejoin(baseurl, relative)
  
     def _startup_browser(self):

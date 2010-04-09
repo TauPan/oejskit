@@ -5,6 +5,37 @@ import oejskit.testing
 from oejskit.testing import BrowserTestClass, JsFailed
 
 
+def test_makeurl():
+    from oejskit.browser_ctl import Browser
+
+    class FakeServerSide(object):
+        def __init__(self, port):
+            pass
+
+        def get_port(self):
+            return 10000
+
+    class BrowserToTest(Browser):
+        def _startup_browser(self):
+            pass
+
+    browser = BrowserToTest('test', FakeServerSide)
+
+    res = browser.makeurl("/foo/")
+    assert res == "http://localhost:10000/foo/"
+
+    class FakeServerSideGetBaseUrl(object):
+        def __init__(self, port):
+            pass
+
+        def get_baseurl(self):
+            return "https://server:12000/"
+
+    browser = BrowserToTest('test', FakeServerSideGetBaseUrl)
+
+    res = browser.makeurl("/bar/")
+    assert res == "https://server:12000/bar/"
+
 class TestBrowser(BrowserTestClass):
     jstests_browser_kind = 'supported'
 
