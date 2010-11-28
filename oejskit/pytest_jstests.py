@@ -1,5 +1,5 @@
 #
-# Copyright (C) Open End AB 2007-2009, All rights reserved
+# Copyright (C) Open End AB 2007-2010, All rights reserved
 # See LICENSE.txt
 #
 import py, os, sys
