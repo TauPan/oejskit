@@ -1,5 +1,5 @@
 #
-# Copyright (C) Open End AB 2007-2009, All rights reserved
+# Copyright (C) Open End AB 2007-2010, All rights reserved
 # See LICENSE.txt
 #
 """
@@ -62,8 +62,7 @@ rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 def defaultJsTestsSetup(state):
     libDir = os.environ.get('WEBLIB')
     if libDir is None:
-        libDir = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                              'weblib')
+        libDir = os.path.join(os.path.dirname(__file__), 'weblib')
     
     libDir = _getglobal(state, 'jstests_weblib', libDir)
     

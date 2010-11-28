@@ -1,3 +1,10 @@
+0.8.9
++++++
+
+* optionally delegate to the serverSide how the baseurl from which tests will be served should look like, useful when doing proxying  for functional testing abuse of oejskit
+* change packaging to just offer a source tar file, oejskit is pure python so that makes it easier to package for all of 2.5-2.7
+* requires Python 2.6 or 2.7
+
 0.8.8
 +++++
 

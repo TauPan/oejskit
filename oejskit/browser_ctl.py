@@ -7,10 +7,7 @@ Controlling browsers for javascript testing
 """
 import sys, urllib
 import subprocess
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 from oejskit.serving import Serve, ServeFiles, Dispatch
 from oejskit.modular import JsResolver

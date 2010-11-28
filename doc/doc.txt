@@ -23,7 +23,7 @@ which can be used to describe and track dependencies dynamically
 during development and that can help resolving them statically when
 deploying/packaging.
 
-jskit depends on simplejson on Python 2.5. It also uses `MochiKit`_ - of
+jskit requires Python 2.6 or 2.7. It also uses `MochiKit`_ - of
 which it ships a version within itself for convenience - for its own
 working though in does not imposes its usage on tested code.
 
