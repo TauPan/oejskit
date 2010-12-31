@@ -110,6 +110,11 @@ def getBrowser(state, browserKind):
     return browsers.get(browserKind, serverSide)
 
 def cleanupBrowsers(state):
+    reuse_windows = _getglobal(state,
+                               "jstests_reuse_browser_windows", False)
+    if reuse_windows:
+        return
+     
     if hasattr(state, '_jstests_browsers'):
         #print 'CLEANUP', os.getpid()
         #import traceback; traceback.print_stack()

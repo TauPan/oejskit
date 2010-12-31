@@ -247,12 +247,18 @@ class BrowserFactory(object):
             _browsers[key] = browser
             return browser
 
-    def shutdownAll(self):
-        if not self.reuse_windows:
-            _browsers = self._browsers
-            while _browsers:
-                _, browser = _browsers.popitem()
-                browser.shutdown()
+    def shutdownAll(self, force=False):
+        if self.reuse_windows and not force:
+            return
+        _browsers = self._browsers
+        while _browsers:
+            _, browser = _browsers.popitem()
+            browser.shutdown()
+
+    def __del__(self):
+        self.shutdownAll(True)
+
+
 
 # ________________________________________________________________
 
