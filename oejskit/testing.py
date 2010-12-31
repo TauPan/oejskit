@@ -128,7 +128,6 @@ def checkBrowser(browserKind):
 
 def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
-    apps = _ensure(state, '_jstests_apps', {})
     try:
         browser, setupBag = browser_setups[(cls, browserKind)]
     except KeyError:
@@ -144,15 +143,14 @@ def giveBrowser(state, cls, browserKind, attach=True):
 
         # keep the server side state of browser cmds/responses
         # isolated with one app per browser
-        if browserKind not in apps:
-            bootstrapSetupBag = SetupBag(defaultSetup, setup, modSetup)
-            app = ServeTesting(bootstrapSetupBag, rtDir, libDir)
-            apps[browserKind] = app
+        if not browser.app:
+            app = ServeTesting(rtDir, libDir)
+            browser.set_app(app)
 
         setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
         setupBag.name = state.testname
 
-        browser.prepare(apps[browserKind], state.testname)
+        browser.prepare(setupBag)
 
         browser_setups[(cls, browserKind)] = browser, setupBag
 
