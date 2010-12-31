@@ -4,6 +4,8 @@
 #
 import py, os, sys
 
+py_test_version = getattr(py.test, '__version__', None) or py.version
+py_test_two = tuple(map(int, py_test_version.split('.'))) >= (2, 0, 0)
 
 # hooks
 
@@ -21,11 +23,13 @@ def cmdline_browser_spec(option, optstr, value, parser):
 
 def pytest_addoption(parser):
     group = parser.getgroup("jstests", "oejskit test suite options")
-    group.addoption(
-        "--jstests-reuse-browser-windows", action="store_true",
-        dest="jstests_reuse_browser_windows",
-        help="don't use one tab/windows per test file"
-        )
+    if not py_test_two:
+        group.addoption(
+            "--jstests-dont-reuse-browser-windows", action="store_false",
+            dest="jstests_reuse_browser_windows",
+            help="use one tab/window per test file",
+            default=True
+            )
     group.addoption(
         "--jstests-browser-spec", action="callback", type="string",
         callback=cmdline_browser_spec,
@@ -56,6 +60,8 @@ class RunState:
         self.collector = collector
 
     def getglobal(self, name):
+        if name == 'jstests_reuse_browser_window' and py_test_two:
+            return True # nothing else is supported
         try:
             return self.collector.config.getvalue(name)
         except KeyError:
@@ -110,11 +116,13 @@ def del_state(item):
         from oejskit.testing import cleanupBrowsers
         cleanupBrowsers(state)        
 
-def pytest_collectstart(collector):
+def pytest_make_collect_report(collector):
     if isinstance(collector, (py.test.collect.Module, JsFile)):
         get_state(collector, collect=True)
 
 def pytest_collectreport(report):
+    if py_test_two:
+        return
     collector = report.collector
     if isinstance(collector, (py.test.collect.Module, JsFile)):
         del_state(collector)

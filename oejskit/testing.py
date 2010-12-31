@@ -102,7 +102,7 @@ def getBrowser(state, browserKind):
     browsers =  _ensure(state, '_jstests_browsers', None)
     if browsers is None:
         reuse_windows = _getglobal(state,
-                                   "jstests_reuse_browser_windows", False)
+                                   "jstests_reuse_browser_windows", True)
         browsers = BrowserFactory(reuse_windows)
         state._jstests_browsers = browsers
         
@@ -111,7 +111,7 @@ def getBrowser(state, browserKind):
 
 def cleanupBrowsers(state):
     reuse_windows = _getglobal(state,
-                               "jstests_reuse_browser_windows", False)
+                               "jstests_reuse_browser_windows", True)
     if reuse_windows:
         return
      

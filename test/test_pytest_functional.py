@@ -2,6 +2,9 @@ import os
 import py
 import pkg_resources
 
+py_test_version = getattr(py.test, '__version__', None) or py.version
+py_test_two = tuple(map(int, py_test_version.split('.'))) >= (2, 0, 0)
+
 pytest_plugins = "pytester"
 
 def make_tests(testdir):
@@ -62,6 +65,9 @@ def check_clean(plugin):
         assert not hasattr(state, '_jstests_browser_setups')        
 
 def test_run_cleanup(testdir, monkeypatch):
+    if py_test_two:
+        py.test.skip("not sensible for py.test 2.0")
+        
     plugin = pkg_resources.load_entry_point('oejskit', 'pytest11',
                                             'pytest_jstests') 
     p = make_tests(testdir)
@@ -80,6 +86,9 @@ def test_run_cleanup(testdir, monkeypatch):
     assert sanity
 
 def test_collectonly_cleanup(testdir, monkeypatch):
+    if py_test_two:
+        py.test.skip("not sensible for py.test 2.0")
+        
     plugin = pkg_resources.load_entry_point('oejskit', 'pytest11',
                                             'pytest_jstests')
     p = make_tests(testdir)
@@ -97,46 +106,3 @@ def test_collectonly_cleanup(testdir, monkeypatch):
 
     assert sanity
 
-
-def test_looponfail_cleanup(testdir, monkeypatch):
-    # xxx too much white boxy
-    plugin = pkg_resources.load_entry_point('oejskit', 'pytest11',
-                                            'pytest_jstests')
-    p = make_tests(testdir)
-
-    testreps = []
-    def pytest_runtest_logreport(report):
-        testreps.append(report)
-
-    testdir.plugins.extend([plugin,
-                  {'pytest_runtest_logreport': pytest_runtest_logreport}])
-
-    items, rec = testdir.inline_genitems('-s', p)
-    assert len(items) == 2
-    item0 = items[0]
-    # xxx not completely the right point
-    item0.config.pluginmanager.do_configure(item0.config)
-
-    plugin = item0.config.pluginmanager.getplugin("jstests")
-    check_clean(plugin)
-
-    # NB if item0 is directly used things explode
-    # that's not what looponfails does though
-    try:
-        # <= 1.1.1
-        item1 = item0._fromtrail(item0._totrail(), item0.config)
-    except AttributeError:
-        rootcol = item0.config._rootcol
-        item1 = rootcol.fromtrail(rootcol.totrail(item0))
-
-    item1.config.hook.pytest_runtest_protocol(item=item1)
-    assert len(testreps) == 1
-    testrep = testreps[0]
-    assert testrep.passed, str(testrep)
-
-    # cleanup
-    item1.config._setupstate.teardown_all()
-
-    check_clean(plugin)
-
-# xxx test failure
