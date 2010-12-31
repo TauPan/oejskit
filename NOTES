@@ -1,0 +1,9 @@
+- make sure there's a way to control MochiKit export mode and reasonable defaults
+
+- css/styling of the test page contents
+- better traceback printing
+
+- create tracker?
+
+- use some bits of the talk to give more concreteness to the docs
+- better error if jstests_setup is wrong/missing bits

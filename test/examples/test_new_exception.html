@@ -1,0 +1,22 @@
+<html>
+<head>
+  <script type="text/javascript" src="/lib/mochikit/packed/MochiKit/MochiKit.js"></script>
+  <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
+  </script>
+</head>
+<body>
+
+<pre id="test">
+<script type="text/javascript">
+Tests = {
+test_throw: function() {
+    aok(true, "ok 1", "ok(false)")
+
+    var err = new Error("error")
+    throw err
+}
+}
+</script>
+</pre>
+</body>
+</html>
