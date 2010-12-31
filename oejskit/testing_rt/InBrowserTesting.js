@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) OpenEnd 2007-2009, All rights reserved.
+Copyright (C) OpenEnd 2007-2010, All rights reserved.
 See LICENSE.txt
 
 */
