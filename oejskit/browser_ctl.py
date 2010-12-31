@@ -67,6 +67,10 @@ class ServeTesting(Dispatch):
 
     def withSetup(self, setupBag, action):
         setupBag = setupBag or self.bootstrapSetupBag
+
+        if not isinstance(action, basestring):
+            action = action.copy()
+            action['name'] = setupBag.name
         
         extraMap = {}
         for url, p in setupBag.staticDirs.items():
@@ -177,8 +181,9 @@ class Browser(object):
     def _gatherTests(self, url, setupBag):
         if not url.startswith('/'):
             url = "/browser_testing/load/test/%s" % url        
-        res = self.send('InBrowserTesting.collectTests(%r)' % url,
-                        discrim="%s@collect" % url)
+        res = self.send({'op': 'collectTests', 'args': [url]},
+                        discrim="%s@collect" % url,
+                        setupBag=setupBag)
 
         assert res, ("%r no tests from the page: something is wrong" % url)
 
@@ -251,10 +256,10 @@ class PageContext(_BrowserController):
     def _execute(self, method, argument, root, timeout):
         n = self.count
         self.count += 1
-        outcome = self.send('InBrowserTesting.%s(%r, %s, %d)' %
-                         (method, self.label, json.dumps(argument), n),
-                         discrim="%s@%d" % (self.label, n),
-                         root=root, timeout=timeout)
+        cmd = { 'op': method,
+                'args': [self.label, argument, n]}
+        outcome = self.send(cmd, discrim="%s@%d" % (self.label, n),
+                            root=root, timeout=timeout)
         return outcome
         
     def eval(self, js, variant='eval'):
@@ -287,7 +292,7 @@ class BrowserController(_BrowserController):
         if take:
             label = "%s >%s<" % (url, take)
         
-        res = self.send('InBrowserTesting.open(%r, %r)' % (url, label),
+        res = self.send({'op': 'open', 'args': [url, label]},
                         root=root, discrim=label, timeout=timeout)
         return PageContext(self.browser, self.setupBag, root, label,
                                                         timeout, res['panel'])

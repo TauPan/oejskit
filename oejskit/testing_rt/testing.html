@@ -2,12 +2,26 @@
 <html>
 <head>
 <title>browser-side testing</title>
-<link rel="stylesheet"  type="text/css" href="testing.css">
+<style>
+#UR {
+position: fixed;
+top: 0px;
+right: 0px;
+}
+
+#UR p {
+text-align: right;
+margin: 2px;
+}
+</style>
 <script type="text/javascript" src="/browser_testing/lib/mochikit/MochiKit/MochiKit.js"></script>
 <script type="text/javascript" src="/browser_testing/rt/InBrowserTesting.js"></script>
 </head>
 <body onload="InBrowserTesting.poll()">
 <div id="out">
+</div>
+
+<div id="UR">
 </div>
 
 <div id="panels">

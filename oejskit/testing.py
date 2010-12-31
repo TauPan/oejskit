@@ -36,6 +36,8 @@ def _ensure(obj, name, default):
         return default
 
 class SetupBag(object):
+    name = 'whatever'
+    
     _configs = [('staticDirs', dict),
                 ('repoParents', dict),
                 ('jsRepos', list),
@@ -148,6 +150,7 @@ def giveBrowser(state, cls, browserKind, attach=True):
             apps[browserKind] = app
 
         setupBag = SetupBag(defaultSetup, setup, modSetup, cls)
+        setupBag.name = state.testname
 
         browser.prepare(apps[browserKind], state.testname)
 

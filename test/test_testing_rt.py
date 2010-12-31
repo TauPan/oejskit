@@ -40,17 +40,16 @@ class TestBrowser(BrowserTestClass):
     jstests_browser_kind = 'supported'
 
     def test_simple(self):
-        send = self.browser.send
         res = self.browser.send('InBrowserTesting.result(42)')
         assert res == 42
 
     def test_open_helper(self):
-        res = self.send('InBrowserTesting.open("/browser_testing/rt/abc.txt")',
+        res = self.send({'op': 'open', 'args': ["/browser_testing/rt/abc.txt"]},
                    discrim="/browser_testing/rt/abc.txt")
         assert 'panel' in res
         n = res['panel']
-        res = self.send('InBrowserTesting.open("/browser_testing/rt/abc.txt")',
-                   discrim="/browser_testing/rt/abc.txt")
+        res = self.send({'op': 'open', 'args': ["/browser_testing/rt/abc.txt"]},
+                        discrim="/browser_testing/rt/abc.txt")
         assert res['panel'] == n
 
     def test_open(self):
@@ -118,34 +117,40 @@ class TestRunningTest(BrowserTestClass):
         return passed, failed
 
     def test_new_simple_setup(self):
-        result = self.send('InBrowserTesting.collectTests("/test/examples/test_new_simple.html")',
-                   discrim="/test/examples/test_new_simple.html@collect")
+        result = self.send({'op': 'collectTests',
+                            'args': ["/test/examples/test_new_simple.html"]},
+                           discrim="/test/examples/test_new_simple.html@collect")
         assert result == sorted(['test_is_fail_1', 'test_is_fail_2', 'test_is_ok',
                                  'test_isDeeply_fail', 'test_isDeeply_ok',
                                  'test_ok_fail', 'test_ok_ok'])
         
     def test_new_simple_runOne(self):
-        result = self.send('InBrowserTesting.collectTests("/test/examples/test_new_simple.html")',
-                         discrim="/test/examples/test_new_simple.html@collect")
+        result = self.send({'op': 'collectTests',
+                            'args': ["/test/examples/test_new_simple.html"]},
+                           discrim="/test/examples/test_new_simple.html@collect")
         assert len(result)  == 7
 
-        result = self.send("""InBrowserTesting.runOneTest("/test/examples/test_new_simple.html",
-                                                       "test_ok_ok", 1)""",
-                         discrim="/test/examples/test_new_simple.html@1")
+        result = self.send({'op': 'runOneTest',
+                            'args': ["/test/examples/test_new_simple.html",
+                                     "test_ok_ok", 1]},
+                           discrim="/test/examples/test_new_simple.html@1")
 
         assert result['name'] == "test_ok_ok"
         assert result['result']
 
     def test_new_simple_run(self):
-        names = self.send('InBrowserTesting.collectTests("/test/examples/test_new_simple.html")',
-                         discrim="/test/examples/test_new_simple.html@collect")
+        names = self.send({'op': 'collectTests',
+                           'args': ["/test/examples/test_new_simple.html"]},
+                          discrim="/test/examples/test_new_simple.html@collect")
         assert len(names)  == 7
 
 
         outcomes = []
         for n, name in enumerate(names):
-            result = self.send('InBrowserTesting.runOneTest("/test/examples/test_new_simple.html", %r, %d)' %
-                            (str(name), n), discrim="/test/examples/test_new_simple.html@%d" % n)
+            result = self.send({'op': 'runOneTest',
+                                'args': ["/test/examples/test_new_simple.html",
+                                         str(name), n]},
+                               discrim="/test/examples/test_new_simple.html@%d" % n)
             outcomes.append(result)
         passed, failed = self.classify(outcomes)
         assert sorted(passed.keys()) == sorted([name for name in names
@@ -153,39 +158,46 @@ class TestRunningTest(BrowserTestClass):
         assert len(failed)+len(passed) == len(names)
 
     def test_new_exception_run(self):
-        names = self.send('InBrowserTesting.collectTests("/test/examples/test_new_exception.html")',
-                         discrim="/test/examples/test_new_exception.html@collect")
+        names = self.send({'op': 'collectTests',
+                           'args': ["/test/examples/test_new_exception.html"]},
+                          discrim="/test/examples/test_new_exception.html@collect")
         assert names == ['test_throw']
 
-        result = self.send("""InBrowserTesting.runOneTest("/test/examples/test_new_exception.html",
-                           "test_throw", 1)""",
-                         discrim="/test/examples/test_new_exception.html@1")
+        result = self.send({'op': 'runOneTest',
+                            'args': ["/test/examples/test_new_exception.html",
+                                     "test_throw", 1]},
+                           discrim="/test/examples/test_new_exception.html@1")
 
         assert result['name'] == "test_throw"
         assert not result['result']
 
     def test_new_later_run(self):
-        names = self.send('InBrowserTesting.collectTests("/test/examples/test_new_later.html")',
-                         discrim="/test/examples/test_new_later.html@collect")
+        names = self.send({'op': 'collectTests',
+                           'args': ["/test/examples/test_new_later.html"]},
+                          discrim="/test/examples/test_new_later.html@collect")
         assert len(names)  == 2
 
         outcomes = []
         for n, name in enumerate(names):
-            result = self.send('InBrowserTesting.runOneTest("/test/examples/test_new_later.html", %r, %d)' %
-                            (str(name), n), discrim="/test/examples/test_new_later.html@%d" % n)
+            result = self.send({'op': 'runOneTest',
+                                'args': ["/test/examples/test_new_later.html",
+                                         str(name), n]},
+                               discrim="/test/examples/test_new_later.html@%d" % n)
             outcomes.append(result)
         passed, failed = self.classify(outcomes)
         assert passed.keys() == ['test_later']
         assert failed.keys() == ['test_later_exc']
 
     def test_new_leak_runOne(self):
-        result = self.send('InBrowserTesting.collectTests("/test/examples/test_new_leak.html")',
-                    discrim="/test/examples/test_new_leak.html@collect")
+        result = self.send({'op': 'collectTests',
+                            'args': ["/test/examples/test_new_leak.html"]},
+                           discrim="/test/examples/test_new_leak.html@collect")
         assert len(result)  == 1
 
-        result = self.send("""InBrowserTesting.runOneTest("/test/examples/test_new_leak.html",
-                              "test_leak", 1)""",
-                         discrim="/test/examples/test_new_leak.html@1")
+        result = self.send({'op': 'runOneTest',
+                            'args': ["/test/examples/test_new_leak.html",
+                                     "test_leak", 1]},
+                           discrim="/test/examples/test_new_leak.html@1")
 
         assert result['name'] == "test_leak"
         assert result['result']

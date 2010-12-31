@@ -27,14 +27,17 @@ InBrowserTesting = {
                 if (code == null) {
                     return
                 }
-                eval(code)
+                if (typeof(code) == "string") {
+                    eval(code)
+                } else {
+                    var op = code['op']
+                    var args = code['args']
+                    var name = code['name'] || "whatever"
+                    self[op].apply(self, [name].concat(args))
+                }
             })
         })
     },
-
-    n: 0,
-
-    panels: {},
 
     result: function(data, discrim) {
         var xhr = getXMLHttpRequest()
@@ -46,22 +49,29 @@ InBrowserTesting = {
         xhr.send(serializeJSON({discrim: discrim, res: data}))
     },
 
-    nprepared: 0,
-    first_name: null,
+    n: 0,
+    panels: {},
+    sections: {},
+
+    ensure: function(name) {
+        document.title = name
+        if (name in this.sections) {
+            return this.sections[name]
+        }
+        var panelsDiv = getElement("panels")
+        var title = H1({}, name)
+        var anchor = A({name: name})
+        var hr = HR()
+        var delims = [title, anchor, hr]
+        this.sections[name] = delims
+        appendChildNodes(panelsDiv, delims)
+        var UR = getElement("UR")
+        appendChildNodes(UR, P({}, A({href: "#"+name}, name)))
+        return delims
+    },
 
     prepare: function(name) {
-        var n  = this.nprepared
-        this.nprepared++
-        var panelsDiv = getElement("panels")
-        if (n == 0) {
-            document.title = name
-            this.first_name = name
-        } else {
-            document.title = this.first_name+" ... "+name
-            appendChildNodes(panelsDiv, HR())
-        }
-
-        appendChildNodes(panelsDiv, H1({}, name))
+        this.ensure(name)
         this.result('prepared', 'prepared:'+name)
     },
 
@@ -92,7 +102,8 @@ InBrowserTesting = {
         }
     },
 
-    doOpen: function(label, url, done) {
+    doOpen: function(name, label, url, done) {
+        delims = this.ensure(name)
         if(label in this.panels) {
             if (done) {
                 var info = this.panels[label].concat(true)
@@ -119,8 +130,8 @@ InBrowserTesting = {
         contract.onclick=function(event) { frame.height = frame.height / 2 }
         var container = DIV({"style": "display: block"}, contract, expand)
         var panel = DIV({"id": "panel-"+n}, labelNode, container, frame)
-        var panelsDiv = getElement("panels")
-        appendChildNodes(panelsDiv, panel)
+        var bottom = delims[2]
+        insertSiblingNodesBefore(bottom, panel)
         this.panels[label] = [n, panel, frame]
         if (done) {
             this._waitForPanel(label, done)
@@ -128,17 +139,17 @@ InBrowserTesting = {
         frame.src = url
     },
 
-    open: function(url, label) {
+    open: function(name, url, label) {
         var self = this
         if (label == null) {
             label = url
         }
-        self.doOpen(label, url, function (n, panel, frame, reused) {
+        self.doOpen(name, label, url, function (n, panel, frame, reused) {
             self.result({'panel': n}, label);
         })
     },
 
-    collectTests: function(url) {
+    collectTests: function(name, url) {
         var self = this
         function gotTestPage(n, panel, frame, reused) {
             var frameWin = frame.contentWindow
@@ -149,11 +160,12 @@ InBrowserTesting = {
             }
             self.result(collected, url+'@collect')
         }
-        self.doOpen(url, url, gotTestPage)
+        self.doOpen(name, url, url, gotTestPage)
     },
 
-    runOneTest: function(url, which, n) {
+    runOneTest: function(name, url, which, n) {
         var self = this
+        this.ensure(name)
         var frameWin = this.panels[url][2].contentWindow
         var testing = frameWin.Testing
         testing.runOne(which, function(outcome) {
@@ -161,8 +173,9 @@ InBrowserTesting = {
         })
     },
 
-    'eval': function(label, code, n) {
+    'eval': function(name, label, code, n) {
         var self = this
+        this.ensure(name)
         var outcome
         var frameWin = this.panels[label][2].contentWindow
         try {
@@ -181,8 +194,9 @@ InBrowserTesting = {
         self.result(outcome, label+'@'+n)        
     },
 
-    travel: function(label, code, n) {
+    travel: function(name, label, code, n) {
         var self = this
+        this.ensure(name)
         var frame = this.panels[label][2]
 
         self._waitForPanel(label, function() {
