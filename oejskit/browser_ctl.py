@@ -39,14 +39,30 @@ load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
 </html>
 """
 
+
+_cache = {}
+
+def _getBasedOnSetup(builder, setupBag):
+    name = builder.__name__
+    try:
+        obj = getattr(setupBag, '_'+name)
+        return obj
+    except AttributeError:
+        pass
+    keys = builder.keys
+    key = tuple(tuple(sorted(x.items())) for x in map(setupBag.__getattribute__, keys))
+    try:
+        obj = _cache[name, key]
+    except KeyError:
+        obj = builder(setupBag)
+        _cache[name, key] = obj = builder(setupBag)
+    setattr(setupBag, '_'+name, obj)
+    return obj
+
+
 class ServeTesting(Dispatch):
 
-    def __init__(self, bootstrapSetupBag, rtDir, libDir):
-        self.bootstrapSetupBag = bootstrapSetupBag
-        repoParents = {}
-        repoParents.update(bootstrapSetupBag.staticDirs)
-        repoParents.update(bootstrapSetupBag.repoParents)  
-        self.jsResolver = JsResolver(repoParents)
+    def __init__(self, rtDir, libDir):
         self._cmd = {}
         self._results = {}
         
@@ -65,27 +81,39 @@ class ServeTesting(Dispatch):
             }
         Dispatch.__init__(self, map)
 
-    def withSetup(self, setupBag, action):
-        setupBag = setupBag or self.bootstrapSetupBag
+    def _jsResolver(self, setupBag):
+        repoParents = {}
+        repoParents.update(setupBag.staticDirs)
+        repoParents.update(setupBag.repoParents)  
+        return JsResolver(repoParents)
+    _jsResolver.keys = ('staticDirs', 'repoParents')
 
-        if not isinstance(action, basestring):
-            action = action.copy()
-            action['name'] = setupBag.name
-        
+    def _extra(self, setupBag):
         extraMap = {}
         for url, p in setupBag.staticDirs.items():
             if url[-1] != '/':
                 url += '/'
             extraMap[url] = ServeFiles(p)
         for url, app in setupBag.wsgiEndpoints.items():
-            extraMap[url] = app
-        self.extra = Dispatch(extraMap)
+            extraMap[url] = app        
+        return Dispatch(extraMap)
+    _extra.keys = ('staticDirs', 'wsgiEndpoints')        
 
-        self.repos = setupBag.jsRepos
-        self.jsScripts = setupBag.jsScripts
+    def withSetup(self, setupBag, action):
+        if not isinstance(action, basestring):
+            action = action.copy()
+            action['name'] = setupBag.name
+
+            self.jsResolver = _getBasedOnSetup(self._jsResolver, setupBag)
+            self.extra = _getBasedOnSetup(self._extra, setupBag)
+
+            self.repos = setupBag.jsRepos
+            self.jsScripts = setupBag.jsScripts
+
         self._cmd['CMD'] = action
 
     def reset(self):
+        self.jsResolver = None
         self.extra = None
         self.repos = None
 
@@ -155,11 +183,14 @@ class Browser(object):
         url = self.makeurl('/browser_testing/')
         start_browser(self.name, url, manual=MANUAL)
 
-    def prepare(self, app, name="suite"):
+    def set_app(self, app):
         self.app = app
         self.serverSide.set_app(app)
-        r = self.send('InBrowserTesting.prepare(%r)' % name,
-                      discrim='prepared:%s' % name, timeout=20)
+
+    def prepare(self, setupBag):
+        r = self.send({'op': 'prepare', 'args': []},
+                      discrim='prepared:%s' % setupBag.name, timeout=20,
+                      setupBag=setupBag)
         assert r == 'prepared'        
 
     def send(self, action, discrim=None, root=None, timeout=None,
