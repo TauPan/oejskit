@@ -114,10 +114,10 @@ InBrowserTesting = {
         var n = this.n;
         this.n += 1;
         var labelNode = P({}, label)
-        var frame = createDOM('IFRAME', {"id": "panel-frame-"+n, 
+        var frame = createDOM('IFRAME', {"id": "panel-frame-"+n,
                                          "width": "70%", "height": "100px" })
         var expand = BUTTON("Expand")
-        expand.onclick=function(event) { 
+        expand.onclick=function(event) {
             var doc = frame.contentWindow.document
             var height = doc.documentElement.offsetHeight
             var scrollHeight = doc.body.scrollHeight
@@ -191,7 +191,7 @@ InBrowserTesting = {
             }
             outcome = {'error': s}
         }
-        self.result(outcome, label+'@'+n)        
+        self.result(outcome, label+'@'+n)
     },
 
     travel: function(name, label, code, n) {
@@ -205,5 +205,5 @@ InBrowserTesting = {
 
         frame.contentWindow.eval(code)
     }
-    
+
 }
