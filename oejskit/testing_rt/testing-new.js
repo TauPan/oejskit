@@ -33,7 +33,7 @@ Testing.collect = function() {
     if (Testing._collected != null) {
 	return Testing._collected
     }
-    
+
     var testNames = []
     Testing._collected = testNames
     Testing._passed = 0
@@ -104,13 +104,13 @@ Testing._updateSummary = function() {
             DIV({'class': 'tests_summary ' + summary_class},
 		DIV({'class': 'tests_passed'}, "Passed: " + passed),
 		DIV({'class': 'tests_failed'}, "Failed: " + failed))
-	    )    
+	    )
 }
 
 
 Testing.outcome = function (condition, name, diag, leakedNames) {
     var test = {'result': !!condition, 'name': name, 'diag': diag || ""}
-                
+
     var cls, msg;
     if (test.result) {
         Testing._passed++;
@@ -137,7 +137,7 @@ Testing._EMPTY = {}
 Testing._FAILSKIP = {name: null, message: null, label: null}
 
 Testing._globalNames = function() {
-    if (window.navigator && 
+    if (window.navigator &&
         window.navigator.appName == "Microsoft Internet Explorer" ||
          // workaround https://bugzilla.mozilla.org/show_bug.cgi?id=504078
          // turning this off on FF3.5
@@ -406,7 +406,7 @@ Testing._formatStack = function (stack) {
 
     out += vars[0] + ' = ' + vals[0] + Testing.LF;
     out += vars[1] + ' = ' + vals[1] + Testing.LF;
-    
+
     return '    ' + out;
 };
 
