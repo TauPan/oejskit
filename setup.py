@@ -1,5 +1,5 @@
 #
-# Copyright (C) Open End AB 2007-2009, All rights reserved
+# Copyright (C) Open End AB 2007-2011, All rights reserved
 # See LICENSE.txt
 #
 
@@ -8,7 +8,7 @@
 from setuptools import setup
 import os, sys
 
-version = '0.8.9'
+version = '0.9.0'
 
 def long_descr():
     lines = open('doc/doc.txt', 'r').readlines()
@@ -22,7 +22,7 @@ def long_descr():
     start.append("The project repository lives at http://bitbucket.org/pedronis/js-infrastructure/\n\n")
     start.append("Discussions and feedback should go to py-dev at codespeak.net\n")
     start.append("\nChangelog\n-----------\n")
-    start.append(open('CHANGELOG.txt', 'r').read())    
+    start.append(open('CHANGELOG.txt', 'r').read())
     descr = ''.join(start)
     return descr
 
@@ -50,7 +50,7 @@ setup(
     'Topic :: Software Development :: Quality Assurance',
     'Topic :: Utilities',
     'Programming Language :: Python',
-    'Programming Language :: JavaScript'    
+    'Programming Language :: JavaScript'
     ],
     entry_points = {
     'pytest11': ['pytest_jstests = oejskit.pytest_jstests'],
