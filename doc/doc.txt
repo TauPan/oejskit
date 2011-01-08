@@ -91,7 +91,11 @@ tests, not just tests. Each JavaScript ``test_`` method is run and its
 result reported by py.test as it would for Python tests. ``test_``
 methods from a ``Tests`` object are run in alphabetical order.
 
-.. XX mention one tab/window, links to test file sections on the upper right
+Normally one page is used for the whole test run with sections
+corresponding to the JavaScript test files or Python modules, links
+are progressively displayed on the upper right corner of the page to
+jump to the sections, this to help debugging the state of a failed
+test for example.
 
 Finding JavaScript code
 ------------------------
