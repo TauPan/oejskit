@@ -5,7 +5,7 @@ jskit contains infrastructure and in particular a `py.test`_  plugin to
 enable running tests for JavaScript code inside browsers directly
 using py.test as the test driver. Running inside the browsers comes
 with some speed cost, on the other hand it means for example the code
-is tested against the real-word DOM implementations. 
+is tested against the real-world DOM implementations.
 
 .. _`py.test`: http://codespeak.net/py/dist/test/test.html
 
@@ -16,7 +16,7 @@ through WSGI (or for which a subset of WSGI can be written to
 accommodate the jskit own needs) can play along.
 
 jskit has also some support to run JavaScript tests from ``unittest.py`` based
-test suites. 
+test suites.
 
 jskit also contains code to help modularizing JavaScript code
 which can be used to describe and track dependencies dynamically
@@ -51,11 +51,11 @@ in a test directory in a project::
     }
 
 ``jstest_*.js`` is the globbing pattern used by jskit to recognize
-JavaScript test files. Each of these need to contain a ``Tests``
+JavaScript test files. Each of these needs to contain a ``Tests``
 object with test methods starting with ``test_``. ``ais`` is one of
 the assertion functions predefined by jskit, it raises an exception
 causing the test to fail if the two arguments are not equal (in
-JavaScript ``=`` sense).
+JavaScript ``==`` sense).
 
 The suffix ``any`` separated by an underscore (``_``) in the test file name controls the kind of browsers the test should be run against, ``any`` is predefined by jskit to be
 
@@ -66,15 +66,12 @@ The suffix ``any`` separated by an underscore (``_``) in the test file name cont
 later we'll see how to define other groups of browsers.
 
 To run the test we need to use py.test with the jskit plugin
-activated, a ``conftest.py`` file at the top of the project with::
+activated which happens if jskit in on the Python path (see also the `py.test and plugin usage docs`_).
 
-    pytest_plugins = ["jstests"]
-
-should work (see also the `py.test and plugin usage docs`_).
-
+.. XXX fix link
 .. _`py.test and plugin usage docs`: http://codespeak.net/py/dist/test/extend.html
 
-Running the test is just a matter of invoking ``py.test`` that has an installed jskit available on the Python path::
+So running the test is just a matter of invoking ``py.test`` that has an installed jskit available on the Python path::
 
     $ ../v/bin/py.test test/
     inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
@@ -86,14 +83,16 @@ Running the test is just a matter of invoking ``py.test`` that has an installed 
 
     ====================================== 1 passed in 2.52 seconds =======================================
 
-(concretely here I'm using a `virtualenv` with both the `py.lib` and the ``oejskit`` egg installed in it)
+(concretely here I'm using a `virtualenv` with both the `py.test` and ``oejskit`` installed in it.)
 
-Tests from different ``Tests`` objects are run isolated in IFRAMEs
+Tests from different files with their ``Tests`` objects (or Python
+test classes are as we will explain later) are run isolated in IFRAMEs
 which will also display test results enumerating both assertions and
 tests, not just tests. Each JavaScript ``test_`` method is run and its
 result reported by py.test as it would for Python tests. ``test_``
 methods from a ``Tests`` object are run in alphabetical order.
 
+.. XX mention one tab/window, links to test file sections on the upper right
 
 Finding JavaScript code
 ------------------------
@@ -110,7 +109,7 @@ file ``ex.js`` there::
 jskit way to refer to tested code is based on its modularity
 functionality, though for the simplest cases this is involve just
 providing enough information such that parts of the URL space can be
-mapped back to parts of the filesystem where JavaScript lives. 
+mapped back to parts of the filesystem where JavaScript lives.
 
 Adding the following to the ``conftest.py`` of the project::
 
@@ -126,7 +125,7 @@ the ``staticDirs`` mapping) for the ``static`` subtree of the URL space
 
 The values in ``jsRepos`` list which prefixes of the URL space contain
 JavaScript, they play a bigger role when using the full modularity
-functionality, they are ncessary for the simple case too though.
+functionality, they are necessary for the simple case too though.
 
 With this configuration we can write a test ``jstest_ok_any.js`` for
 the ``ok`` function in ``ex.js`` that looks like this::
@@ -158,7 +157,7 @@ Running all the tests now should give::
 Assertion functions and helpers
 --------------------------------
 
-jskit predefine a set of functions to make assertions in tests,
+jskit predefines a set of functions to make assertions in tests,
 JavaScript not having an assertion statement at all
 
 - ``aok(condition [, label])`` which will succeed respectively fail
@@ -166,7 +165,7 @@ JavaScript not having an assertion statement at all
 
 - ``ais(value, expected [, label])`` which will succeed respectively
   fail depending on whether ``value`` and ``expected`` are equal in
-  JavaScript ``=`` operator sense
+  JavaScript ``==`` operator sense
 
 - ``aisDeeply(value, expected [, label])`` which differently from ``ais``
   will recursively compare containers (JavaScript non-primitive
@@ -179,7 +178,7 @@ a new ``DIV`` node at the end of test page styled with a border and
 labeled with the test name, the node can then be used to host DOM
 fragments to be manipulated by the test. If a test using this feature
 fails it should then be easy to identify the relevant DOM part and
-eyeball it or inspect with tools such as Firebug.
+eyeball or inspect it with tools such as Firebug.
 
 Test failures
 --------------
@@ -201,7 +200,7 @@ this is part of the kind of output to be expected at least when the test is run 
     E           JsFailed: test_fail: FAILED:     Structures begin differing at:
     E           got[1] = 2
     E           expected[1] = 2,3
-    E           
+    E
     E           stack: Error()@:0
     E           ("isDeeply in test_fail in ?","    Structures begin differing at:\r\ngot[1] = 2\r\nexpected[1] = 2,3\r\n")@http://localhost:49279/browser_testing/rt/testing-new.js:199
     E           (false,"isDeeply in test_fail in ?","    Structures begin differing at:\r\ngot[1] = 2\r\nexpected[1] = 2,3\r\n")@http://localhost:49279/browser_testing/rt/testing-new.js:217
@@ -249,7 +248,7 @@ One central jskit feature is the ability to run JavaScript tests
 against server-side Python code setup through test code. For example
 one can add a ``test_integration.py``::
 
-    from oejskit.testing import jstests_suite     
+    from oejskit.testing import jstests_suite
     import cgi
 
     class TestIntegration(object):
@@ -266,11 +265,11 @@ one can add a ``test_integration.py``::
                     return [str(a+b)]
                 elif p == '/sub':
                     a, b = int(q['a'][0]), int(q['b'][0])
-                    return [str(a-b)]                
+                    return [str(a-b)]
                 return []
 
             return server
-        
+
 with a parallelly located ``test_integration.js``::
 
     OpenEnd.require("/static/js/get.js")
@@ -296,6 +295,7 @@ be run while the testing framework is serving the WSGI application
 tests in the suite will be run, in a sense it is akin to a setup
 method but `funcargs`_  can be requested in its arguments.
 
+.. XXX fix link
 .. _`funcargs`: http://codespeak.net/py/dist/test/funcargs.html
 
 The tests will be run for each browser identified by the kind put in
@@ -324,7 +324,7 @@ recommend to run it behind a firewall.
 Setup servers to start browsers on the the relevant machine::
 
     Z:\>c:\Python26\python.exe browser.py server 10010
-    JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6  
+    JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6
     serving browsers on 10010...
 
 On the machine that will drive the tests set one environment variable
@@ -332,7 +332,7 @@ with the secret token, and another that lists separated by spaces
 ``<hostname>:<port>:<browsers-separated-by-commas>`` for the browser
 servers::
 
-    $ export JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6 
+    $ export JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6
     $ export JSTESTS_REMOTE_BROWSERS=bigboard:10010:iexplore
     $ ../v/bin/py.test --jstests-browser-spec any=iexplore,firefox
     inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
@@ -366,22 +366,22 @@ the ``server`` command::
 
     Z:\>c:\Python26\python.exe browser.py gentoken
     eca424b610245337c80f32e3a08c50c6
-    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6  
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6
     serving browsers on 10010...
 
-It is possible to give user-defined name for greater flexibility to
+It is possible to give user-defined names for greater flexibility to
 browsers or browser command lines, for example to run tests against
 both Internet Explorer 7 and 8 one could run ``browser.py`` on a
 Windows machine with the latter this way::
 
     Z:\>c:\Python26\python.exe browser.py gentoken
     eca424b610245337c80f32e3a08c50c6
-    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie8=iexplore  
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie8=iexplore
     serving browsers on 10010...
 
 and on other with the older IE7 with::
 
-    Y:\>c:\Python25\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie7=iexplore  
+    Y:\>c:\Python25\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie7=iexplore
     serving browsers on 10010...
 
 A series of definitions with ``user-defined-name=command-line`` can be
