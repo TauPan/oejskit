@@ -87,11 +87,11 @@ class RunState:
 
     @property
     def testname(self):
-        if hasattr(self.collector, 'obj'):        
+        if hasattr(self.collector, 'obj'):
             return self.collector.obj.__name__
         else:
             return self.collector.name
-        
+
 
 _run = {}
 
@@ -104,17 +104,17 @@ def get_state(item, collect=False):
     _run[collector] = state = RunState(collector)
     if not collect:
         #print "ADD FINALIZER", os.getpid()
-        #import traceback; traceback.print_stack()        
+        #import traceback; traceback.print_stack()
         collector.config._setupstate.addfinalizer(colitem=collector,
                                      finalizer=lambda: del_state(collector))
     return state
 
 def del_state(item):
-    collector = item.getparent((py.test.collect.Module, JsFile))    
+    collector = item.getparent((py.test.collect.Module, JsFile))
     state = _run.pop(collector, None)
     if state:
         from oejskit.testing import cleanupBrowsers
-        cleanupBrowsers(state)        
+        cleanupBrowsers(state)
 
 def pytest_make_collect_report(collector):
     if isinstance(collector, (py.test.collect.Module, JsFile)):
@@ -154,7 +154,7 @@ def detach_browser(clsitem):
 
 def expand_browsers(config, kind):
     from oejskit.testing import checkBrowser
-    
+
     if kind is None:
         kind = 'any'
 
@@ -177,13 +177,13 @@ def expand_browsers(config, kind):
     if kinds is None:
         kinds = [kind]
 
-    return [kind for kind in kinds if checkBrowser(kind)] 
+    return [kind for kind in kinds if checkBrowser(kind)]
 
 # collection
 
 class BrowsersCollector(py.test.collect.Collector):
     Child = None
-       
+
     def collect(self):
         l = []
         kinds = expand_browsers(self.config, self.browserKind)
@@ -201,22 +201,22 @@ class JsSuiteCollector(py.test.collect.Collector):
 
     def _collect(self, state_item, url):
         browser, setupBag = give_browser(state_item, attach=False)
-        
+
         names, runner = browser._gatherTests(url, setupBag)
 
         def runTest(jstest):
             runner._runTest(jstest, self._root, None)
-            
+
         l = []
         for jstest in names:
             name = "[%s]" % jstest
-            function = JsTest(name=name, parent=self, 
+            function = JsTest(name=name, parent=self,
                               args=(jstest,), callobj=runTest)
             l.append(function)
         return l
 
 # browser test classes collection
-    
+
 class ClassWithBrowser(py.test.collect.Class):
 
     def __init__(self, name, parent, browserKind):
@@ -235,7 +235,7 @@ class ClassWithBrowser(py.test.collect.Class):
 
 class ClassWithBrowserCollector(BrowsersCollector):
     Child = ClassWithBrowser
-    
+
     def __init__(self, name, parent, browserKind):
         super(ClassWithBrowserCollector, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
@@ -245,7 +245,7 @@ class ClassWithBrowserCollector(BrowsersCollector):
         try:
             return self._fslineno, self.name
         except AttributeError:
-            pass        
+            pass
         fspath, lineno = py.code.getfslineno(self.obj)
         self._fslineno = fspath, lineno
         return fspath, lineno, self.name
@@ -253,7 +253,7 @@ class ClassWithBrowserCollector(BrowsersCollector):
 class JsTestSuite(JsSuiteCollector):
     # this is a mixture between a collector, a setup method
     # and a function item
-    
+
     def __init__(self, name, parent):
         super(JsTestSuite, self).__init__(name, parent)
         self.obj = getattr(self.parent.obj, name)
@@ -279,11 +279,11 @@ class JsTestSuite(JsSuiteCollector):
         self.obj = getattr(self.parent.obj, self.name)
         py.test.collect._fillfuncargs(self)
         self._root = self.obj(**self.funcargs)
-            
+
     def teardown(self):
         super(JsTestSuite, self).teardown()
         self._root = None
-        
+
     def collect(self):
         obj = self.obj
         clsitem = self.parent.parent
@@ -308,10 +308,10 @@ class JsFileSuite(JsSuiteCollector):
 
     # accomodate JsTest/Function assumption
     obj = None
-    
+
     def _getfslineno(self):
         return self.parent.fspath, 0
-    # 
+    #
 
     def setup(self):
         browser, setupBag = give_browser(self, attach=False)
