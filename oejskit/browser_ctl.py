@@ -15,7 +15,7 @@ from oejskit.browser import start_browser
 
 script_template = """
   <script type="text/javascript" src="%s">
-  </script>  
+  </script>
 """
 
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
@@ -24,11 +24,11 @@ load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
   <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
   </script>
   <script type="text/javascript" src="/browser_testing/rt/utils.js">
-  </script>  
+  </script>
 
   %s
   <script type="text/javascript" src="%s">
-  </script>  
+  </script>
 </head>
 <body>
 
@@ -65,7 +65,7 @@ class ServeTesting(Dispatch):
     def __init__(self, rtDir, libDir):
         self._cmd = {}
         self._results = {}
-        
+
         self.rt = ServeFiles(rtDir)
         self.lib = ServeFiles(libDir)
         self.extra = None
@@ -84,7 +84,7 @@ class ServeTesting(Dispatch):
     def _jsResolver(self, setupBag):
         repoParents = {}
         repoParents.update(setupBag.staticDirs)
-        repoParents.update(setupBag.repoParents)  
+        repoParents.update(setupBag.repoParents)
         return JsResolver(repoParents)
     _jsResolver.keys = ('staticDirs', 'repoParents')
 
@@ -95,9 +95,9 @@ class ServeTesting(Dispatch):
                 url += '/'
             extraMap[url] = ServeFiles(p)
         for url, app in setupBag.wsgiEndpoints.items():
-            extraMap[url] = app        
+            extraMap[url] = app
         return Dispatch(extraMap)
-    _extra.keys = ('staticDirs', 'wsgiEndpoints')        
+    _extra.keys = ('staticDirs', 'wsgiEndpoints')
 
     def withSetup(self, setupBag, action):
         if not isinstance(action, basestring):
@@ -119,7 +119,7 @@ class ServeTesting(Dispatch):
 
     def getResult(self, key):
         return self._results.pop(key, None)
-    
+
     def home(self, environ, start_response):
         environ['PATH_INFO'] = '/testing.html'
         return self.rt(environ, start_response)
@@ -178,7 +178,7 @@ class Browser(object):
         else:
             baseurl = "http://localhost:%d/" % self.serverSide.get_port()
         return urllib.basejoin(baseurl, relative)
- 
+
     def _startup_browser(self):
         url = self.makeurl('/browser_testing/')
         start_browser(self.name, url, manual=MANUAL)
@@ -191,7 +191,7 @@ class Browser(object):
         r = self.send({'op': 'prepare', 'args': []},
                       discrim='prepared:%s' % setupBag.name, timeout=20,
                       setupBag=setupBag)
-        assert r == 'prepared'        
+        assert r == 'prepared'
 
     def send(self, action, discrim=None, root=None, timeout=None,
              setupBag = None):
@@ -211,7 +211,7 @@ class Browser(object):
 
     def _gatherTests(self, url, setupBag):
         if not url.startswith('/'):
-            url = "/browser_testing/load/test/%s" % url        
+            url = "/browser_testing/load/test/%s" % url
         res = self.send({'op': 'collectTests', 'args': [url]},
                         discrim="%s@collect" % url,
                         setupBag=setupBag)
@@ -219,9 +219,9 @@ class Browser(object):
         assert res, ("%r no tests from the page: something is wrong" % url)
 
         return res, PageContext(self, setupBag,  None, url)
-        
+
     def shutdown(self):
-        self.send('BYE', discrim='BYE')        
+        self.send('BYE', discrim='BYE')
         self.serverSide.shutdown()
 
 class BrowserFactory(object):
@@ -298,7 +298,7 @@ class PageContext(_BrowserController):
         outcome = self.send(cmd, discrim="%s@%d" % (self.label, n),
                             root=root, timeout=timeout)
         return outcome
-        
+
     def eval(self, js, variant='eval'):
         outcome = self._execute(variant, js, self.root, self.timeout)
         if outcome.get('error'):
@@ -307,7 +307,7 @@ class PageContext(_BrowserController):
 
     def travel(self, js):
         return self.eval(js, variant='travel')
-    
+
 
     def _runTest(self, name, root, timeout):
         outcome = self._execute('runOneTest', name, root, timeout)
@@ -316,7 +316,7 @@ class PageContext(_BrowserController):
         if outcome['leakedNames']:
             raise RuntimeError('%s leaked global names: %s' % (name,
                                                        outcome['leakedNames']))
-        
+
 
 class BrowserController(_BrowserController):
 
@@ -328,7 +328,7 @@ class BrowserController(_BrowserController):
         label = url
         if take:
             label = "%s >%s<" % (url, take)
-        
+
         res = self.send({'op': 'open', 'args': [url, label]},
                         root=root, discrim=label, timeout=timeout)
         return PageContext(self.browser, self.setupBag, root, label,
