@@ -27,6 +27,7 @@ jskit requires Python 2.6 or 2.7. It also uses `MochiKit`_ - of
 which it ships a version within itself for convenience - for its own
 working though in does not imposes its usage on tested code.
 
+.. XXX REMOVE!
 **It doesn't work yet with py.test 2.0, but requires py.test 1.3.4!**
 
 .. _`MochiKit`: http://mochikit.com/
