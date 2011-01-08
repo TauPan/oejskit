@@ -6,6 +6,10 @@ margin-right: auto;
 font-size: 17px;
 }
 
+h1 {
+color: #cbad97;
+}
+
 /*
 :Author: David Goodger (goodger@python.org)
 :Id: $Id: html4css1.css 5196 2007-06-03 20:25:28Z wiemann $

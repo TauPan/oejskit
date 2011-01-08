@@ -36,8 +36,8 @@ def _ensure(obj, name, default):
         return default
 
 class SetupBag(object):
-    name = 'whatever'
-    
+    name = 'other'
+
     _configs = [('staticDirs', dict),
                 ('repoParents', dict),
                 ('jsRepos', list),
@@ -65,20 +65,20 @@ def defaultJsTestsSetup(state):
     libDir = os.environ.get('WEBLIB')
     if libDir is None:
         libDir = os.path.join(os.path.dirname(__file__), 'weblib')
-    
+
     libDir = _getglobal(state, 'jstests_weblib', libDir)
-    
+
     class DefaultJsTestsSetup:
         ServerSide = None
         # !
         staticDirs = { '/lib': libDir,
                        '/browser_testing/rt': rtDir,
-                       '/oe-js': jsDir }                           
+                       '/oe-js': jsDir }
         jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
 
     return DefaultJsTestsSetup, libDir
 
-    
+
 # ________________________________________________________________
 
 def _get_serverSide(state):
@@ -89,7 +89,7 @@ def _get_serverSide(state):
     if serverSide is None:
         serverSide = _getglobal(state, "jstests_server_side",
                                 "oejskit.wsgi.WSGIServerSide")
-                        
+
     if isinstance(serverSide, str):
         p = serverSide.split('.')
         mod = __import__('.'.join(p[:-1]),
@@ -97,7 +97,7 @@ def _get_serverSide(state):
         serverSide = getattr(mod, p[-1])
 
     return serverSide
-   
+
 def getBrowser(state, browserKind):
     browsers =  _ensure(state, '_jstests_browsers', None)
     if browsers is None:
@@ -105,7 +105,7 @@ def getBrowser(state, browserKind):
                                    "jstests_reuse_browser_windows", True)
         browsers = BrowserFactory(reuse_windows)
         state._jstests_browsers = browsers
-        
+
     serverSide = _get_serverSide(state)
     return browsers.get(browserKind, serverSide)
 
@@ -114,7 +114,7 @@ def cleanupBrowsers(state):
                                "jstests_reuse_browser_windows", True)
     if reuse_windows:
         return
-     
+
     if hasattr(state, '_jstests_browsers'):
         #print 'CLEANUP', os.getpid()
         #import traceback; traceback.print_stack()
@@ -140,9 +140,9 @@ def giveBrowser(state, cls, browserKind, attach=True):
 
         setup = _getscoped(state, 'jstests_setup')
 
-        class modSetup:    
+        class modSetup:
             staticDirsTest = {'/test/': state.testdir}
-            jsReposTest = ['/test']        
+            jsReposTest = ['/test']
 
         defaultSetup, libDir = defaultJsTestsSetup(state)
 
