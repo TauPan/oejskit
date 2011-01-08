@@ -30,7 +30,7 @@ OpenEnd._GET = function(url, queryString) {
     } catch (e) {
         return null;
     };
-    return null;    
+    return null;
 }
 
 OpenEnd.use = function(module) {

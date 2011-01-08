@@ -29,7 +29,7 @@ function insertTestNode() {
     var title = SPAN({"style": "color: #1594C2;"}, testName || firstName || "?")
     var testDiv = DIV()
 
-    var cont = DIV({"style": "border: solid 1px #1594C2; margin-bottom: 1em; " }, 
+    var cont = DIV({"style": "border: solid 1px #1594C2; margin-bottom: 1em; " },
                    title, testDiv)
 
     appendChildNodes(body, cont)
@@ -181,5 +181,5 @@ function _runStages(d, input, i, funcs) {
 }
 
 function staged() {
-    return _runStages(null, undefined, 0, arguments) 
+    return _runStages(null, undefined, 0, arguments)
 }
