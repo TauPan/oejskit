@@ -59,7 +59,7 @@ test_fakeHTMLEvent: function() {
         triggered = true
     }
 
-    fakeHTMLEvent(ta, "change")    
+    fakeHTMLEvent(ta, "change")
 
     aok(triggered)
 },
@@ -80,20 +80,20 @@ test_fakeKeyEvent: function() {
 
     var ff = !!document.createEvent
 
-    fakeKeyEvent(ta, "keypress", 65)    
+    fakeKeyEvent(ta, "keypress", 65)
     ais(keyCode, 65)
     if (ff) {
         ais(charCode, 65)
     }
     ais(shiftKey, false)
-    
+
     fakeKeyEvent(ta, "keypress", 9, 0)
     ais(keyCode, 9)
     if (ff) {
         ais(charCode, 0)
     }
     ais(shiftKey, false)
-    
+
     fakeKeyEvent(ta, "keypress", 9, 0, true)
     ais(keyCode, 9)
     if (ff) {
@@ -124,7 +124,7 @@ test_substitute: function() {
             throw "Error!"
         })
     })
-    
+
     ais(err, "Error!")
     aisDeeply(values, [[42, "bar"]])
     ais(Substitute.x, 27)
