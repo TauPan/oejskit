@@ -1,13 +1,20 @@
-0.x.y
+0.9.0
 +++++
 
-* make reusing one tab/window and the corresponding browser test object for all tests in a session using the same setup the default, this is enforced when using py.test 2.0 which collects all tests first
+* make reusing one tab/window and the corresponding browser test
+  object for all tests in a session using the same setup the default,
+  this is enforced when using py.test 2.0 which collects all tests
+  first
 
-* py.test 2.0 is now supported! py.test 1.x still works as well
+* *py.test 2.0 is now supported!* py.test 1.x still works as well
 
-* display during the test runs a list of links on the upper right corner of the pages to jump to the sections corresponding to the javascript test files or python modules
+* display during the test runs a list of links on the upper right
+  corner of the pages to jump to the sections corresponding to the
+  javascript test files or python modules
 
 * various internal cleanups and simplifications
+
+* some light refreshing and editing of the docs
 
 0.8.9
 +++++
