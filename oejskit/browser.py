@@ -10,6 +10,7 @@ import datetime, optparse
 
 # env configuration and security
 
+
 def _remote_map(_cached={}):
     if _cached:
         return _cached
@@ -23,10 +24,14 @@ def _remote_map(_cached={}):
             remote_map[browser] = addr
     return remote_map
 
+
 def _gentoken():
     return binascii.hexlify(os.urandom(16))
 
+
 _token_cache = []
+
+
 def _read_token():
     if _token_cache:
         return _token_cache[0]
@@ -39,17 +44,21 @@ def _read_token():
     _token_cache.append(token)
     return token
 
+
 def _nonce():
-    return binascii.hexlify(os.urandom(2))+repr(time.time())
+    return binascii.hexlify(os.urandom(2)) + repr(time.time())
+
 
 def _hmac(cmd_list, nonce):
     token = _read_token()
-    txt = nonce+'+'.join(cmd_list)
+    txt = nonce + '+'.join(cmd_list)
     return hmac.new(token, txt, hashlib.sha1).hexdigest()
+
 
 def _bundle_with_hmac(cmd_list, nonce):
     assert cmd_list
-    return ' '.join(cmd_list+[_hmac(cmd_list, nonce)])
+    return ' '.join(cmd_list + [_hmac(cmd_list, nonce)])
+
 
 def _parse_authorized(line, nonce):
     bits = line.split()
@@ -61,9 +70,10 @@ def _parse_authorized(line, nonce):
     if token != expected:
         return None
     return cmd_list
-    
+
 
 # local and do()
+
 
 class Error(Exception):
     pass
@@ -73,9 +83,10 @@ _win_extra = {
     'iexplore': ('internet explorer', 1)
     }
 
-browsers = {} # optionally filled later by do(['server', ...])
+browsers = {}  # optionally filled later by do(['server', ...])
 
-def _check_local(name):    
+
+def _check_local(name):
     if sys.platform != 'win32':
         res = os.system("which %s" % name)
         if res == 0:
@@ -84,7 +95,7 @@ def _check_local(name):
         PATH = os.environ.get('PATH')
         exename = name
         if not exename.lower().endswith('.exe'):
-            exename += '.exe'            
+            exename += '.exe'
 
         if PATH is not None:
             for p in PATH.split(';'):
@@ -94,7 +105,7 @@ def _check_local(name):
         app_paths = None
         try:
             app_paths = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,
-                         r"Software\Microsoft\Windows\CurrentVersion\App Paths")
+                       r"Software\Microsoft\Windows\CurrentVersion\App Paths")
             p = _winreg.QueryValue(app_paths, exename)
             if os.path.exists(p):
                 return name
@@ -115,7 +126,7 @@ def _check_local(name):
     if sys.platform == 'darwin':
         import MacOS
         from Carbon import Launch, LaunchServices
-        app_name = name.title()+'.app'
+        app_name = name.title() + '.app'
         try:
             ref, _ = Launch.LSFindApplicationForInfo(
                                LaunchServices.kLSUnknownCreator,
@@ -124,13 +135,13 @@ def _check_local(name):
             pass
         else:
             return "open -a %s" % app_name
-           
+
     return None
 
 
 def _browser_name_and_parms(name):
     if name not in browsers:
-       parms = ""
+        parms = ""
     else:
         cmdline = browsers[name]
         parts = cmdline.split(None, 1)
@@ -141,6 +152,7 @@ def _browser_name_and_parms(name):
     if checked_name is None:
         raise Error("browser %s not found" % name)
     return checked_name, parms
+
 
 class _WinToTop(object):
 
@@ -170,9 +182,9 @@ class _WinToTop(object):
     def to_top(self):
         if not self._do:
             return
-        
+
         import win32gui
-        
+
         before = self._before
         start = time.time()
         expected_delta = self.expected_delta
@@ -187,24 +199,25 @@ class _WinToTop(object):
             w = list(got)[0]
             win32gui.BringWindowToTop(w)
 
+
 def _win_start(name, parms):
     import win32api
     to_top = _WinToTop(name)
     to_top.before()
     try:
-        win32api.ShellExecute(0, None, name, parms, None, 1) # SW_SHOWNORMAL
+        win32api.ShellExecute(0, None, name, parms, None, 1)  # SW_SHOWNORMAL
     except win32api.error:
         raise Error("failed to run: %s %s" % (name, parms))
     to_top.to_top()
-        
+
 
 def start_browser_local(name, url, manual=False):
     name, parms = _browser_name_and_parms(name)
     if parms:
-        parms += " "+url
+        parms += " " + url
     else:
         parms = url
-    
+
     if sys.platform == 'win32':
         _win_start(name, parms)
     else:
@@ -216,15 +229,16 @@ def start_browser_local(name, url, manual=False):
         time.sleep(0.5)
         _, status = os.waitpid(pid, os.WNOHANG)
         if status != 0:
-            raise Error("failed to run: %s" % start_cmd) 
+            raise Error("failed to run: %s" % start_cmd)
 
-def cleanup_browser_local(name):    
+
+def cleanup_browser_local(name):
     if sys.platform != 'win32':
         return
     name, _ = _browser_name_and_parms(name)
     img = os.path.basename(name)
     if not name.lower().endswith('.exe'):
-        img = name+".exe"
+        img = name + ".exe"
 
     def nt_check_for_running(img):
         return img in os.popen('tasklist'
@@ -298,8 +312,9 @@ LOCAL = {
     'cleanup': cleanup_browser_local
     }
 
-# xxx timeout
+
 def server(port, log):
+    # xxx timeout
     if log:
         log = open(log, 'a+')
     s = socket.socket()
@@ -313,10 +328,10 @@ def server(port, log):
             f = cl.makefile("r+")
             try:
                 nonce = _nonce()
-                f.write(nonce+"\n")
+                f.write(nonce + "\n")
                 f.flush()
                 line = f.readline()
-                # naive white space treatmeant                
+                # naive white space treatmeant
                 cmd_list = _parse_authorized(line, nonce)
                 if cmd_list is None:
                     continue
@@ -342,9 +357,11 @@ def server(port, log):
 
 # interface
 
+
 def _check_remote(name):
     remote_map = _remote_map()
     return remote_map.get(name)
+
 
 def _send_cmd(addr, cmd_list):
     s = socket.socket()
@@ -354,7 +371,7 @@ def _send_cmd(addr, cmd_list):
     try:
         nonce = f.readline().strip()
         msg = _bundle_with_hmac(cmd_list, nonce)
-        f.write(msg+"\n")
+        f.write(msg + "\n")
         ok = f.readline()
         if ok != "ok\n":
             raise RuntimeError("invoking %s remotely failed: %s" %
@@ -362,7 +379,8 @@ def _send_cmd(addr, cmd_list):
     finally:
         f.close()
         s.close()
-            
+
+
 def _invoke(cmd_list):
     name = cmd_list[1]
     addr = _check_remote(name)
@@ -375,20 +393,24 @@ def _invoke(cmd_list):
                 urlparts = list(urlparse.urlsplit(part))
                 if urlparts[1].startswith('localhost'):
                     # xxx not ideal
-                    urlparts[1] = urlparts[1].replace('localhost', socket.gethostname())
+                    urlparts[1] = urlparts[1].replace('localhost',
+                                                      socket.gethostname())
                 part = urlparse.urlunsplit(urlparts)
 
             return part
         cmd_list = map(delocalhost, cmd_list)
         _send_cmd(addr, cmd_list)
 
+
 def _listdir(dir):
     return [os.path.join(dir, child) for child in os.listdir(dir)]
 
+
 def check_browser(name):
-    if _check_remote(name): # assume remote implies supported
+    if _check_remote(name):  # assume remote implies supported
         return True
     return _check_local(name)
+
 
 def start_browser(name, url, manual=False):
     if manual:
@@ -396,8 +418,10 @@ def start_browser(name, url, manual=False):
         raw_input()
     _invoke(['start', name, url])
 
+
 def cleanup_browser(name):
     _invoke(['cleanup', name])
+
 
 def shutdown_servers():
     remote_map = _remote_map()
@@ -405,9 +429,10 @@ def shutdown_servers():
     for addr in addrs:
         _send_cmd(addr, ['shutdown'])
 
+
 def gentoken():
     print _gentoken()
-                      
+
 
 CMDLINE = {
     'cleanup': cleanup_browser,
@@ -416,6 +441,6 @@ CMDLINE = {
     'shutdown-servers': shutdown_servers,
     'gentoken': gentoken
     }
-    
+
 if __name__ == "__main__":
     do(sys.argv[1:], CMDLINE)

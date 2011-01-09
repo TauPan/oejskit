@@ -4,6 +4,7 @@ from oejskit.testing import giveBrowser, cleanupBrowsers, checkBrowser
 
 NOT_THERE = object()
 
+
 class JSTestSuite(unittest.TestSuite):
 
     jstests_browser_specs = None
@@ -17,14 +18,14 @@ class JSTestSuite(unittest.TestSuite):
         except KeyError:
             kinds = [kind]
         return [kind for kind in kinds if checkBrowser(kind)]
-            
+
     def __init__(self, js, root=None, browser_kind=None):
         self.testdir = os.path.dirname(sys._getframe(1).f_globals['__file__'])
         self.testname = js
 
         if root is None:
             root = lambda: None
-            
+
         if self.jstests_browser_specs is None:
             self.jstests_browser_specs = {}
         if 'any' not in self.jstests_browser_specs:
@@ -55,7 +56,7 @@ class JSTestSuite(unittest.TestSuite):
                 descr = '%s[=%s][%s]' % (self.testname, kind, jstest)
                 tests.append(unittest.FunctionTestCase(runTest,
                                                        description=descr))
-            
+
         unittest.TestSuite.__init__(self, tests)
 
     def run(self, result):

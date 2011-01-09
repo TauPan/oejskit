@@ -1,5 +1,6 @@
 import sys
 
+
 def any_browser():
     res = ['firefox']
     if sys.platform == 'win32':
@@ -7,4 +8,3 @@ def any_browser():
     elif sys.platform == 'darwin':
         res.append('safari')
     return res
-    

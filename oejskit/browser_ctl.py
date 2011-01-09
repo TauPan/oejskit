@@ -48,21 +48,23 @@ load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN
 
 _cache = {}
 
+
 def _getBasedOnSetup(builder, setupBag):
     name = builder.__name__
     try:
-        obj = getattr(setupBag, '_'+name)
+        obj = getattr(setupBag, '_' + name)
         return obj
     except AttributeError:
         pass
     keys = builder.keys
-    key = tuple(tuple(sorted(x.items())) for x in map(setupBag.__getattribute__, keys))
+    key = tuple(tuple(sorted(x.items())) for x in
+                                          map(setupBag.__getattribute__, keys))
     try:
         obj = _cache[name, key]
     except KeyError:
         obj = builder(setupBag)
         _cache[name, key] = obj = builder(setupBag)
-    setattr(setupBag, '_'+name, obj)
+    setattr(setupBag, '_' + name, obj)
     return obj
 
 
@@ -76,8 +78,8 @@ class ServeTesting(Dispatch):
         self.lib = ServeFiles(libDir)
         self.extra = None
         self.jsScripts = None
-        self.MochiKit__export__ = object # something that cannot be json
-                                         # serialized
+        self.MochiKit__export__ = object  # something that cannot be json
+                                          # serialized
         map = {
             '/browser_testing/': self.home,
             '/browser_testing/cmd': Serve(self.cmd),
@@ -141,7 +143,7 @@ class ServeTesting(Dispatch):
 
     def result(self, env, data):
         if data is None:
-            return '', 'text/plain', False # not clear why we get a GET
+            return '', 'text/plain', False  # not clear why we get a GET
         data = json.loads(data)
         self._results[data['discrim']] = data['res']
         env['oejskit.stop_serving']()
@@ -167,10 +169,12 @@ class ServeTesting(Dispatch):
 
 # ________________________________________________________________
 
+
 PORT = 0
 MANUAL = False
 if MANUAL:
     PORT = 8116
+
 
 class Browser(object):
     """
@@ -208,8 +212,8 @@ class Browser(object):
         assert r == 'prepared'
 
     def send(self, action, discrim=None, root=None, timeout=None,
-             setupBag = None):
-        """send javascript fragment for execution to the browser testing page"""
+             setupBag=None):
+        "send javascript fragment for execution to the browser testing page"
         if timeout is None:
             timeout = self.default_timeout
         if MANUAL:
@@ -232,11 +236,12 @@ class Browser(object):
 
         assert res, ("%r no tests from the page: something is wrong" % url)
 
-        return res, PageContext(self, setupBag,  None, url)
+        return res, PageContext(self, setupBag, None, url)
 
     def shutdown(self):
         self.send('BYE', discrim='BYE')
         self.serverSide.shutdown()
+
 
 class BrowserFactory(object):
     _inst = None
@@ -272,9 +277,8 @@ class BrowserFactory(object):
     def __del__(self):
         self.shutdownAll(True)
 
-
-
 # ________________________________________________________________
+
 
 class JsFailed(Exception):
 
@@ -285,6 +289,7 @@ class JsFailed(Exception):
     def __str__(self):
         return "%s: %s" % (self.name, self.msg)
 
+
 class _BrowserController(object):
     browser = None
     setupBag = None
@@ -293,9 +298,11 @@ class _BrowserController(object):
         return self.browser.send(action, discrim=discrim, root=root,
                                  setupBag=self.setupBag, timeout=timeout)
 
+
 class PageContext(_BrowserController):
 
-    def __init__(self, browser, setupBag, root, label, timeout=None, index=None):
+    def __init__(self, browser, setupBag, root, label,
+                 timeout=None, index=None):
         self.browser = browser
         self.setupBag = setupBag
         self.root = root
@@ -307,8 +314,8 @@ class PageContext(_BrowserController):
     def _execute(self, method, argument, root, timeout):
         n = self.count
         self.count += 1
-        cmd = { 'op': method,
-                'args': [self.label, argument, n]}
+        cmd = {'op': method,
+               'args': [self.label, argument, n]}
         outcome = self.send(cmd, discrim="%s@%d" % (self.label, n),
                             root=root, timeout=timeout)
         return outcome
@@ -321,7 +328,6 @@ class PageContext(_BrowserController):
 
     def travel(self, js):
         return self.eval(js, variant='travel')
-
 
     def _runTest(self, name, root, timeout):
         outcome = self._execute('runOneTest', name, root, timeout)

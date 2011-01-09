@@ -12,11 +12,13 @@ from oejskit.browser_ctl import ServeTesting, BrowserFactory, BrowserController
 # convenience
 from oejskit.browser_ctl import JsFailed
 
+
 def _getglobal(state, name, default):
     try:
         return state.getglobal(name)
     except AttributeError:
         return default
+
 
 def _getscoped(state, name):
     try:
@@ -28,12 +30,14 @@ def _getscoped(state, name):
     except AttributeError:
         return None
 
+
 def _ensure(obj, name, default):
     try:
         return getattr(obj, name)
     except AttributeError:
         setattr(obj, name, default)
         return default
+
 
 class SetupBag(object):
     name = 'other'
@@ -65,7 +69,9 @@ class SetupBag(object):
                                               getattr(source, name))
         self.__dict__ = cfg
 
+
 rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
+
 
 def defaultJsTestsSetup(state):
     libDir = os.environ.get('WEBLIB')
@@ -77,20 +83,20 @@ def defaultJsTestsSetup(state):
     class DefaultJsTestsSetup:
         ServerSide = None
         # !
-        staticDirs = { '/lib': libDir,
+        staticDirs = {'/lib': libDir,
                        '/browser_testing/rt': rtDir,
-                       '/oe-js': jsDir }
+                       '/oe-js': jsDir}
         jsRepos = ['/lib/mochikit', '/oe-js', '/browser_testing/rt']
 
     return DefaultJsTestsSetup, libDir
 
-
 # ________________________________________________________________
+
 
 def _get_serverSide(state):
     setup = _getscoped(state, "jstests_setup")
     if not setup:
-        setup, _  = defaultJsTestsSetup(state)
+        setup, _ = defaultJsTestsSetup(state)
     serverSide = getattr(setup, 'ServerSide', None)
     if serverSide is None:
         serverSide = _getglobal(state, "jstests_server_side",
@@ -104,8 +110,9 @@ def _get_serverSide(state):
 
     return serverSide
 
+
 def getBrowser(state, browserKind):
-    browsers =  _ensure(state, '_jstests_browsers', None)
+    browsers = _ensure(state, '_jstests_browsers', None)
     if browsers is None:
         reuse_windows = _getglobal(state,
                                    "jstests_reuse_browser_windows", True)
@@ -114,6 +121,7 @@ def getBrowser(state, browserKind):
 
     serverSide = _get_serverSide(state)
     return browsers.get(browserKind, serverSide)
+
 
 def cleanupBrowsers(state):
     reuse_windows = _getglobal(state,
@@ -133,9 +141,11 @@ def cleanupBrowsers(state):
         except AttributeError:
             pass
 
+
 def checkBrowser(browserKind):
     from oejskit.browser import check_browser
     return check_browser(browserKind)
+
 
 def giveBrowser(state, cls, browserKind, attach=True):
     browser_setups = _ensure(state, '_jstests_browser_setups', {})
@@ -171,17 +181,20 @@ def giveBrowser(state, cls, browserKind, attach=True):
 
     return browser, setupBag
 
+
 def detachBrowser(cls):
     del cls.setupBag
     del cls.browser
 
 # ________________________________________________________________
 
+
 def jstests_suite(url):
     def decorate(func):
         func._jstests_suite_url = url
         return func
     return decorate
+
 
 class BrowserTestClass(BrowserController):
     jstests_browser_kind = None

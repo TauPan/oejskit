@@ -16,10 +16,12 @@ jstests_cmdline_browser_specs = {
     'any': util.any_browser()
 }
 
+
 def cmdline_browser_spec(option, optstr, value, parser):
     name, choices = value.split('=')
     choices = choices.split(',')
     jstests_cmdline_browser_specs[name] = choices
+
 
 def pytest_addoption(parser):
     group = parser.getgroup("jstests", "oejskit test suite options")
@@ -42,6 +44,7 @@ def pytest_addoption(parser):
         default="oejskit.wsgi.WSGIServerSide"
         )
 
+
 def pytest_pycollect_makeitem(collector, name, obj):
     if (collector.classnamefilter(name)) and \
         py.std.inspect.isclass(obj) and \
@@ -54,6 +57,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
         return JsTestSuite(name, parent=collector)
     return None
 
+
 class RunState:
 
     def __init__(self, collector):
@@ -61,7 +65,7 @@ class RunState:
 
     def getglobal(self, name):
         if name == 'jstests_reuse_browser_window' and py_test_two:
-            return True # nothing else is supported
+            return True  # nothing else is supported
         try:
             return self.collector.config.getvalue(name)
         except KeyError:
@@ -96,6 +100,7 @@ class RunState:
 
 _run = {}
 
+
 def get_state(item, collect=False):
     collector = item.getparent((py.test.collect.Module, JsFile))
     try:
@@ -110,6 +115,7 @@ def get_state(item, collect=False):
                                      finalizer=lambda: del_state(collector))
     return state
 
+
 def del_state(item):
     collector = item.getparent((py.test.collect.Module, JsFile))
     state = _run.pop(collector, None)
@@ -117,9 +123,11 @@ def del_state(item):
         from oejskit.testing import cleanupBrowsers
         cleanupBrowsers(state)
 
+
 def pytest_make_collect_report(collector):
     if isinstance(collector, (py.test.collect.Module, JsFile)):
         get_state(collector, collect=True)
+
 
 def pytest_collectreport(report):
     if py_test_two:
@@ -128,11 +136,13 @@ def pytest_collectreport(report):
     if isinstance(collector, (py.test.collect.Module, JsFile)):
         del_state(collector)
 
+
 def pytest_unconfigure(config):
     for colitem in _run.keys():
         del_state(colitem)
 
 # jstest_*.js collection
+
 
 def pytest_collect_file(path, parent):
     basename = path.basename
@@ -143,15 +153,18 @@ def pytest_collect_file(path, parent):
 # ________________________________________________________________
 # items
 
+
 def give_browser(item, attach=True):
     from oejskit.testing import giveBrowser
     return giveBrowser(get_state(item), getattr(item, 'obj', None),
                                         item.browserKind,
                                         attach=attach)
 
+
 def detach_browser(clsitem):
     from oejskit.testing import detachBrowser
     detachBrowser(clsitem.obj)
+
 
 def expand_browsers(config, kind):
     from oejskit.testing import checkBrowser
@@ -162,7 +175,7 @@ def expand_browsers(config, kind):
     # the command line takes precedence
     kinds = None
     try:
-        kinds =  jstests_cmdline_browser_specs[kind]
+        kinds = jstests_cmdline_browser_specs[kind]
     except KeyError:
         try:
             specs = config.getvalue('jstests_browser_specs')
@@ -181,6 +194,7 @@ def expand_browsers(config, kind):
     return [kind for kind in kinds if checkBrowser(kind)]
 
 # collection
+
 
 class BrowsersCollector(py.test.collect.Collector):
     Child = None
@@ -218,6 +232,7 @@ class JsSuiteCollector(py.test.collect.Collector):
 
 # browser test classes collection
 
+
 class ClassWithBrowser(py.test.collect.Class):
 
     def __init__(self, name, parent, browserKind):
@@ -250,6 +265,7 @@ class ClassWithBrowserCollector(BrowsersCollector):
         fspath, lineno = py.code.getfslineno(self.obj)
         self._fslineno = fspath, lineno
         return fspath, lineno, self.name
+
 
 class JsTestSuite(JsSuiteCollector):
     # this is a mixture between a collector, a setup method
@@ -301,6 +317,7 @@ class JsTest(py.test.collect.Function):
 
 # js files
 
+
 class JsFileSuite(JsSuiteCollector):
 
     def __init__(self, name, parent, browserKind):
@@ -324,10 +341,10 @@ class JsFileSuite(JsSuiteCollector):
         url = self.parent.fspath.basename
         return self._collect(self, url)
 
+
 class JsFile(py.test.collect.File, BrowsersCollector):
     Child = JsFileSuite
 
     def __init__(self, fspath, parent):
         super(JsFile, self).__init__(fspath, parent)
         self.browserKind = fspath.purebasename.split('_')[-1]
-
