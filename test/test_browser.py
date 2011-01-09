@@ -4,6 +4,7 @@ from oejskit import browser
 
 SECRET = 'R\x15\x0f\xca\x89\xc1EKd\xda,\xf9/\xc2\x8c\x9b'
 
+
 class TestSecurityFunctions():
 
     def setup_class(cls):
@@ -12,7 +13,7 @@ class TestSecurityFunctions():
         os.environ['JSTESTS_REMOTE_BROWSERS_TOKEN'] = binascii.hexlify(SECRET)
 
     def teardown_class(cls):
-        del browser._token_cache[:]        
+        del browser._token_cache[:]
         if cls.old_value is None:
             del os.environ['JSTESTS_REMOTE_BROWSERS_TOKEN']
         else:
@@ -34,9 +35,9 @@ class TestSecurityFunctions():
         assert parsed == cmd_list
 
         # broken hmac
-        broken_msg = msg[:-1] + "%x" % (15-int(msg[-1], 16))
+        broken_msg = msg[:-1] + "%x" % (15 - int(msg[-1], 16))
         assert broken_msg != msg
-        
+
         parsed = browser._parse_authorized(broken_msg, nonce)
         assert parsed is None
 
@@ -48,7 +49,7 @@ class TestSecurityFunctions():
         assert parsed is None
 
         parsed = browser._parse_authorized("start ff", nonce)
-        assert parsed is None                        
+        assert parsed is None
 
 
 class TestCheckBrowser(object):
@@ -71,16 +72,17 @@ class TestCheckBrowser(object):
 
     def test_win32_fallback(self, tmpdir, monkeypatch):
         if sys.platform != 'win32':
-            py.test.skip("windows only")        
+            py.test.skip("windows only")
         tmpdir.ensure('Safari', dir=1).join('Safari.exe').write("")
         old__listdir = browser._listdir
         def test_listdir(dir):
             assert os.path.isdir(dir)
-            return old__listdir(str(tmpdir))            
+            return old__listdir(str(tmpdir))
         monkeypatch.setattr(browser, '_listdir', test_listdir)
         res = browser.check_browser('safari')
         assert res
-        assert res.lower() == str(tmpdir.join('Safari').join('Safari.exe')).lower()
+        assert res.lower() == str(tmpdir.join('Safari')
+                                        .join('Safari.exe')).lower()
 
     def test_safari_on_mac(self):
         if sys.platform != 'darwin':
@@ -93,7 +95,7 @@ class TestCheckBrowser(object):
 
         assert res == "open -a Safari.app"
 
-    
+
 class TestStartBrowser(object):
 
     def test_nonexistent_browser(self):

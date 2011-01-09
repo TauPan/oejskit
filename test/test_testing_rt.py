@@ -36,6 +36,7 @@ def test_makeurl():
     res = browser.makeurl("/bar/")
     assert res == "https://server:12000/bar/"
 
+
 class TestBrowser(BrowserTestClass):
     jstests_browser_kind = 'supported'
 
@@ -44,17 +45,19 @@ class TestBrowser(BrowserTestClass):
         assert res == 42
 
     def test_open_helper(self):
-        res = self.send({'op': 'open', 'args': ["/browser_testing/rt/abc.txt"]},
-                   discrim="/browser_testing/rt/abc.txt")
+        res = self.send({'op': 'open',
+                         'args': ["/browser_testing/rt/abc.txt"]},
+                        discrim="/browser_testing/rt/abc.txt")
         assert 'panel' in res
         n = res['panel']
-        res = self.send({'op': 'open', 'args': ["/browser_testing/rt/abc.txt"]},
+        res = self.send({'op': 'open',
+                         'args': ["/browser_testing/rt/abc.txt"]},
                         discrim="/browser_testing/rt/abc.txt")
         assert res['panel'] == n
 
     def test_open(self):
         browser = self.browser
-        
+
         def root(environ, start_response):
             start_response('200 OK', [('content-type', 'text/plain')])
             return  ['my-root']
@@ -63,7 +66,7 @@ class TestBrowser(BrowserTestClass):
             wsgiEndpoints = {'/': root}
 
         controller = Controller()
-        controller.browser  = browser
+        controller.browser = browser
         controller.setupBag = oejskit.testing.SetupBag(self, controller)
 
         pg = controller.open('/')
@@ -72,7 +75,8 @@ class TestBrowser(BrowserTestClass):
         assert text == "my-root"
 
     def test_eval(self):
-        pg = self.open('/browser_testing/load/test/examples/test_eval_example.js')
+        pg = self.open('/browser_testing/load/test/'
+                       'examples/test_eval_example.js')
         res = pg.eval("foo()")
         assert res == "foo"
 
@@ -103,6 +107,7 @@ class TestBrowser(BrowserTestClass):
 
 # ________________________________________________________________
 
+
 class TestRunningTest(BrowserTestClass):
     jstests_browser_kind = 'supported'
 
@@ -119,16 +124,17 @@ class TestRunningTest(BrowserTestClass):
     def test_new_simple_setup(self):
         result = self.send({'op': 'collectTests',
                             'args': ["/test/examples/test_new_simple.html"]},
-                           discrim="/test/examples/test_new_simple.html@collect")
-        assert result == sorted(['test_is_fail_1', 'test_is_fail_2', 'test_is_ok',
+                         discrim="/test/examples/test_new_simple.html@collect")
+        assert result == sorted(['test_is_fail_1', 'test_is_fail_2',
+                                 'test_is_ok',
                                  'test_isDeeply_fail', 'test_isDeeply_ok',
                                  'test_ok_fail', 'test_ok_ok'])
-        
+
     def test_new_simple_runOne(self):
         result = self.send({'op': 'collectTests',
                             'args': ["/test/examples/test_new_simple.html"]},
-                           discrim="/test/examples/test_new_simple.html@collect")
-        assert len(result)  == 7
+                         discrim="/test/examples/test_new_simple.html@collect")
+        assert len(result) == 7
 
         result = self.send({'op': 'runOneTest',
                             'args': ["/test/examples/test_new_simple.html",
@@ -141,26 +147,25 @@ class TestRunningTest(BrowserTestClass):
     def test_new_simple_run(self):
         names = self.send({'op': 'collectTests',
                            'args': ["/test/examples/test_new_simple.html"]},
-                          discrim="/test/examples/test_new_simple.html@collect")
-        assert len(names)  == 7
-
+                         discrim="/test/examples/test_new_simple.html@collect")
+        assert len(names) == 7
 
         outcomes = []
         for n, name in enumerate(names):
             result = self.send({'op': 'runOneTest',
                                 'args': ["/test/examples/test_new_simple.html",
                                          str(name), n]},
-                               discrim="/test/examples/test_new_simple.html@%d" % n)
+                          discrim="/test/examples/test_new_simple.html@%d" % n)
             outcomes.append(result)
         passed, failed = self.classify(outcomes)
         assert sorted(passed.keys()) == sorted([name for name in names
                                                      if name.endswith('_ok')])
-        assert len(failed)+len(passed) == len(names)
+        assert len(failed) + len(passed) == len(names)
 
     def test_new_exception_run(self):
         names = self.send({'op': 'collectTests',
                            'args': ["/test/examples/test_new_exception.html"]},
-                          discrim="/test/examples/test_new_exception.html@collect")
+                      discrim="/test/examples/test_new_exception.html@collect")
         assert names == ['test_throw']
 
         result = self.send({'op': 'runOneTest',
@@ -175,14 +180,14 @@ class TestRunningTest(BrowserTestClass):
         names = self.send({'op': 'collectTests',
                            'args': ["/test/examples/test_new_later.html"]},
                           discrim="/test/examples/test_new_later.html@collect")
-        assert len(names)  == 2
+        assert len(names) == 2
 
         outcomes = []
         for n, name in enumerate(names):
             result = self.send({'op': 'runOneTest',
                                 'args': ["/test/examples/test_new_later.html",
                                          str(name), n]},
-                               discrim="/test/examples/test_new_later.html@%d" % n)
+                           discrim="/test/examples/test_new_later.html@%d" % n)
             outcomes.append(result)
         passed, failed = self.classify(outcomes)
         assert passed.keys() == ['test_later']
@@ -192,7 +197,7 @@ class TestRunningTest(BrowserTestClass):
         result = self.send({'op': 'collectTests',
                             'args': ["/test/examples/test_new_leak.html"]},
                            discrim="/test/examples/test_new_leak.html@collect")
-        assert len(result)  == 1
+        assert len(result) == 1
 
         result = self.send({'op': 'runOneTest',
                             'args': ["/test/examples/test_new_leak.html",
@@ -203,7 +208,7 @@ class TestRunningTest(BrowserTestClass):
         assert result['result']
         expected = ['LEAK']
         if self.browser.name == 'iexplore':
-            expected = [] # name leak detection is not attempted on IE :(
+            expected = []  # name leak detection is not attempted on IE :(
         assert result['leakedNames'] == expected
 
     def test_gather(self):
