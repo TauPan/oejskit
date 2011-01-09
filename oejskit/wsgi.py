@@ -7,17 +7,20 @@ import socket
 from wsgiref import simple_server, handlers
 from SocketServer import ThreadingMixIn
 
+
 class WSGIRequestHandler(simple_server.WSGIRequestHandler):
 
     def log_request(self, code=None, size=None):
         pass
 
+
 class WSGIServer(ThreadingMixIn, simple_server.WSGIServer):
 
     def get_request(self):
         (req_sock, addr) = simple_server.WSGIServer.get_request(self)
-        req_sock.setblocking(1) # Mac OS X work-around
+        req_sock.setblocking(1)  # Mac OS X work-around
         return (req_sock, addr)
+
 
 class WSGIServerSide(object):
     http_version = '1.1'
@@ -27,8 +30,8 @@ class WSGIServerSide(object):
         self.root = None
         self.done = False
         self.server = simple_server.make_server('', port, self._serve,
-                                            server_class = WSGIServer,
-                                            handler_class = WSGIRequestHandler)
+                                              server_class=WSGIServer,
+                                              handler_class=WSGIRequestHandler)
     def set_app(self, app):
         self.app = app
 
@@ -43,7 +46,7 @@ class WSGIServerSide(object):
                 later[:] = [status, headers]
             else:
                 start_response(status, headers)
-            return # ! no write
+            return  # ! no write
         stuff = self.app(environ, wrap_response)
         if later:
             if self.root:
@@ -52,11 +55,11 @@ class WSGIServerSide(object):
             else:
                 start_response(*later)
         return stuff
-            
+
     @staticmethod
     def cleanup():
         pass
-    
+
     def shutdown(self):
         self.server.server_close()
 
@@ -84,5 +87,3 @@ class WSGIServerSide(object):
             simple_server.ServerHandler.http_version = orig_http_version
             self.root = None
             self.done = False
-        
-                                               

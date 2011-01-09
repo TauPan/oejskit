@@ -14,13 +14,15 @@ from xml.sax import handler as saxhandler
 import xml.sax.xmlreader
 import xml.sax
 
+
 HTML_EMPTY = ("area", "base", "basefont", "br", "col", "frame", "hr",
               "img", "input", "isindex", "link", "meta", "param")
 
-# meant for sanity checking the output of a rewrite, not more!
+
 def naive_sanity_check_html(html, filename='?'):
+    # meant for sanity checking the output of a rewrite, not more!
     class NaiveSanityHTMLParser(HTMLParser.HTMLParser):
-        
+
         def handle_startendtag(self, tag, attrs):
             if tag in ("div", "script"):
                 raise ValueError("%s: start-end %s tags not allowed" %
@@ -29,19 +31,22 @@ def naive_sanity_check_html(html, filename='?'):
         def handle_endtag(self, tag):
             if tag in HTML_EMPTY:
                 raise ValueError("%s: end %s tags not expected" %
-                                 (self.filename, tag))                
-            
+                                 (self.filename, tag))
+
     parser = NaiveSanityHTMLParser()
     parser.filename = filename
     parser.feed(html)
 
-class _attrs(object): # minimal attrs impl
+
+class _attrs(object):
+    # minimal attrs impl
 
     def __init__(self, pairs):
         self.pairs = pairs
 
     def items(self):
         return self.pairs
+
 
 class HTMLParsing(HTMLParser.HTMLParser):
     def __init__(self, contentHandler):
@@ -52,7 +57,7 @@ class HTMLParsing(HTMLParser.HTMLParser):
         self.handler.startElement(tag, _attrs(attrs))
 
     def handle_endtag(self, tag):
-        self.handler.endElement(tag)        
+        self.handler.endElement(tag)
 
     def handle_data(self, data):
         self.handler.characters(data)
@@ -65,7 +70,7 @@ class HTMLParsing(HTMLParser.HTMLParser):
 
     def handle_comment(self, data):
         self.handler.comment(data)
-        
+
     def handle_decl(self, decl):
         doctype = decl.lower()
         if doctype.startswith('doctype'):
@@ -73,12 +78,13 @@ class HTMLParsing(HTMLParser.HTMLParser):
                 self.handler.setType('xhtml')
         self.handler._raw("<!%s>" % decl)
 
+
 class HTMLRewriter(saxutils.XMLGenerator):
     empty_end = '>'
 
     def __init__(self, out):
         saxutils.XMLGenerator.__init__(self, out, encoding='utf-8')
-        if not hasattr(self, '_write'): # pyxml vs not :(
+        if not hasattr(self, '_write'):  # pyxml vs not :(
             self._write = lambda data: self._out.write(data)
 
     def setType(self, type):
@@ -92,7 +98,7 @@ class HTMLRewriter(saxutils.XMLGenerator):
 
     def emit_chars(self, data):
         saxutils.XMLGenerator.characters(self, data)
-    
+
     def emit_start(self, name, attrs):
         if name in HTML_EMPTY:
             self._write('<' + name)
@@ -109,9 +115,9 @@ class HTMLRewriter(saxutils.XMLGenerator):
 
     def rewrite_start(self, name, attrs):
         return False
-        
+
     def startElement(self, name, attrs):
-        if not self.rewrite_start(name, attrs):        
+        if not self.rewrite_start(name, attrs):
             self.emit_start(name, attrs)
 
     def endElement(self, name):
@@ -130,12 +136,13 @@ class HTMLRewriter(saxutils.XMLGenerator):
 
     def comment(self, data):
         self._raw("<!--%s-->" % data)
-                
+
     def startDTD(self, doctype, publicId, systemId):
         # xml parsing seems to ignore spaces outside the root element
         # we add manually a newline after the doctype though
         self._raw('<!DOCTYPE %s PUBLIC "%s" "%s">\n' %
                   (doctype, publicId, systemId))
+
 
 def rewrite_html(html, Rewriter=HTMLRewriter, type='html',
                  params={}):
@@ -146,14 +153,14 @@ def rewrite_html(html, Rewriter=HTMLRewriter, type='html',
 
     if type == 'xhtml':
         parser = xml.sax.make_parser()
-        class EntityResolver(object): #be paranoid
+        class EntityResolver(object):  # be paranoid
             def resolveEntity(self, publicId, systemId):
                 raise RuntimeError("unexpected")
-    
+
         source = xml.sax.xmlreader.InputSource()
         source.setByteStream(cStringIO.StringIO(html))
         source.setEncoding('utf-8')
-        parser.setFeature(saxhandler.feature_external_ges, 0)        
+        parser.setFeature(saxhandler.feature_external_ges, 0)
         parser.setFeature(saxhandler.feature_external_pes, 0)
         parser.setEntityResolver(EntityResolver())
         parser.setContentHandler(rewriter)

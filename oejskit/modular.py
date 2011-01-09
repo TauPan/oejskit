@@ -14,11 +14,14 @@ from cStringIO import StringIO
 # path to the directory containing the runtime js file modular_rt.js
 jsDir = os.path.join(os.path.dirname(__file__), 'js')
 
-use_rx = re.compile(r"(?:JSAN|OpenEnd).use\((['\"][^'\"]*['\"]).*\)", re.MULTILINE)
-require_rx = re.compile(r"OpenEnd.require\((['\"][^'\"]*['\"])\)", re.MULTILINE)
+use_rx = re.compile(r"(?:JSAN|OpenEnd).use\((['\"][^'\"]*['\"]).*\)",
+                     re.MULTILINE)
+require_rx = re.compile(r"OpenEnd.require\((['\"][^'\"]*['\"])\)",
+                         re.MULTILINE)
 deps_rx = re.compile(r"Base._deps\(.*(\[.*\]).*\)", re.MULTILINE)
 
 from htmlrewrite import HTMLRewriter, rewrite_html
+
 
 def _topSort(deps):
     res = []
@@ -44,6 +47,7 @@ def _topSort(deps):
     res.reverse()
     return res
 
+
 class FP(object):
     # minimal filepath object
 
@@ -58,7 +62,8 @@ class FP(object):
 
     def exists(self):
         return os.path.exists(self.path)
-                                  
+
+
 class JsResolver(object):
 
     def __init__(self, repoParents=None, defaultRepos=None):
@@ -68,7 +73,7 @@ class JsResolver(object):
         self.setRepoParents(repoParents)
 
     def setRepoParents(self, repoParents):
-        self._parents = {}        
+        self._parents = {}
         for uri, directory in repoParents.items():
             if uri[-1] == '/':
                 uri = uri[:-1]
@@ -100,19 +105,19 @@ class JsResolver(object):
             if fp is not None:
                 res[fp.path] = repo
         return res
-    
+
     def _find(self, segs, fsRepos):
         for fsRepo, repo in fsRepos.items():
             cand = os.path.join(fsRepo, *segs)
             if os.path.exists(cand):
-                return FP(cand), '/'.join(['']+repo+segs)
+                return FP(cand), '/'.join([''] + repo + segs)
         return None, None
 
     def _parse(self, data):
         for m in use_rx.finditer(data):
             yield eval('[' + m.group(1) + ']')[0]
         for m in require_rx.finditer(data):
-            yield eval('[' + m.group(1) + ']')[0]                        
+            yield eval('[' + m.group(1) + ']')[0]
         for m in deps_rx.finditer(data):
             deps = eval(m.group(1))
             for d in deps:
@@ -138,7 +143,7 @@ class JsResolver(object):
         else:
             segs = module.split('/')[1:]
             for fsRepo, repo in fsRepos.items():
-                if segs[:len(repo)] == repo:                  
+                if segs[:len(repo)] == repo:
                     thisFSRepos = {fsRepo: repo}
                     segs = segs[len(repo):]
                     break
@@ -149,7 +154,7 @@ class JsResolver(object):
 
         if not fp:
             fp, path = self._find(segs, thisFSRepos)
-            
+
         if fp is None:
             return None
 
@@ -178,10 +183,9 @@ class JsResolver(object):
         return rewrite_html(html, HTMLResolver, params=params)
 
     def findDeps(self, module, repos=None):
-        fsRepos = self._fsRepos(repos)        
+        fsRepos = self._fsRepos(repos)
 
         return self._findDeps(module, fsRepos)
-
 
 
 class HTMLResolver(HTMLRewriter):
@@ -204,7 +208,7 @@ class HTMLResolver(HTMLRewriter):
                 vals = attrs.get('content').split()
                 self.fsRepos = self.jsResolver._findReposInFS(vals)
         elif name == 'script':
-            attrs = dict(attrs.items())            
+            attrs = dict(attrs.items())
             src = attrs.get('src')
             if src and self.fsRepos is not None:
                 injected = self.injected
@@ -212,16 +216,17 @@ class HTMLResolver(HTMLRewriter):
                     if dep not in injected:
                         self.inject_script(dep)
                         injected.add(dep)
- 
+
         return False
 
 # ________________________________________________________________
 # twisted web2 stuff
 
+
 class JsRoot(JsResolver):
     def __init__(self, webDir, jsDir):
         self.child_lib = static.File(webDir)
-        self.child_js  = static.File(jsDir)        
+        self.child_js = static.File(jsDir)
         JsResolver.__init__(self)
 
     def _findFP(self, segs):

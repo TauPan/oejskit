@@ -6,10 +6,13 @@ import os
 
 import mimetypes
 from BaseHTTPServer import BaseHTTPRequestHandler
-def status_string(code):
-    return "%d %s" % (code, BaseHTTPRequestHandler.responses[code][0])
 from wsgiref import headers
 from wsgiref.util import shift_path_info
+
+
+def status_string(code):
+    return "%d %s" % (code, BaseHTTPRequestHandler.responses[code][0])
+
 
 class Serve(object):
 
@@ -36,13 +39,13 @@ class Serve(object):
         if type(data) is int:
             status = status_string(data)
             start_response(status, [])
-            return [status+'\n']
-        
+            return [status + '\n']
+
         respHeaders = headers.Headers([])
         if type(mimetype) is tuple:
             mimetype, charset = mimetype
             respHeaders.add_header('content-type', mimetype,
-                                   charset=charset)            
+                                   charset=charset)
         else:
             respHeaders.add_header('content-type', mimetype)
         if not cache:
@@ -54,6 +57,7 @@ class Serve(object):
     def serve(self, path, data):
         raise NontImplementedError
 
+
 class Dispatch(object):
 
     def __init__(self, appmap):
@@ -62,7 +66,7 @@ class Dispatch(object):
     def notFound(self, start_response):
         status = status_string(404)
         start_response(status, [])
-        return [status+'\n']        
+        return [status + '\n']
 
     def __call__(self, environ, start_response):
         path = environ['PATH_INFO']
@@ -73,12 +77,12 @@ class Dispatch(object):
                     if path != prefix:
                         break
                     slashes += 1
-                for i in range(slashes-1):
+                for i in range(slashes - 1):
                     shift_path_info(environ)
                 return app(environ, start_response)
         # no match
         return self.notFound(start_response)
-        
+
 
 class ServeFiles(Serve):
 
