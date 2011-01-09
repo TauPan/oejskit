@@ -10,7 +10,7 @@
 
 * display during the test runs a list of links on the upper right
   corner of the pages to jump to the outcome sections corresponding to the
-  javascript test files or python modules
+  JavaScript test files or python modules
 
 * various internal cleanups and simplifications
 
@@ -28,7 +28,6 @@
           MochiKit__export__ = True
 
   to get the old behavior.
-
 
 0.8.9
 +++++
