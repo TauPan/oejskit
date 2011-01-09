@@ -1,6 +1,7 @@
 <html>
 <head>
   <script type="text/javascript" src="/lib/mochikit/packed/MochiKit/MochiKit.js"></script>
+  <script type="text/javascript" src="/oe-js/modular_rt.js"></script>
   <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
   </script>
 </head>
@@ -21,7 +22,7 @@ test_later: function() {
             d.errback(err)
         }
     }, 5)
-    
+
     return d
 },
 
@@ -33,7 +34,7 @@ test_later_exc: function() {
         var err = new Error("later error")
         d.errback(err)
     }, 5)
-    
+
     return d
 }
 

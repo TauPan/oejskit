@@ -1,5 +1,5 @@
 #
-# Copyright (C) Open End AB 2007-2010, All rights reserved
+# Copyright (C) Open End AB 2007-2011, All rights reserved
 # See LICENSE.txt
 #
 import py, os, sys
@@ -68,11 +68,12 @@ class RunState:
             raise AttributeError(name)
 
     def getscoped(self, name):
-        pluginmanager = self.collector.config.pluginmanager
-        plugins = pluginmanager.getplugins()
-        if hasattr(self.collector, 'obj'):
+        node = self.collector
+        plugins = node.config._getmatchingplugins(node.fspath)
+        if hasattr(node, 'obj'):
             plugins.append(self.collector.obj)
-        values = pluginmanager.listattr(attrname=name, plugins=plugins)
+        values = node.config.pluginmanager.listattr(attrname=name,
+                                                    plugins=plugins)
         values = [value for value in values if value is not None]
         if values:
             return values[-1]

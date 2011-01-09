@@ -8,23 +8,21 @@ Copyright (c) 2005 Bob Ippolito. All rights reserved.
 
 */
 
-// XXX obsolete style
-if (typeof(JSAN) != "undefined") {
-    JSAN.use("MochiKit.Base")
-    JSAN.use("MochiKit.Iter")
-    JSAN.use("MochiKit.Async")
-    JSAN.use("MochiKit.Style")
-    JSAN.use("MochiKit.DOM", ":all")
-}
-
+OpenEnd.use("MochiKit.Base")
+OpenEnd.use("MochiKit.Iter")
+OpenEnd.use("MochiKit.Async")
+OpenEnd.use("MochiKit.Style")
+OpenEnd.use("MochiKit.DOM")
 
 
 Testing = {'_collected': null, '_report': null, '_ns': null}
 
 Testing._init =  function () {
-    var head = getFirstElementByTagAndClassName("HEAD")
-    appendChildNodes(head, createDOM("LINK", {'rel': "stylesheet", 'type': "text/css",
-        'href': "/lib/mochikit/tests/SimpleTest/test.css"}))
+    var DOM = MochiKit.DOM
+    var head = DOM.getFirstElementByTagAndClassName("HEAD")
+    DOM.appendChildNodes(head, DOM.createDOM("LINK",
+                             {'rel': "stylesheet", 'type': "text/css",
+                            'href': "/lib/mochikit/tests/SimpleTest/test.css"}))
 }
 
 Testing._init()
@@ -40,9 +38,9 @@ Testing.collect = function() {
     Testing._failed = 0
 
     if (window.Tests) {
-	var cands = keys(window.Tests)
+	var cands = MochiKit.Base.keys(window.Tests)
 	cands.sort()
-        forEach(cands, function(topName) {
+        MochiKit.Iter.forEach(cands, function(topName) {
             if (topName.substring(0, 5) == 'test_') {
                 testNames.push(topName)
             }
@@ -63,15 +61,16 @@ Testing._toggle = function(el) {
 
 
 Testing._toggleByClass = function (cls) {
-    var elems = getElementsByTagAndClassName('div', cls);
+    var elems = MochiKit.DOM.getElementsByTagAndClassName('div', cls);
     MochiKit.Base.map(Testing._toggle, elems);
 };
 
 Testing._startReport = function() {
+    var DOM = MochiKit.DOM
     if (Testing._report != null) return;
 
-    var togglePassed = A({'href': '#'}, "Toggle passed tests");
-    var toggleFailed = A({'href': '#'}, "Toggle failed tests");
+    var togglePassed = DOM.A({'href': '#'}, "Toggle passed tests");
+    var toggleFailed = DOM.A({'href': '#'}, "Toggle failed tests");
     togglePassed.onclick = MochiKit.Base.partial(Testing._toggleByClass, 'test_ok');
     toggleFailed.onclick = MochiKit.Base.partial(Testing._toggleByClass, 'test_not_ok');
     var body = document.getElementsByTagName("body")[0];
@@ -87,28 +86,30 @@ Testing._startReport = function() {
         };
     }
     addNode(togglePassed);
-    addNode(SPAN(null, " "));
+    addNode(DOM.SPAN(null, " "));
     addNode(toggleFailed);
-    Testing._report =  DIV({'class': 'tests_report'},
-        DIV()
+    Testing._report =  DOM.DIV({'class': 'tests_report'},
+        DOM.DIV()
     );
     addNode(Testing._report)
 };
 
 Testing._updateSummary = function() {
+    var DOM = MochiKit.DOM
     var summary = Testing._report.childNodes[0]
     var passed = Testing._passed
     var failed = Testing._failed
     var summary_class = ((failed == 0) ? 'all_pass' : 'some_fail');
-    swapDOM(summary,
-            DIV({'class': 'tests_summary ' + summary_class},
-		DIV({'class': 'tests_passed'}, "Passed: " + passed),
-		DIV({'class': 'tests_failed'}, "Failed: " + failed))
+    DOM.swapDOM(summary,
+            DOM.DIV({'class': 'tests_summary ' + summary_class},
+		DOM.DIV({'class': 'tests_passed'}, "Passed: " + passed),
+		DOM.DIV({'class': 'tests_failed'}, "Failed: " + failed))
 	    )
 }
 
 
 Testing.outcome = function (condition, name, diag, leakedNames) {
+    var DOM = MochiKit.DOM
     var test = {'result': !!condition, 'name': name, 'diag': diag || ""}
 
     var cls, msg;
@@ -122,7 +123,7 @@ Testing.outcome = function (condition, name, diag, leakedNames) {
         msg = "not ok - " + test.name + " " + test.diag;
     }
     Testing._startReport()
-    Testing._report.appendChild(DIV({"class": cls}, msg))
+    Testing._report.appendChild(DOM.DIV({"class": cls}, msg))
     Testing._updateSummary()
 
     if (leakedNames != undefined) {
@@ -149,7 +150,7 @@ Testing._globalNames = function() {
     // appear only lazily (maybe others?)
     window.location
     window.addEventListener
-    var names =  keys(window)
+    var names =  MochiKit.Base.keys(window)
     // Firebug attributes + FF3.5+
     return names.concat(['_firebug','_FirebugConsole', 'getInterface'])
 }
@@ -158,7 +159,7 @@ Testing.runOne = function (which, done) {
     if (Testing._ns == null) {
         var ns = {}
         Testing._ns = ns
-        forEach(Testing._globalNames(), function(name) {
+        MochiKit.Iter.forEach(Testing._globalNames(), function(name) {
             ns[name] = null
         })
     }
@@ -167,10 +168,11 @@ Testing.runOne = function (which, done) {
 	func.name = which
 	func.__name__ = which
     }
-    var defer = maybeDeferred(func)
+    var defer = MochiKit.Async.maybeDeferred(func)
     defer.addCallback(function() {
-        var leakedNames = filter(function(name) {return !(name in Testing._ns)},
-                                     Testing._globalNames())
+        var leakedNames = MochiKit.Base.filter(function(name)
+                                               {return !(name in Testing._ns)},
+                                                Testing._globalNames())
 	return Testing.outcome(true, which, "", leakedNames)
     })
     defer.addErrback(function(err) {
@@ -222,6 +224,7 @@ Testing.aok = function(cond, name, diag) {
 
 
 Testing.ais = function(a, b, name) {
+    var repr = MochiKit.Base.repr
     var diag = repr(a) + " == " + repr(b)
     name = Testing._contextualize(Testing.ais, name || 'is')
     if (a == b) {
@@ -412,6 +415,7 @@ Testing._formatStack = function (stack) {
 
 
 Testing.aisDeeply = function (it, as, name) {
+    var repr = MochiKit.Base.repr
     name = Testing._contextualize(Testing.aisDeeply, name || 'isDeeply')
     // ^ is the XOR operator.
     if (Testing._isRef(it) ^ Testing._isRef(as)) {

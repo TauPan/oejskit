@@ -1,5 +1,5 @@
 #
-# Copyright (C) Open End AB 2007-2010, All rights reserved
+# Copyright (C) Open End AB 2007-2011, All rights reserved
 # See LICENSE.txt
 #
 """
@@ -38,6 +38,7 @@ def _ensure(obj, name, default):
 class SetupBag(object):
     name = 'other'
 
+    _opts = {'MochiKit__export__': False}
     _configs = [('staticDirs', dict),
                 ('repoParents', dict),
                 ('jsRepos', list),
@@ -47,12 +48,17 @@ class SetupBag(object):
 
     def __init__(self, *sources):
         cfg = {}
+        for name, dfl in self._opts.iteritems():
+            cfg[name] = dfl
         for prefix, typ in self._configs:
             cfg[prefix] = typ()
         for source in sources:
             if not source:
                 continue
             for name in dir(source):
+                if name in self._opts:
+                    cfg[name] = getattr(source, name)
+                    continue
                 for prefix, typ in self._configs:
                     if name.startswith(prefix):
                         SetupBag._update[typ](cfg[prefix],

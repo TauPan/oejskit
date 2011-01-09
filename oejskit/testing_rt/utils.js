@@ -8,7 +8,8 @@ See LICENSE.txt
 
 // helper to do DOM operations achored in the document
 function insertTestNode() {
-    var body = getFirstElementByTagAndClassName("body")
+    var DOM = MochiKit.DOM
+    var body = DOM.getFirstElementByTagAndClassName("body")
     var firstName = null
     var testName = null
     var caller = insertTestNode.caller
@@ -26,13 +27,15 @@ function insertTestNode() {
         caller = caller.caller
     }
 
-    var title = SPAN({"style": "color: #1594C2;"}, testName || firstName || "?")
-    var testDiv = DIV()
+    var title = DOM.SPAN({"style": "color: #1594C2;"},
+                          testName || firstName || "?")
+    var testDiv = DOM.DIV()
 
-    var cont = DIV({"style": "border: solid 1px #1594C2; margin-bottom: 1em; " },
-                   title, testDiv)
+    var cont = DOM.DIV(
+                  {"style": "border: solid 1px #1594C2; margin-bottom: 1em; " },
+                  title, testDiv)
 
-    appendChildNodes(body, cont)
+    DOM.appendChildNodes(body, cont)
     return testDiv
 }
 
@@ -130,12 +133,12 @@ function substitute(substitutions, func) {
     var res = null
     try {
         res = func()
-        if (res instanceof Deferred) {
+        if (res instanceof MochiKit.Async.Deferred) {
             res.addBoth(cleanup)
         }
         return res
     } finally {
-        if (!(res instanceof Deferred)) {
+        if (!(res instanceof MochiKit.Async.Deferred)) {
             cleanup()
         }
     }
@@ -162,9 +165,9 @@ function _runStages(d, input, i, funcs) {
         d.errback(e)
         return
     }
-    if (cur instanceof Deferred) {
+    if (cur instanceof MochiKit.Async.Deferred) {
         if (d == null) {
-            d = new  Deferred()
+            d = new  MochiKit.Async.Deferred()
             // xxx cleanup
         }
         // xxx errback, both cases
