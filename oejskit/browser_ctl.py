@@ -1,5 +1,5 @@
 #
-# Copyright (C) Open End AB 2007-2010, All rights reserved
+# Copyright (C) Open End AB 2007-2011, All rights reserved
 # See LICENSE.txt
 #
 """
@@ -21,13 +21,16 @@ script_template = """
 load_template = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
 <head>
   <script type="text/javascript" src="/oe-js/modular_rt.js"></script>
+  <script type="text/javascript">
+  MochiKit = {__export__: %(MochiKit__export__)s}
+  </script>
   <script type="text/javascript" src="/browser_testing/rt/testing-new.js">
   </script>
   <script type="text/javascript" src="/browser_testing/rt/utils.js">
   </script>
 
-  %s
-  <script type="text/javascript" src="%s">
+  %(scripts)s
+  <script type="text/javascript" src="%(url)s">
   </script>
 </head>
 <body>
@@ -70,6 +73,8 @@ class ServeTesting(Dispatch):
         self.lib = ServeFiles(libDir)
         self.extra = None
         self.jsScripts = None
+        self.MochiKit__export__ = object # something that cannot be json
+                                         # serialized
         map = {
             '/browser_testing/': self.home,
             '/browser_testing/cmd': Serve(self.cmd),
@@ -109,6 +114,7 @@ class ServeTesting(Dispatch):
 
             self.repos = setupBag.jsRepos
             self.jsScripts = setupBag.jsScripts
+            self.MochiKit__export__ = setupBag.MochiKit__export__
 
         self._cmd['CMD'] = action
 
@@ -116,6 +122,8 @@ class ServeTesting(Dispatch):
         self.jsResolver = None
         self.extra = None
         self.repos = None
+        self.jsScripts = None
+        self.MochiKit__export__ = object
 
     def getResult(self, key):
         return self._results.pop(key, None)
@@ -146,7 +154,10 @@ class ServeTesting(Dispatch):
         for url in self.jsScripts:
             scripts.append(script_template % url)
         scripts = ''.join(scripts)
-        page = load_template % (scripts, env['PATH_INFO'])
+        page = load_template % {
+            'scripts': scripts,
+            'url': env['PATH_INFO'],
+            'MochiKit__export__': json.dumps(self.MochiKit__export__)}
         page = self.jsResolver.resolveHTML(page, repos=self.repos)
         return page, 'text/html'
 

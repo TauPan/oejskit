@@ -51,8 +51,8 @@ test_fakeMouseEvent: function() {
 },
 
 test_fakeHTMLEvent: function() {
-    var ta = TEXTAREA()
-    appendChildNodes(insertTestNode(), ta)
+    var ta = MochiKit.DOM.TEXTAREA()
+    MochiKit.DOM.appendChildNodes(insertTestNode(), ta)
 
     var triggered = false
     ta.onchange = function() {
@@ -65,8 +65,8 @@ test_fakeHTMLEvent: function() {
 },
 
 test_fakeKeyEvent: function() {
-    var ta = TEXTAREA()
-    appendChildNodes(insertTestNode(), ta)
+    var ta = MochiKit.DOM.TEXTAREA()
+    MochiKit.DOM.appendChildNodes(insertTestNode(), ta)
 
     var keyCode
     var charCode
@@ -137,7 +137,7 @@ test_substitute_deferred: function() {
     substitute_me = "foo"
 
     var values = []
-    var d = new Deferred()
+    var d = new MochiKit.Async.Deferred()
     var res = substitute({"Substitute.x" : 42, "substitute_me": "bar"}, function() {
         values.push([Substitute.x, substitute_me])
         return d
@@ -152,7 +152,7 @@ test_substitute_deferred: function() {
     ais(Substitute.x, 27)
     ais(substitute_me, "foo")
 
-    var d = new Deferred()
+    var d = new MochiKit.Async.Deferred()
     var res = substitute({"Substitute.x" : 42, "substitute_me": "bar"}, function() {
         return d
     })
@@ -229,22 +229,22 @@ test_staged: function() {
 
 test_staged_with_deferred: function() {
     var dres = staged(function() {
-        return succeed(43)
+        return MochiKit.Async.succeed(43)
     })
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     var  res
     dres.addCallback(function(v) { res = v})
     ais(res, 43)
 
     dres = staged(
         function() {
-            return succeed(21)
+            return MochiKit.Async.succeed(21)
         },
         function(v) {
             return 2*v+2
         }
       )
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     dres.addCallback(function(v) { res = v})
     ais(res, 44)
 
@@ -253,39 +253,39 @@ test_staged_with_deferred: function() {
             return 21
         },
         function(v) {
-            return succeed(2*v)
+            return MochiKit.Async.succeed(2*v)
         }
       )
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     dres.addCallback(function(v) { res = v})
     ais(res, 42)
 
     dres = staged(
         function() {
-            return succeed(20)
+            return MochiKit.Async.succeed(20)
         },
         function(v) {
-            return succeed(2*v)
+            return MochiKit.Async.succeed(2*v)
         }
       )
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     dres.addCallback(function(v) { res = v})
     ais(res, 40)
 
     var w
     dres = staged(
         function() {
-            w = new Deferred()
+            w = new MochiKit.Async.Deferred()
             w.addCallback(function(x) {
-                return succeed(x+3)
+                return MochiKit.Async.succeed(x+3)
             })
             return w
         },
         function(v) {
-            return succeed(2*v)
+            return MochiKit.Async.succeed(2*v)
         }
       )
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     dres.addCallback(function(v) { res = v})
     w.callback(19)
     ais(res, 44)
@@ -297,16 +297,16 @@ test_staged_with_deferred_failures: function() {
     var dres = staged(
         function() {
             y = 1
-            return succeed(0)
+            return MochiKit.Async.succeed(0)
         },
         function(v) {
             throw "Bomb"
         }
     )
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     ais(y, 1)
     dres.addErrback(function(v) { x = v })
-    aok(x instanceof GenericError)
+    aok(x instanceof MochiKit.Async.GenericError)
     ais(x.message, 'Bomb')
 
     var x = null
@@ -314,16 +314,16 @@ test_staged_with_deferred_failures: function() {
     dres = staged(
         function() {
             y = 1
-            return fail("Bomb")
+            return MochiKit.Async.fail("Bomb")
         },
         function(v) {
             y = 2
         }
     )
-    aok(dres instanceof Deferred)
+    aok(dres instanceof MochiKit.Async.Deferred)
     ais(y, 1)
     dres.addErrback(function(v) { x = v })
-    aok(x instanceof GenericError)
+    aok(x instanceof MochiKit.Async.GenericError)
     ais(x.message, 'Bomb')
 },
 
@@ -332,7 +332,7 @@ test_staged_applied: function() {
     return staged(
         function() {
             x = 3
-            return succeed(4)
+            return MochiKit.Async.succeed(4)
         },
         function(v) {
             ais(v, 4)
