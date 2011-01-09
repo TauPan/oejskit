@@ -19,7 +19,7 @@ class TestServe(object):
         assert calls == [('/g', None), ('200 OK',
                                         [('content-type', 'text/plain')])]
         assert res == ['hello']
-        
+
         calls = []
 
         class Get1(Serve):
@@ -42,7 +42,7 @@ class TestServe(object):
             def serve(self, env, data):
                 calls.append((env['PATH_INFO'], data))
                 return 'hello', ('text/plain', 'utf-8')
-        
+
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g2'}
         res = Get2()(environ, start_response)
         assert calls == [('/g2', None), ('200 OK',
@@ -54,13 +54,12 @@ class TestServe(object):
         calls = []
         def start_response(status, headers):
             calls.append((status, headers))
-            
+
         class Post(Serve):
 
             def serve(self, env, data):
                 calls.append((env['PATH_INFO'], data))
                 return '42', 'text/json', False
-
 
         environ = {'REQUEST_METHOD': 'POST',
                    'wsgi.input': cStringIO.StringIO("post-data"),
@@ -68,10 +67,9 @@ class TestServe(object):
                    'PATH_INFO': '/a/b'}
         res = Post()(environ, start_response)
         assert calls == [('/a/b', 'post-data'), ('200 OK',
-                                                 [('content-type', 'text/json'),
-                                               ('cache-control', 'no-cache')])]
+                                               [('content-type', 'text/json'),
+                                              ('cache-control', 'no-cache')])]
         assert res == ['42']
-
 
     def test_not_200(self):
         calls = []
@@ -87,7 +85,7 @@ class TestServe(object):
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/g'}
         res = Get()(environ, start_response)
         assert calls == [('405 Method Not Allowed', [])]
-        assert res == ['405 Method Not Allowed\n']        
+        assert res == ['405 Method Not Allowed\n']
 
 
 class TestServeFiles(object):
@@ -95,7 +93,7 @@ class TestServeFiles(object):
     @classmethod
     def setup_class(cls):
         cls.test_dir = tempfile.mkdtemp()
-        p = lambda *segs:os.path.join(cls.test_dir, *segs)
+        p = lambda *segs: os.path.join(cls.test_dir, *segs)
         cls.root = p('staticFiles')
         os.mkdir(cls.root)
         a = open(p('staticFiles', 'a.txt'), 'w')
@@ -104,18 +102,17 @@ class TestServeFiles(object):
         os.mkdir(p('staticFiles', 'sub'))
         b = open(p('staticFiles', 'sub', 'b.png'), 'w')
         b.write('PNG...')
-        b.close()        
+        b.close()
 
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.test_dir)
 
-
     def test_serve_file(self):
         calls = []
         def start_response(status, headers):
             calls.append((status, headers))
-        
+
         static = ServeFiles(self.root, False)
 
         environ = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/static/a.txt'}
@@ -125,7 +122,7 @@ class TestServeFiles(object):
         assert calls == [('200 OK',
                           [('content-type', 'text/plain'),
                            ('cache-control', 'no-cache')])]
-        assert ''.join(res).strip() == 'a.' # xxx
+        assert ''.join(res).strip() == 'a.'  # xxx
 
         calls = []
         static = ServeFiles(self.root)
@@ -136,12 +133,11 @@ class TestServeFiles(object):
         assert calls == [('200 OK', [('content-type', 'image/png')])]
         assert res == ['PNG...']
 
-
     def test_fail(self):
         calls = []
         def start_response(status, headers):
             calls.append((status, headers))
-            
+
         static = ServeFiles(self.root, False)
 
         def check(path, method='GET'):
@@ -175,8 +171,9 @@ class TestServeFiles(object):
         assert res == '404 Not Found'
 
         res = check('/static/a.txt/')
-        assert res == '404 Not Found'                        
-            
+        assert res == '404 Not Found'
+
+
 class TestDispatch(object):
 
     def test_dispatch(self):
@@ -229,18 +226,12 @@ class TestDispatch(object):
         assert outcome == (['/z'], ['root'])
 
         outcome = check('')
-        assert outcome == ([('404 Not Found', [])], ['404 Not Found\n'])        
+        assert outcome == ([('404 Not Found', [])], ['404 Not Found\n'])
 
         # no root
         d = Dispatch({'/a/': a,
                       '/a/x': ax,
-                      '/b': b })
+                      '/b': b})
 
         outcome = check('/z')
         assert outcome == ([('404 Not Found', [])], ['404 Not Found\n'])
-        
-
-
-            
-
-        

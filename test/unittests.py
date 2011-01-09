@@ -1,6 +1,7 @@
 import unittest
 from oejskit import unittest_support
 
+
 class ProjectJSTestSuite(unittest_support.JSTestSuite):
 
     jstests_browser_specs = {
@@ -13,6 +14,7 @@ def ok_root():
         start_response('200 OK', [('content-type', 'text/plain')])
         return ['ok\n']
     return ok
+
 
 if __name__ == '__main__':
     runner = unittest.TextTestRunner(verbosity=1)

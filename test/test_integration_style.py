@@ -3,14 +3,18 @@ import py
 import oejskit.testing
 from oejskit.testing import BrowserTestClass, jstests_suite
 
+
 class jstests_setup:
     from oejskit.wsgi import WSGIServerSide as ServerSide
+
 
 def setup_module(mod):
     mod.flag = False
 
+
 def teardown_module(mod):
     assert mod.flag
+
 
 class TestIntegrationStyle(BrowserTestClass):
     jstests_browser_kind = 'supported'
@@ -29,4 +33,3 @@ class TestIntegrationStyle(BrowserTestClass):
             return [ok_str]
 
         return ok
-

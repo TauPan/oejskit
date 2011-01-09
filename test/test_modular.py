@@ -8,23 +8,25 @@ from oejskit.htmlrewrite import naive_sanity_check_html
 # use the well known MochiKit we include ourselves
 weblibDir = os.path.join(os.path.dirname(oejskit.__file__), 'weblib')
 
+
 class TestJsResolver(object):
 
     @classmethod
     def setup_class(cls):
         # xxx throw away once we have a real /js ?
         cls.test_dir = tempfile.mkdtemp()
-        cls.jsDir = os.path.join(cls.test_dir, 'js') 
+        cls.jsDir = os.path.join(cls.test_dir, 'js')
         os.mkdir(cls.jsDir)
         os.mkdir(os.path.join(cls.test_dir, 'js', 'OpenEnd'))
-        f = open(os.path.join(cls.test_dir, 'js', 'OpenEnd', 'Support.js'), 'w')
+        f = open(os.path.join(cls.test_dir, 'js', 'OpenEnd', 'Support.js'),
+                 'w')
         f.write('// dummy\n')
         f.close()
 
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.test_dir)
-    
+
     def test__topSort(self):
         res = oejskit.modular._topSort({})
         assert res == []
@@ -86,34 +88,35 @@ class TestJsResolver(object):
         assert path == '/js/OpenEnd/Support.js'
         assert fp.exists()
 
-
     def test__simpleDeps(self):
         jsResolver = JsResolver()
 
         fsRepos = {os.path.join(weblibDir, 'mochikit'):
-                       ['lib', 'mochikit']}        
+                       ['lib', 'mochikit']}
 
         acc = {}
         res = jsResolver._simpleDeps("Nonsense", fsRepos, acc)
         assert res is None
         assert acc == {}
-        
+
         acc = {}
         res = jsResolver._simpleDeps("MochiKit.Style", fsRepos, acc)
         assert res == "/lib/mochikit/MochiKit/Style.js"
 
         assert acc == {
-            '/lib/mochikit/MochiKit/DOM.js': ['/lib/mochikit/MochiKit/Base.js'],
+            '/lib/mochikit/MochiKit/DOM.js':
+                ['/lib/mochikit/MochiKit/Base.js'],
             '/lib/mochikit/MochiKit/Style.js': [
             '/lib/mochikit/MochiKit/Base.js',
             '/lib/mochikit/MochiKit/DOM.js'],
-            '/lib/mochikit/MochiKit/Base.js': [] }
-        
+            '/lib/mochikit/MochiKit/Base.js': []}
+
         res = jsResolver._simpleDeps("MochiKit.Signal", fsRepos, acc)
         assert res == "/lib/mochikit/MochiKit/Signal.js"
 
         assert acc == {
-            '/lib/mochikit/MochiKit/DOM.js': ['/lib/mochikit/MochiKit/Base.js'],
+            '/lib/mochikit/MochiKit/DOM.js':
+                ['/lib/mochikit/MochiKit/Base.js'],
             '/lib/mochikit/MochiKit/Style.js': [
             '/lib/mochikit/MochiKit/Base.js',
             '/lib/mochikit/MochiKit/DOM.js'],
@@ -121,32 +124,32 @@ class TestJsResolver(object):
             '/lib/mochikit/MochiKit/Signal.js': [
             '/lib/mochikit/MochiKit/Base.js',
             '/lib/mochikit/MochiKit/DOM.js',
-            '/lib/mochikit/MochiKit/Style.js'] }
+            '/lib/mochikit/MochiKit/Style.js']}
 
         acc = {}
         res = jsResolver._simpleDeps("/lib/mochikit/MochiKit/Style.js",
                                  fsRepos, acc)
-        assert res == "/lib/mochikit/MochiKit/Style.js"        
+        assert res == "/lib/mochikit/MochiKit/Style.js"
         assert acc == {
-            '/lib/mochikit/MochiKit/DOM.js': ['/lib/mochikit/MochiKit/Base.js'],
+            '/lib/mochikit/MochiKit/DOM.js':
+                ['/lib/mochikit/MochiKit/Base.js'],
             "/lib/mochikit/MochiKit/Style.js": [
             '/lib/mochikit/MochiKit/Base.js',
             '/lib/mochikit/MochiKit/DOM.js'],
-            '/lib/mochikit/MochiKit/Base.js': [] }
+            '/lib/mochikit/MochiKit/Base.js': []}
 
     def test__findDeps(self):
         jsResolver = JsResolver()
 
         fsRepos = {os.path.join(weblibDir, 'mochikit'):
                        ['lib', 'mochikit']}
-        
+
         res = jsResolver._findDeps("MochiKit.Signal", fsRepos)
 
         assert res == ["/lib/mochikit/MochiKit/Base.js",
                        "/lib/mochikit/MochiKit/DOM.js",
                        "/lib/mochikit/MochiKit/Style.js",
                        "/lib/mochikit/MochiKit/Signal.js"]
-
 
         res = jsResolver._findDeps("/lib/mochikit/MochiKit/Style.js",
                               fsRepos)
@@ -166,13 +169,12 @@ class TestJsResolver(object):
             JSAN.use("MochiKit.Base", ['bindMethods', 'update']);
             }
         """
-        
+
         jsResolver = JsResolver()
 
         res = list(jsResolver._parse(data))
         assert res == ["MochiKit.Base", "MochiKit.Iter", "MochiKit.Signal",
                        "OpenEnd.Support", "OpenEnd.Object", "MochiKit.Base"]
-
 
     def test__parse_OpenEnd(self):
         data = """
@@ -186,7 +188,7 @@ class TestJsResolver(object):
         OpenEnd.require("/foo/bar.js")
 
         """
-        
+
         jsResolver = JsResolver()
 
         res = list(jsResolver._parse(data))
@@ -198,7 +200,7 @@ class TestJsResolver(object):
         data = """
         MochiKit.Base._deps('Signal', ['Base', 'DOM', 'Style']);
         """
-        
+
         jsResolver = JsResolver()
 
         res = list(jsResolver._parse(data))
@@ -206,7 +208,7 @@ class TestJsResolver(object):
 
     def test__parseDepsData(self):
         calls = []
-        
+
         class FakeFP(object):
 
             def exists(self):
@@ -225,7 +227,7 @@ class TestJsResolver(object):
         fp = FakeFP()
         fp.mtime = 1
         fp.data = "DEPS"
-        
+
         jsResolver = JsResolver()
         def _parse(data):
             yield "parsed"
@@ -235,7 +237,7 @@ class TestJsResolver(object):
         jsResolver._parse = _parse
 
         res = jsResolver._parseDepsData("MODULE", fp)
-        assert calls == ['open']        
+        assert calls == ['open']
         assert res == sorted(['parsed', 'DEPS', 'deps'])
         calls = []
 
@@ -246,25 +248,23 @@ class TestJsResolver(object):
         fp.mtime = 2
         fp.data = "NEW DEPS"
         res = jsResolver._parseDepsData("MODULE", fp)
-        assert calls == ['open']        
+        assert calls == ['open']
         assert res == sorted(['parsed', 'NEW DEPS', 'deps'])
         calls = []
 
         res = jsResolver._parseDepsData("OTHER-MODULE", fp)
-        assert calls == ['open']        
+        assert calls == ['open']
         assert res == sorted(['parsed', 'NEW DEPS', 'deps'])
         calls = []
 
         res = jsResolver._parseDepsData("OTHER-MODULE", fp)
         assert not calls
         assert res == sorted(['parsed', 'NEW DEPS', 'deps'])
-        calls = []                
+        calls = []
 
-        
- 
     def test_modified_check(self):
         calls = []
-        
+
         class FakeFP(object):
             track = False
 
@@ -290,7 +290,7 @@ class TestJsResolver(object):
 
         fsRepos = {'/path/to/mochikit':
                        ['lib', 'mochikit']}
-        
+
         class TestRoot(JsResolver):
 
             def _find(self, segs, fsRepos):
@@ -310,7 +310,7 @@ class TestJsResolver(object):
 
         res = testRoot._findDeps("This.That", fsRepos)
         assert not calls
-        assert res == ['/place/This/That.js']        
+        assert res == ['/place/This/That.js']
 
         fakeFP.mtime = 2
         fakeFP.data = '  JSAN.use("MochiKit.Base")'
@@ -320,7 +320,7 @@ class TestJsResolver(object):
                        '/place/This/That.js']
 
     def test_resolveHTML(self):
-        html="""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
+        html = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html>
 <head>
   <meta content="text/html; charset=utf-8" http-equiv="content-type" />
   <title>Open End Helpdesk</title>
@@ -329,7 +329,7 @@ class TestJsResolver(object):
   <script type="text/javascript" src="/js/modular_rt.js"></script>
   <script type="text/javascript" src="/static/en/A.js"></script>
   <script type="text/javascript" src="/static/B.js"></script>
-  <script type="text/javascript" src="/static/C.js"></script>      
+  <script type="text/javascript" src="/static/C.js"></script>
   <script type="text/javascript">
   function somefunc() {
   }
@@ -346,7 +346,7 @@ class TestJsResolver(object):
                 return ['/static/en/A.js']
             elif module == '/static/B.js':
                 return ['/js/Foo.js', '/js/Bar.js', '/static/B.js']
-            elif module =='/static/C.js':
+            elif module == '/static/C.js':
                 return ['/js/Foo.js', '/js/Baz.js', '/static/C.js']
             else:
                 return [module]
@@ -370,18 +370,17 @@ class TestJsResolver(object):
         assert srcs == ['/js/modular_rt.js', '/static/en/A.js',
                         '/js/Foo.js', '/js/Bar.js', '/static/B.js',
                         '/js/Baz.js', '/static/C.js']
-                        
+
     def test_findDeps(self):
         jsResolver = JsResolver({'/lib': weblibDir},
                                 defaultRepos=['/lib/mochikit'])
-        
+
         res = jsResolver.findDeps("MochiKit.Signal")
 
         assert res == ["/lib/mochikit/MochiKit/Base.js",
                        "/lib/mochikit/MochiKit/DOM.js",
                        "/lib/mochikit/MochiKit/Style.js",
                        "/lib/mochikit/MochiKit/Signal.js"]
-
 
         res = jsResolver.findDeps("/lib/mochikit/MochiKit/Style.js")
 

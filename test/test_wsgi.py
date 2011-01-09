@@ -3,18 +3,20 @@ import socket, time
 from oejskit import wsgi
 #from wsgiref.validate import validator
 
+
 def test_timeout():
     def app(environ, start_response):
         start_response('200 OK', [('content-type', 'text/plain')])
-        return ['stuff\n']        
+        return ['stuff\n']
 
     serverSide = wsgi.WSGIServerSide(0)
     port = serverSide.get_port()
-    
+
     import threading, urllib2
     def get(rel):
         try:
-            return urllib2.urlopen('http://localhost:%d/%s' % (port, rel)).read()
+            return urllib2.urlopen('http://localhost:%d/%s' %
+                                    (port, rel)).read()
         except urllib2.HTTPError, e:
             return e.code, e.fp.read()
 
@@ -29,7 +31,8 @@ def test_timeout():
     t1 = time.time()
 
     assert results == ['stuff\n']
-    assert 3.0 <= (t1-t0) <= 6.0
+    assert 3.0 <= (t1 - t0) <= 6.0
+
 
 def test_integration():
     calls = []
@@ -39,7 +42,7 @@ def test_integration():
             start_response('200 OK', [('content-type', 'text/plain')])
             environ['oejskit.stop_serving']()
             return ['ok\n']
-        
+
         if not path_info.startswith('/x'):
             start_response('404 Not Found', [('content-type',
                                               'text/plain')])
@@ -48,24 +51,24 @@ def test_integration():
         start_response('200 OK', [('content-type', 'text/plain')])
         return ['hello\n']
 
-
     def other(environ, start_response):
         path_info = environ['PATH_INFO']
         if path_info == '/other':
             start_response('200 OK', [('content-type', 'text/plain')])
-            return ['OTHER\n']            
+            return ['OTHER\n']
         start_response('404 Not Found', [('content-type',
                                           'text/plain')])
-        return ["???\n"]        
+        return ["???\n"]
 
     serverSide = wsgi.WSGIServerSide(0)
 
     port = serverSide.get_port()
-    
+
     import threading, urllib2
     def get(rel):
         try:
-            return urllib2.urlopen('http://localhost:%d/%s' % (port, rel)).read()
+            return urllib2.urlopen('http://localhost:%d/%s' %
+                                    (port, rel)).read()
         except urllib2.HTTPError, e:
             return e.code, e.fp.read()
 
@@ -75,7 +78,7 @@ def test_integration():
         results.append(get('x'))
         results.append(get('other'))
         get('stop')
-        done.set()    
+        done.set()
     threading.Thread(target=requests).start()
 
     serverSide.set_app(app)
@@ -84,5 +87,3 @@ def test_integration():
     done.wait()
     assert results[0] == 'hello\n'
     assert results[1] == 'OTHER\n'
-
-    
