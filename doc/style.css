@@ -10,6 +10,13 @@ h1 {
 color: #cbad97;
 }
 
+a {
+color:#8da0b4;
+}
+a:visited {
+color:#8da0b4;
+}
+
 /*
 :Author: David Goodger (goodger@python.org)
 :Id: $Id: html4css1.css 5196 2007-06-03 20:25:28Z wiemann $
