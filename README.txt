@@ -14,7 +14,7 @@ WSGI can play.
 Known supported browsers are Firefox, Internet Explorer >=7, and
 WebKit browsers.
 
-The plugin requires py.test 2.0 or late py.test 1.x.
+The plugin works with py.test 2.0 or late py.test 1.x.
 
 See CHANGELOG.txt for what's new.
 
