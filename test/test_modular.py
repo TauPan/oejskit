@@ -20,7 +20,8 @@ class TestJsResolver(object):
         os.mkdir(os.path.join(cls.test_dir, 'js', 'OpenEnd'))
         f = open(os.path.join(cls.test_dir, 'js', 'OpenEnd', 'Support.js'),
                  'w')
-        f.write('// dummy\n')
+        f.write('// recusive dependency\n')
+        f.write('OpenEnd.use("OpenEnd.Support")\n')
         f.close()
 
     @classmethod
@@ -92,12 +93,20 @@ class TestJsResolver(object):
         jsResolver = JsResolver()
 
         fsRepos = {os.path.join(weblibDir, 'mochikit'):
-                       ['lib', 'mochikit']}
+                       ['lib', 'mochikit'],
+                   self.jsDir: ['js']}
 
         acc = {}
         res = jsResolver._simpleDeps("Nonsense", fsRepos, acc)
         assert res is None
         assert acc == {}
+
+        acc = {}
+        res = jsResolver._simpleDeps("OpenEnd.Support", fsRepos, acc)
+        assert res == '/js/OpenEnd/Support.js'
+        assert acc == {
+            '/js/OpenEnd/Support.js' : []
+            }
 
         acc = {}
         res = jsResolver._simpleDeps("MochiKit.Style", fsRepos, acc)

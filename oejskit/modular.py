@@ -165,13 +165,12 @@ class JsResolver(object):
         if path in acc:
             return path
 
-        deps = []
+        acc[path] = deps = []
         for dep in self._parseDepsData(module, fp):
             p = self._simpleDeps(dep, fsRepos, acc)
-            if p:
+            if p and p != path:
                 deps.append(p)
 
-        acc[path] = deps
         return path
 
     def _fsRepos(self, repos):
