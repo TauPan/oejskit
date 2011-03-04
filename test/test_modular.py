@@ -147,6 +147,13 @@ class TestJsResolver(object):
             '/lib/mochikit/MochiKit/DOM.js'],
             '/lib/mochikit/MochiKit/Base.js': []}
 
+        # Support dependencies inside single file
+        # (allows use with single-file MochiKit)
+        acc = {}
+        res = jsResolver._simpleDeps("MochiKit.Style.Foo", fsRepos, acc)
+        assert res == "/lib/mochikit/MochiKit/Style.js"
+        
+
     def test__findDeps(self):
         jsResolver = JsResolver()
 

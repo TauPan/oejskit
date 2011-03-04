@@ -76,7 +76,8 @@ rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 def defaultJsTestsSetup(state):
     libDir = os.environ.get('WEBLIB')
     if libDir is None:
-        libDir = os.path.join(os.path.dirname(__file__), 'weblib')
+        #libDir = os.path.join(os.path.dirname(__file__), 'weblib')
+        libDir = '/usr/share/javascript'
 
     libDir = _getglobal(state, 'jstests_weblib', libDir)
 

@@ -1,0 +1,21 @@
+Source: python-oejskit
+Section: python
+Priority: extra
+Maintainer: Anders Hammarquist <iko@debian.org>
+Build-Depends: debhelper (>= 7), python-setuptools (>= 0.6c7), python-support, python-all-dev (>= 2.5.4)
+X-Python-Version: >= 2.6
+Standards-Version: 3.8.3
+Homepage: http://pypi.python.org/pypi/oejskit
+
+Package: python-oejskit
+Section: python
+Architecture: any
+XB-Python-Version: ${python:Versions}
+Depends: ${python:Depends}, ${shlibs:Depends}, libjs-mochikit
+Provides: ${python:Provides}
+Description: An HTML/XML templating system for Python
+ meld3 is an HTML/XML templating system for Python 2.3+ which keeps
+ template markup and dynamic rendering logic separate from one
+ another. meld3 can deal with HTML or XML/XHTML input and can output
+ well-formed HTML or XML/XHTML.
+

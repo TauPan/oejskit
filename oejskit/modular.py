@@ -152,8 +152,12 @@ class JsResolver(object):
                 fp = self._findFP(segs)
                 path = module
 
-        if not fp:
+        while not fp:
             fp, path = self._find(segs, thisFSRepos)
+            segs.pop()
+            if not segs:
+                break
+            segs[-1] = segs[-1] + '.js'
 
         if fp is None:
             return None
