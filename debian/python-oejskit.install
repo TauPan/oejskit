@@ -1,0 +1,4 @@
+usr/lib/python*/*-packages/oejskit/*.py
+usr/lib/python*/*-packages/oejskit/testing_rt/*
+usr/lib/python*/*-packages/oejskit/js/*
+usr/lib/python*/*-packages/oejskit*egg-info
