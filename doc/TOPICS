@@ -1,0 +1,11 @@
+- modularity features, jstests_setup (pylons ex.)
+- testing asynchronous behavior, Deferred helpers
+- utils.js 
+- DOM id pitfalls
+- proto tests
+- generating tests
+- open/eval/travel
+- smoke tests
+- xvfb-run / rdesktop
+- runTests
+- own server-side

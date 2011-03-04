@@ -1,0 +1,8 @@
+syntax:glob
+*.pyc
+*~
+play.html
+MANIFEST
+dist
+build
+oejskit.egg-info

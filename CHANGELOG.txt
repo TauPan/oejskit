@@ -1,0 +1,65 @@
+0.9.0
++++++
+
+* make reusing one tab/window and the corresponding browser test
+  object for all tests using the same setup in a session the default,
+  this is enforced when using py.test 2.0 which collects all tests
+  first
+
+* *py.test 2.0 is now supported!* py.test 1.x still works as well
+
+* display during the test runs a list of links on the upper right
+  corner of the pages to jump to the outcome sections corresponding to the
+  JavaScript test files or python modules
+
+* various internal cleanups and simplifications
+
+* some light refreshing and editing of the docs
+
+* fix the looking up of jstests_setup values to consider the chain of
+  conftest.py correctly
+
+* MochiKit usage is really an implementation detail, switch to by
+  default in tests importing it with ``__export__=false``, which means
+  the name MochiKit alone is defined in the global (window) namespace,
+  use in a jstests_setup::
+
+      class jstests_setup:
+          MochiKit__export__ = True
+
+  to get the old behavior.
+
+0.8.9
++++++
+
+* optionally delegate to the serverSide how the baseurl from which tests will be served should look like, useful when doing proxying  for functional testing abuse of oejskit
+* change packaging to just offer a source tar file, so that makes it easier to package
+* requires Python 2.6 or 2.7
+
+0.8.8
++++++
+
+* improved code to check for the presence of browsers which is used to skip
+  tests, this means that listing non-present browsers in browser specs
+  should not provoke problems
+* workaround to bug in FF3.5 triggered by the global var leak detection code,
+  no leak detection with FF3.5 :(
+
+0.8.7
++++++
+
+* flexible ``user-defined-name=commandline`` control over browser names
+  for ``browser.py server`` with documentation
+* document the glue to standard library unittest.py 
+* better error reporting when a browser cannot be started
+* use json module included in Python >=2.6, simplejson otherwise
+* move the py.test plugin into the oejskit package, expose it through a pytest11 setuptools entry point
+* fix own-tests-only issues and warnings with py.test 1.1.x 
+
+0.8.6
+++++++
+
+* fixes for py.test 1.0 final compatibility
+* experimental glue to standard library unittest.py (no docs yet)
+
+

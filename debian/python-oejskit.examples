@@ -1,0 +1,9 @@
+test/examples/test_dest.html
+test/examples/test_eval_example.js
+test/examples/test_form.html
+test/examples/test_inBrowser.html
+test/examples/test_load.js
+test/examples/test_new_exception.html
+test/examples/test_new_later.html
+test/examples/test_new_leak.html
+test/examples/test_new_simple.html

@@ -1,0 +1,446 @@
+jskit
+=======
+
+jskit contains infrastructure and in particular a `py.test`_  plugin to
+enable running tests for JavaScript code inside browsers directly
+using py.test as the test driver. Running inside the browsers comes
+with some speed cost, on the other hand it means for example the code
+is tested against the real-world DOM implementations.
+
+.. _`py.test`: http://pytest.org/
+
+The approach also enables to write integration tests such that the
+JavaScript code is tested against server-side Python code mocked as
+necessary. Any server-side framework that can already be exposed
+through WSGI (or for which a subset of WSGI can be written to
+accommodate the jskit own needs) can play along.
+
+jskit has also some support to run JavaScript tests from ``unittest.py`` based
+test suites.
+
+jskit also contains code to help modularizing JavaScript code
+which can be used to describe and track dependencies dynamically
+during development and that can help resolving them statically when
+deploying/packaging.
+
+Known supported browsers are Firefox, Internet Explorer >=7, and
+WebKit browsers.
+
+*jskit now supports both py.test 2.0 and late py.test 1.x.*
+
+jskit requires Python 2.6 or 2.7. It also uses `MochiKit`_ - of
+which it ships a version within itself for convenience - for its own
+working though in does not imposes its usage on tested code.
+
+.. _`MochiKit`: http://mochikit.com/
+
+jskit was initially developed by *Open End* AB and is released under the MIT license.
+
+.. _`rest of the docs`:
+
+Basics of writing and running tests
+------------------------------------
+
+For the simplest cases jskit allows to write tests simply as just
+JavaScript files. As an example one could have a ``jstest_example_any.js``
+in a test directory in a project::
+
+    Tests = {
+
+    test_simple: function() {
+        ais(21*2, 42)
+    }
+
+    }
+
+``jstest_*.js`` is the globbing pattern used by jskit to recognize
+JavaScript test files. Each of these needs to contain a ``Tests``
+object with test methods starting with ``test_``. ``ais`` is one of
+the assertion functions predefined by jskit, it raises an exception
+causing the test to fail if the two arguments are not equal (in
+JavaScript ``==`` sense).
+
+The suffix ``any`` separated by an underscore (``_``) in the test file name controls the kind of browsers the test should be run against, ``any`` is predefined by jskit to be
+
+- Firefox and Safari on Mac OS X
+- Internet Explorer and Firefox on Windows
+- Firefox (started as ``firefox``) otherwise (e.g. Linux)
+
+later we'll see how to define other groups of browsers.
+
+To run the test we need to use py.test with the jskit plugin
+activated which happens if jskit in on the Python path (see also the `py.test and plugin usage docs`_).
+
+.. _`py.test and plugin usage docs`: http://pytest.org/plugins.html#installing-external-plugins-searching
+
+So running the test is just a matter of invoking ``py.test`` that has an installed jskit available on the Python path::
+
+    $ ../v/bin/py.test test/
+    inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
+    ========================================= test session starts =========================================
+    python: platform linux2 -- Python 2.5.2
+    test object 1: /u/pedronis/scratch/oejskit-play/proj/test
+
+    test/jstest_example_any.js .
+
+    ====================================== 1 passed in 2.52 seconds =======================================
+
+(concretely here I'm using a `virtualenv` with both the `py.test` and ``oejskit`` installed in it.)
+
+Tests from different files with their ``Tests`` objects (or Python
+test classes are as we will explain later) are run isolated in IFRAMEs
+which will also display test results enumerating both assertions and
+tests, not just tests. Each JavaScript ``test_`` method is run and its
+result reported by py.test as it would for Python tests. ``test_``
+methods from a ``Tests`` object are run in alphabetical order.
+
+Normally one page is used for the whole test run with sections
+corresponding to the JavaScript test files or Python modules, links
+are progressively displayed on the upper right corner of the page to
+jump to the sections, this to help debugging the state of a failed
+test for example.
+
+Finding JavaScript code
+------------------------
+
+Tests of course need to be able to load and refer to tested
+code. Let's assume for example that JavaScript code lives under the
+``static/js`` directory in the project, for example there could be a
+file ``ex.js`` there::
+
+    function ok() {
+        return "ok"
+    }
+
+jskit way to refer to tested code is based on its modularity
+functionality, though for the simplest cases this is involve just
+providing enough information such that parts of the URL space can be
+mapped back to parts of the filesystem where JavaScript lives.
+
+Adding the following to the ``conftest.py`` of the project::
+
+    class jstests_setup:
+        staticDirs = {
+           '/static': os.path.join(os.path.dirname(__file__), 'static')
+        }
+        jsRepos = ['/static']
+
+tells jskit to serve files from the ``static`` directory (the value in
+the ``staticDirs`` mapping) for the ``static`` subtree of the URL space
+(the key).
+
+The values in ``jsRepos`` list which prefixes of the URL space contain
+JavaScript, they play a bigger role when using the full modularity
+functionality, they are necessary for the simple case too though.
+
+With this configuration we can write a test ``jstest_ok_any.js`` for
+the ``ok`` function in ``ex.js`` that looks like this::
+
+    OpenEnd.require("/static/js/ex.js")
+
+    Tests = {
+    test_ok: function() {
+       var res = ok()
+       ais(res, "ok")
+    }
+    }
+
+With the information provided jskit can infer that ``ex.js`` is needed for the test and serve it.
+
+Running all the tests now should give::
+
+    $ ../v/bin/py.test
+    inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
+    ========================================= test session starts =========================================
+    python: platform linux2 -- Python 2.5.2
+    test object 1: /u/pedronis/scratch/oejskit-play/proj
+
+    test/jstest_example_any.js .
+    test/jstest_ok_any.js .
+
+    ====================================== 2 passed in 5.06 seconds =======================================
+
+Assertion functions and helpers
+--------------------------------
+
+jskit predefines a set of functions to make assertions in tests,
+JavaScript not having an assertion statement at all
+
+- ``aok(condition [, label])`` which will succeed respectively fail
+  depending on the JavaScript truth value of ``condition``
+
+- ``ais(value, expected [, label])`` which will succeed respectively
+  fail depending on whether ``value`` and ``expected`` are equal in
+  JavaScript ``==`` operator sense
+
+- ``aisDeeply(value, expected [, label])`` which differently from ``ais``
+  will recursively compare containers (JavaScript non-primitive
+  objects and arrays) succeeding when they have the same
+  properties/indexes sets with matching values in ``aisDeeply`` sense,
+  for primitive objects it behaves like ``ais``
+
+There's another predefined helper ``insertTestNode`` which will return
+a new ``DIV`` node at the end of test page styled with a border and
+labeled with the test name, the node can then be used to host DOM
+fragments to be manipulated by the test. If a test using this feature
+fails it should then be easy to identify the relevant DOM part and
+eyeball or inspect it with tools such as Firebug.
+
+Test failures
+--------------
+
+Given a failing test like (``proj/fail/jstest_fail_any.js``)::
+
+    Tests = {
+
+    test_fail: function() {
+        aisDeeply([1].concat([2, 3]), [1,[2,3]])
+    }
+
+    }
+
+this is part of the kind of output to be expected at least when the test is run against Firefox which provides proper traceback information::
+
+    ...
+    >           raise JsFailed(name, outcome['diag'])
+    E           JsFailed: test_fail: FAILED:     Structures begin differing at:
+    E           got[1] = 2
+    E           expected[1] = 2,3
+    E           
+    E           stack: Error()@:0
+    E           ("isDeeply in test_fail in ?","    Structures begin differing at:
+    ...
+    E           ()@http://localhost:49900/test/jstest_fail_any.js:4
+    ...
+
+Notice that the line numbers and involved JavaScript files are presented::
+
+    E           ()@http://localhost:49900/test/jstest_fail_any.js:4
+
+
+Browser kind specifications
+----------------------------
+
+On top of the predefined ``any``, browser kind groupings against which
+to run tests can be defined that are meaningful to one's project. As
+we have seen these are used as suffixes for test files or as values
+for the later introduced ``jstests_browser_kind`` class attribute.
+
+All is needed is to define a ``jstest_browser_specs`` mapping in the ``conftest.py`` file, with the kinds as keys and lists of browser names as values::
+
+    jstests_browser_specs = {
+        'supported': ['firefox', 'iexplore', 'safari'],
+        'extrafeatures': ['safari']
+    }
+
+browser names themselves can also be used directly as kinds. Given the
+mapping ``jstests_basic_supported.js``,
+``jstests_extras_extrafeatures.js`` and in any case
+``jstests_details_firefox.js`` or ``jstests_details_iexplore.js``
+would be meaningful JavaScript test file names.
+
+With the plugin activated a ``py.test`` command-line option
+``--jstests-browser-spec=JSTESTS_BROWSER_SPEC`` can also be used to
+define browser kinds as in::
+
+     --jstests-browser-spec any=firefox,safari --jstests-browser-spec extra=safari
+
+As we see here ``any`` itself can be redefined this way or via the
+mapping.
+
+Integration testing
+--------------------
+
+One central jskit feature is the ability to run JavaScript tests
+against server-side Python code setup through test code. For example
+one can add a ``test_integration.py``::
+
+    from oejskit.testing import jstests_suite
+    import cgi
+
+    class TestIntegration(object):
+        jstests_browser_kind = 'any'
+
+        @jstests_suite('test_integration.js')
+        def integration_server_side(self):
+            def server(environ, start_response):
+                p = environ['PATH_INFO']
+                start_response('200 OK', [('content-type', 'text/plain')])
+                q = cgi.parse_qs(environ['QUERY_STRING'])
+                if p == '/add':
+                    a, b = int(q['a'][0]), int(q['b'][0])
+                    return [str(a+b)]
+                elif p == '/sub':
+                    a, b = int(q['a'][0]), int(q['b'][0])
+                    return [str(a-b)]
+                return []
+
+            return server
+
+with a parallelly located ``test_integration.js``::
+
+    OpenEnd.require("/static/js/get.js")
+
+    Tests = {
+
+    test_add: function() {
+        var res = http_get("/add?a=2&b=3")
+        ais(parseInt(res), 5)
+    },
+
+    test_sub: function() {
+        var res = http_get("/sub?a=6&b=2")
+        ais(parseInt(res), 4)
+    }
+
+    }
+
+This test code will result in the tests in `test_integration.js`` to
+be run while the testing framework is serving the WSGI application
+``server`` at the root of the URL space. The code in
+``integration_server_side`` will be run once before the JavaScript
+tests in the suite will be run, in a sense it is akin to a setup
+method but `funcargs`_  can be requested in its arguments.
+
+.. _`funcargs`: http://pytest.org/funcargs.html
+
+The tests will be run for each browser identified by the kind put in
+``jstests_browser_kind``. Both ``jstests_browser_kind`` and the
+decorator ``jstests_suite`` are required to achieve this behavior,
+``jstests_browser_kind`` marks that the tests in the class need to be
+executed with a browser available to control.
+
+``get.js`` here defines ``http_get`` a simple function wrapping  XMLHttpRequest t do synchronous GET requests.
+
+.. XXX pointer to open/eval/travel
+
+Remote browsers
+-----------------
+
+Contained in the ``oejskit`` package there is a module ``browser.py``
+which can be used as standalone script. The script can be run as a
+server that allows starting browsers on a remote machine, this means
+that the platforms for the python/server-side test code and the
+platforms for target browsers don't need to coincide. The script can
+be simply be copied as standalone file and it just needs a plain
+python installed without further dependencies to run. The script uses
+HMAC and a secret token to secure its access though it is still
+recommend to run it behind a firewall.
+
+Setup servers to start browsers on the the relevant machine::
+
+    Z:\>c:\Python26\python.exe browser.py server 10010
+    JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6
+    serving browsers on 10010...
+
+On the machine that will drive the tests set one environment variable
+with the secret token, and another that lists separated by spaces
+``<hostname>:<port>:<browsers-separated-by-commas>`` for the browser
+servers::
+
+    $ export JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6
+    $ export JSTESTS_REMOTE_BROWSERS=bigboard:10010:iexplore
+    $ ../v/bin/py.test --jstests-browser-spec any=iexplore,firefox
+    inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
+    ======================================================= test session starts ========================================================
+    python: platform linux2 -- Python 2.5.2 -- /u/pedronis/scratch/oejskit-play/v/bin/python
+    test object 1: /u/pedronis/scratch/oejskit-play/proj
+
+    test/jstest_example_any.js:1: proj.test.jstest_example_any.js[=iexplore][test_simple] PASS
+    test/jstest_example_any.js:1: proj.test.jstest_example_any.js[=firefox][test_simple] PASS
+    test/jstest_ok_any.js:1: proj.test.jstest_ok_any.js[=iexplore][test_ok] PASS
+    test/jstest_ok_any.js:1: proj.test.jstest_ok_any.js[=firefox][test_ok] PASS
+    test/test_integration.py:7: TestIntegration[=iexplore].integration_server_side[test_add] PASS
+    test/test_integration.py:7: TestIntegration[=iexplore].integration_server_side[test_sub] PASS
+    test/test_integration.py:7: TestIntegration[=firefox].integration_server_side[test_add] PASS
+    test/test_integration.py:7: TestIntegration[=firefox].integration_server_side[test_sub] PASS
+
+    ==================================================== 8 passed in 28.39 seconds =====================================================
+
+Firefox is not listed in the environment variable, so a local one is started or reused.
+
+There are also commands to shutdown browsers, respectively servers,
+they will also consider the environment variables to find their targets::
+
+    $ ../v/bin/python -m oejskit.browser cleanup iexplore
+
+    $ ../v/bin/python -m oejskit.browser shutdown-servers
+
+For convenience when setting up multiple machines there is the
+possibility to first generate a token and pass it in as an argument to
+the ``server`` command::
+
+    Z:\>c:\Python26\python.exe browser.py gentoken
+    eca424b610245337c80f32e3a08c50c6
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6
+    serving browsers on 10010...
+
+It is possible to give user-defined names for greater flexibility to
+browsers or browser command lines, for example to run tests against
+both Internet Explorer 7 and 8 one could run ``browser.py`` on a
+Windows machine with the latter this way::
+
+    Z:\>c:\Python26\python.exe browser.py gentoken
+    eca424b610245337c80f32e3a08c50c6
+    Z:\>c:\Python26\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie8=iexplore
+    serving browsers on 10010...
+
+and on other with the older IE7 with::
+
+    Y:\>c:\Python25\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 ie7=iexplore
+    serving browsers on 10010...
+
+A series of definitions with ``user-defined-name=command-line`` can be
+specified after the main ``browser.py server``
+parameters. ``user-defined-names`` can then be used as browser names
+and in browser specifications, like::
+
+     --jstests-browser-spec any=firefox,ie7,ie8
+
+If it makes sense a full command line can be specified::
+
+    Y:\>c:\Python25\python.exe browser.py server 10010 eca424b610245337c80f32e3a08c50c6 "ff-testing=...\firefox.exe -P testing" ie7=iexplore
+
+
+Support for ``unittest.py`` based test suites
+----------------------------------------------
+
+The ``oejskit`` package contains a ``unittest_support`` module whose
+content is a subclass of ``unittest.TestSuite`` which can be used to
+incorporate JavaScript tests with ``unittest.py`` tests. Typically one
+will make a per-project subclass of ``unittest_support.JSTestSuite``,
+the parameters we `previously described`_ like ``staticDirs`` that go
+``jstests_setup`` and the mapping ``jstests_browser_specs`` can be
+specified as attributes attached to such a subclass. An example usage
+would then be like::
+
+    class ProjectJSTestSuite(unittest_support.JSTestSuite):
+        jstests_browser_specs = {
+            'supported': ['firefox', 'iexplore', 'safari']
+        }
+
+    def ok_root():
+        def ok(environ, start_response):
+            start_response('200 OK', [('content-type', 'text/plain')])
+            return ['ok\n']
+        return ok
+
+    if __name__ == '__main__':
+        runner = unittest.TextTestRunner(verbosity=1)
+        all = unittest.TestSuite()
+        example_suite = ProjectJSTestSuite('jstest_example_supported.js')
+        integration_suite = ProjectJSTestSuite('test_integration_style.js',
+                                               root=ok_root,
+                                               browser_kind='supported')
+        all.addTest(example_suite)
+        all.addTest(integration_suite)
+        runner.run(all)
+
+the suites are instantiated with a JavaScript test file which will be
+located relative to the Python test file, optionally a ``browser_kind``
+and a factory ``root`` for e.g. a WSGI application (see also
+`Integration testing`_) can be specified to serve for the test. If a
+``browser_kind`` is not specified it will be extracted out of the
+JavaScript test file name.
+
+.. _`previously described`: doc.html#finding-javascript-code
