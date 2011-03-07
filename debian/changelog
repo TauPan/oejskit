@@ -1,6 +1,7 @@
 python-oejskit (0.9.0-1) unstable; urgency=low
 
   * Initial release (Closes: #616071)
+  * Use Debian-provided MochiKit
 
- --
+ -- Anders Hammarquist <iko@debian.org>  Fri, 04 Mar 2011 17:48:06 +0100
 

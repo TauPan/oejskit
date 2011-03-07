@@ -1,5 +1,5 @@
 recursive-include oejskit/js *.js
-recursive-include oejskit/testing_rt *.js *.html *.txt
+recursive-include oejskit/testing_rt *.js *.html *.txt *.css
 recursive-include oejskit/weblib *
 recursive-include test *.py *.js *.html
 include README.txt
