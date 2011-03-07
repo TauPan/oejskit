@@ -22,7 +22,7 @@ Testing._init =  function () {
     var head = DOM.getFirstElementByTagAndClassName("HEAD")
     DOM.appendChildNodes(head, DOM.createDOM("LINK",
                              {'rel': "stylesheet", 'type': "text/css",
-                            'href': "/lib/mochikit/tests/SimpleTest/test.css"}))
+                            'href': "/browser_testing/rt/test.css"}))
 }
 
 Testing._init()
