@@ -3,7 +3,7 @@ import py
 import pkg_resources
 
 py_test_version = getattr(py.test, '__version__', None) or py.version
-py_test_two = tuple(map(int, py_test_version.split('.')[:3])) >= (2, 0, 0)
+py_test_two = int(py_test_version.split('.')[0]) >= 2
 
 pytest_plugins = "pytester"
 
