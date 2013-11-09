@@ -1,0 +1,7 @@
+run all tests
++++++++++++++++
+
+$ # once as necessary
+$ python setup.py egg_info
+$ PYTHONPATH=. py.test test
+
