@@ -6,6 +6,7 @@ import py, os, sys
 
 py_test_version = getattr(py.test, '__version__', None) or py.version
 py_test_two = tuple(map(int, py_test_version.split('.')[:3])) >= (2, 0, 0)
+py_test_two_four = tuple(map(int, py_test_version.split('.')[:3])) >= (2, 4, 0)
 
 # hooks
 
@@ -22,6 +23,13 @@ def cmdline_browser_spec(option, optstr, value, parser):
     choices = choices.split(',')
     jstests_cmdline_browser_specs[name] = choices
 
+if py_test_two_four:
+    import argparse
+    class cmdline_browser_spec(argparse.Action):
+        def __call__(self, parser, namespace, value, option_string=None):
+            name, choices = value.split('=')
+            choices = choices.split(',')
+            jstests_cmdline_browser_specs[name] = choices
 
 def pytest_addoption(parser):
     group = parser.getgroup("jstests", "oejskit test suite options")
@@ -32,10 +40,17 @@ def pytest_addoption(parser):
             help="use one tab/window per test file",
             default=True
             )
-    group.addoption(
-        "--jstests-browser-spec", action="callback", type="string",
-        callback=cmdline_browser_spec,
-        help="define browser specs like: supported=firefox,safari"
+    if not py_test_two_four:
+        group.addoption(
+            "--jstests-browser-spec", action="callback", type="string",
+            callback=cmdline_browser_spec,
+            help="define browser specs like: supported=firefox,safari"
+            )
+    else:
+        group.addoption(
+            "--jstests-browser-spec", type="string",
+            action=cmdline_browser_spec,
+            help="define browser specs like: supported=firefox,safari"
         )
     group.addoption(
         "--jstests-server-side", action="store",
