@@ -80,7 +80,7 @@ class HTMLParsing(HTMLParser.HTMLParser):
 
 
 class HTMLRewriter(saxutils.XMLGenerator):
-    empty_end = '>'
+    empty_end = u'>'
 
     def __init__(self, out):
         saxutils.XMLGenerator.__init__(self, out, encoding='utf-8')
@@ -89,9 +89,9 @@ class HTMLRewriter(saxutils.XMLGenerator):
 
     def setType(self, type):
         if type == 'xhtml':
-            self.empty_end = ' />'
+            self.empty_end = u' />'
         else:
-            self.empty_end = '>'
+            self.empty_end = u'>'
 
     def _raw(self, data):
         self._write(data)
@@ -101,9 +101,9 @@ class HTMLRewriter(saxutils.XMLGenerator):
 
     def emit_start(self, name, attrs):
         if name in HTML_EMPTY:
-            self._write('<' + name)
+            self._write(u'<' + name)
             for (name, value) in attrs.items():
-                self._write(' %s=%s' % (name, saxutils.quoteattr(value)))
+                self._write(u' %s=%s' % (name, saxutils.quoteattr(value)))
             self._write(self.empty_end)
         else:
             saxutils.XMLGenerator.startElement(self, name, attrs)
@@ -127,7 +127,7 @@ class HTMLRewriter(saxutils.XMLGenerator):
         self.emit_chars(data)
 
     def skippedEntity(self, name):
-        self._raw('&%s;' % name)
+        self._raw(u'&%s;' % name)
 
     def startDocument(self):
         pass
@@ -135,12 +135,12 @@ class HTMLRewriter(saxutils.XMLGenerator):
     startCDATA = endCDATA = endDTD = lambda self: None
 
     def comment(self, data):
-        self._raw("<!--%s-->" % data)
+        self._raw(u"<!--%s-->" % data)
 
     def startDTD(self, doctype, publicId, systemId):
         # xml parsing seems to ignore spaces outside the root element
         # we add manually a newline after the doctype though
-        self._raw('<!DOCTYPE %s PUBLIC "%s" "%s">\n' %
+        self._raw(u'<!DOCTYPE %s PUBLIC "%s" "%s">\n' %
                   (doctype, publicId, systemId))
 
 
@@ -170,6 +170,7 @@ def rewrite_html(html, Rewriter=HTMLRewriter, type='html',
         parser = HTMLParsing(rewriter)
         if isinstance(html, str):
             html = html.decode("utf-8")
+        assert isinstance(html, unicode)
         parser.feed(html)
 
     return out.getvalue()
