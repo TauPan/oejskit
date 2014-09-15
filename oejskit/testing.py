@@ -13,13 +13,6 @@ from oejskit.browser_ctl import ServeTesting, BrowserFactory, BrowserController
 from oejskit.browser_ctl import JsFailed
 
 
-def _getglobal(state, name, default):
-    try:
-        return state.getglobal(name)
-    except AttributeError:
-        return default
-
-
 def _getscoped(state, name):
     try:
         return getattr(state, name)
@@ -74,11 +67,7 @@ rtDir = os.path.join(os.path.dirname(__file__), 'testing_rt')
 
 
 def defaultJsTestsSetup(state):
-    libDir = os.environ.get('WEBLIB')
-    if libDir is None:
-        libDir = os.path.join(os.path.dirname(__file__), 'weblib')
-
-    libDir = _getglobal(state, 'jstests_weblib', libDir)
+    libDir = state.getglobal('jstests_weblib')
 
     class DefaultJsTestsSetup:
         ServerSide = None
@@ -99,8 +88,7 @@ def _get_serverSide(state):
         setup, _ = defaultJsTestsSetup(state)
     serverSide = getattr(setup, 'ServerSide', None)
     if serverSide is None:
-        serverSide = _getglobal(state, "jstests_server_side",
-                                "oejskit.wsgi.WSGIServerSide")
+        serverSide = state.getglobal("jstests_server_side")
 
     if isinstance(serverSide, str):
         p = serverSide.split('.')
@@ -114,9 +102,7 @@ def _get_serverSide(state):
 def getBrowser(state, browserKind):
     browsers = _ensure(state, '_jstests_browsers', None)
     if browsers is None:
-        reuse_windows = _getglobal(state,
-                                   "jstests_reuse_browser_windows", True)
-        browsers = BrowserFactory(reuse_windows)
+        browsers = BrowserFactory()
         state._jstests_browsers = browsers
 
     serverSide = _get_serverSide(state)
@@ -124,22 +110,7 @@ def getBrowser(state, browserKind):
 
 
 def cleanupBrowsers(state):
-    reuse_windows = _getglobal(state,
-                               "jstests_reuse_browser_windows", True)
-    if reuse_windows:
-        return
-
-    if hasattr(state, '_jstests_browsers'):
-        #print 'CLEANUP', os.getpid()
-        #import traceback; traceback.print_stack()
-        state._jstests_browsers.shutdownAll()
-        serverSide = _get_serverSide(state)
-        serverSide.cleanup()
-        del state._jstests_browsers
-        try:
-            del state._jstests_browser_setups
-        except AttributeError:
-            pass
+    return
 
 
 def checkBrowser(browserKind):

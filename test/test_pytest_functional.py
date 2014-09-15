@@ -60,6 +60,31 @@ def test_collectonly(testdir, monkeypatch):
     assert result.ret == 0
     result.stdout.fnmatch_lines(["*test_one*", "*test_two*"])
 
+
+def test_conftest(testdir, monkeypatch):
+    monkeypatch.setenv('PYTHONPATH',
+                       py.path.local(__file__).dirpath().dirpath())
+
+    p = make_tests(testdir)
+
+    testdir.makepyfile(conftest="""
+    from oejskit.wsgi import WSGIServerSide
+
+    class MyServerSide(WSGIServerSide):
+        def __init__(*args, **kw):
+            WSGIServerSide.__init__(*args, **kw)
+            open('%s/whatever','w').close()
+
+    class jstests_setup:
+        ServerSide = MyServerSide
+    """ % testdir.tmpdir)
+
+    #testdir.plugins.append("jstests")
+
+    result = testdir.runpytest(p)
+
+    assert result.ret == 0
+    assert testdir.tmpdir.join('whatever').exists()
 # ________________________________________________________________
 
 
