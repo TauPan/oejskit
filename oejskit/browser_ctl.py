@@ -246,14 +246,12 @@ class Browser(object):
 class BrowserFactory(object):
     _inst = None
 
-    def __new__(cls, reuse_windows):
-        if reuse_windows and cls._inst:
+    def __new__(cls):
+        if cls._inst:
             return cls._inst
         obj = object.__new__(BrowserFactory)
         obj._browsers = {}
-        obj.reuse_windows = reuse_windows
-        if reuse_windows:
-            cls._inst = obj
+        cls._inst = obj
         return obj
 
     def get(self, browserName, ServerSide):
@@ -267,7 +265,7 @@ class BrowserFactory(object):
             return browser
 
     def shutdownAll(self, force=False):
-        if self.reuse_windows and not force:
+        if not force:
             return
         _browsers = self._browsers
         while _browsers:

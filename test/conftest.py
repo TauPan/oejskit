@@ -1,7 +1,8 @@
 import py
 
-option_jstests_reuse_browser_windows = True
+def pytest_namespace():
+    return {
+        'jstests_browser_specs' :
+            {'supported': ['firefox', 'iexplore', 'safari']}
+        }
 
-jstests_browser_specs = {
-    'supported': ['firefox', 'iexplore', 'safari'],
-}
