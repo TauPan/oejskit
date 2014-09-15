@@ -18,14 +18,14 @@ jstests_cmdline_browser_specs = {
 }
 
 
-def cmdline_browser_spec(option, optstr, value, parser):
+def cmdline_browser_specs(option, optstr, value, parser):
     name, choices = value.split('=')
     choices = choices.split(',')
     jstests_cmdline_browser_specs[name] = choices
 
 if py_test_two_four:
     import argparse
-    class cmdline_browser_spec(argparse.Action):
+    class cmdline_browser_specs(argparse.Action):
         def __call__(self, parser, namespace, value, option_string=None):
             name, choices = value.split('=')
             choices = choices.split(',')
@@ -42,14 +42,14 @@ def pytest_addoption(parser):
             )
     if not py_test_two_four:
         group.addoption(
-            "--jstests-browser-spec", action="callback", type="string",
-            callback=cmdline_browser_spec,
+            "--jstests-browser-specs", action="callback", type="string",
+            callback=cmdline_browser_specs,
             help="define browser specs like: supported=firefox,safari"
             )
     else:
         group.addoption(
-            "--jstests-browser-spec", type="string",
-            action=cmdline_browser_spec,
+            "--jstests-browser-specs", type="string",
+            action=cmdline_browser_specs,
             help="define browser specs like: supported=firefox,safari"
         )
     group.addoption(
@@ -79,7 +79,7 @@ class RunState:
         self.collector = collector
 
     def getglobal(self, name):
-        if name == 'jstests_reuse_browser_window' and py_test_two:
+        if name == 'jstests_reuse_browser_windows' and py_test_two:
             return True  # nothing else is supported
         try:
             return self.collector.config.getvalue(name)

@@ -240,10 +240,10 @@ mapping ``jstests_basic_supported.js``,
 would be meaningful JavaScript test file names.
 
 With the plugin activated a ``py.test`` command-line option
-``--jstests-browser-spec=JSTESTS_BROWSER_SPEC`` can also be used to
+``--jstests-browser-specs=JSTESTS_BROWSER_SPECS`` can also be used to
 define browser kinds as in::
 
-     --jstests-browser-spec any=firefox,safari --jstests-browser-spec extra=safari
+     --jstests-browser-specs any=firefox,safari --jstests-browser-specs extra=safari
 
 As we see here ``any`` itself can be redefined this way or via the
 mapping.
@@ -340,7 +340,7 @@ servers::
 
     $ export JSTESTS_REMOTE_BROWSERS_TOKEN=eca424b610245337c80f32e3a08c50c6
     $ export JSTESTS_REMOTE_BROWSERS=bigboard:10010:iexplore
-    $ ../v/bin/py.test --jstests-browser-spec any=iexplore,firefox
+    $ ../v/bin/py.test --jstests-browser-specs any=iexplore,firefox
     inserting into sys.path: /u/pedronis/scratch/oejskit-play/v/lib/python2.5/site-packages
     ======================================================= test session starts ========================================================
     python: platform linux2 -- Python 2.5.2 -- /u/pedronis/scratch/oejskit-play/v/bin/python
@@ -395,7 +395,7 @@ specified after the main ``browser.py server``
 parameters. ``user-defined-names`` can then be used as browser names
 and in browser specifications, like::
 
-     --jstests-browser-spec any=firefox,ie7,ie8
+     --jstests-browser-specs any=firefox,ie7,ie8
 
 If it makes sense a full command line can be specified::
 
