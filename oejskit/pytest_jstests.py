@@ -3,61 +3,50 @@
 # See LICENSE.txt
 #
 import py, os, sys
-
-py_test_version = getattr(py.test, '__version__', None) or py.version
-py_test_two = tuple(map(int, py_test_version.split('.')[:3])) >= (2, 0, 0)
-py_test_two_four = tuple(map(int, py_test_version.split('.')[:3])) >= (2, 4, 0)
+import argparse
 
 # hooks
 
 jstests_setup = None
 from oejskit import util
 
-jstests_cmdline_browser_specs = {
-    'any': util.any_browser()
-}
 
-
-def cmdline_browser_spec(option, optstr, value, parser):
+def browser_spec(value):
     name, choices = value.split('=')
     choices = choices.split(',')
-    jstests_cmdline_browser_specs[name] = choices
+    return {name: choices}
 
-if py_test_two_four:
-    import argparse
-    class cmdline_browser_spec(argparse.Action):
-        def __call__(self, parser, namespace, value, option_string=None):
-            name, choices = value.split('=')
-            choices = choices.split(',')
-            jstests_cmdline_browser_specs[name] = choices
+cmdline_args = {}
+
+class store_global(argparse.Action):
+    def __init__(self, *args, **kwargs):
+        super(store_global, self).__init__(*args, **kwargs)
+        globals()[self.dest] = self.default
+
+    def __call__(self, parser, namespace, value, option_string=None):
+        cmdline_args[self.dest] = self.type(value)
+
 
 def pytest_addoption(parser):
     group = parser.getgroup("jstests", "oejskit test suite options")
-    if not py_test_two:
-        group.addoption(
-            "--jstests-dont-reuse-browser-windows", action="store_false",
-            dest="jstests_reuse_browser_windows",
-            help="use one tab/window per test file",
-            default=True
-            )
-    if not py_test_two_four:
-        group.addoption(
-            "--jstests-browser-spec", action="callback", type="string",
-            callback=cmdline_browser_spec,
-            help="define browser specs like: supported=firefox,safari"
-            )
-    else:
-        group.addoption(
-            "--jstests-browser-spec", type="string",
-            action=cmdline_browser_spec,
-            help="define browser specs like: supported=firefox,safari"
+    group.addoption(
+        "--jstests-browser-specs", type=browser_spec,
+        action=store_global,
+        help="define browser specs like: supported=firefox,safari",
+        default={ 'any': util.any_browser() }
         )
     group.addoption(
-        "--jstests-server-side", action="store",
+        "--jstests-server-side", action=store_global,
         dest="jstests_server_side",
         type="string",
         default="oejskit.wsgi.WSGIServerSide"
         )
+    group.addoption(
+        "--jstests-weblib", action=store_global,
+        type="string", default=os.path.join(os.path.dirname(__file__), 'weblib'))
+    group.addoption(
+        "--jstests_browser_kind", action=store_global,
+        type="string", default="any", help="Browser spec group to run")
 
 
 def pytest_pycollect_makeitem(collector, name, obj):
@@ -72,6 +61,21 @@ def pytest_pycollect_makeitem(collector, name, obj):
         return JsTestSuite(name, parent=collector)
     return None
 
+def getglobal(node, name):
+    try:
+        return cmdline_args[name]
+    except KeyError:
+        pass
+
+    plugins = node.config._getmatchingplugins(node.fspath)
+    if hasattr(node, 'obj'):
+        plugins.append(node.obj)
+    values = node.config.pluginmanager.listattr(attrname=name,
+                                                plugins=plugins)
+    if values:
+        return values[-1]
+    return None
+
 
 class RunState:
 
@@ -79,24 +83,9 @@ class RunState:
         self.collector = collector
 
     def getglobal(self, name):
-        if name == 'jstests_reuse_browser_window' and py_test_two:
-            return True  # nothing else is supported
-        try:
-            return self.collector.config.getvalue(name)
-        except KeyError:
-            raise AttributeError(name)
+        return getglobal(self.collector, name)
 
-    def getscoped(self, name):
-        node = self.collector
-        plugins = node.config._getmatchingplugins(node.fspath)
-        if hasattr(node, 'obj'):
-            plugins.append(self.collector.obj)
-        values = node.config.pluginmanager.listattr(attrname=name,
-                                                    plugins=plugins)
-        values = [value for value in values if value is not None]
-        if values:
-            return values[-1]
-        return None
+    getscoped = getglobal
 
     @property
     def testdir(self):
@@ -144,14 +133,6 @@ def pytest_make_collect_report(collector):
         get_state(collector, collect=True)
 
 
-def pytest_collectreport(report):
-    if py_test_two:
-        return
-    collector = report.collector
-    if isinstance(collector, (py.test.collect.Module, JsFile)):
-        del_state(collector)
-
-
 def pytest_unconfigure(config):
     for colitem in _run.keys():
         del_state(colitem)
@@ -181,32 +162,6 @@ def detach_browser(clsitem):
     detachBrowser(clsitem.obj)
 
 
-def expand_browsers(config, kind):
-    from oejskit.testing import checkBrowser
-
-    if kind is None:
-        kind = 'any'
-
-    # the command line takes precedence
-    kinds = None
-    try:
-        kinds = jstests_cmdline_browser_specs[kind]
-    except KeyError:
-        try:
-            specs = config.getvalue('jstests_browser_specs')
-        except KeyError:
-            pass
-        else:
-            try:
-                kinds = specs[kind]
-            except KeyError:
-                pass
-
-    # assume kind identifies a single browser
-    if kinds is None:
-        kinds = [kind]
-
-    return [kind for kind in kinds if checkBrowser(kind)]
 
 # collection
 
@@ -214,9 +169,19 @@ def expand_browsers(config, kind):
 class BrowsersCollector(py.test.collect.Collector):
     Child = None
 
+    def expand_browsers(self, config, kind):
+        from oejskit.testing import checkBrowser
+
+        if kind is None:
+            kind = 'any'
+
+        kinds = getglobal(self, 'jstests_browser_specs').get(kind, [kind])
+
+        return [kind for kind in kinds if checkBrowser(kind)]
+
     def collect(self):
         l = []
-        kinds = expand_browsers(self.config, self.browserKind)
+        kinds = self.expand_browsers(self.config, self.browserKind)
         if not kinds:
             py.test.skip("no browser of kind %s" % self.browserKind)
         for kind in kinds:
