@@ -12,9 +12,11 @@ from oejskit import util
 
 
 def browser_spec(value):
-    name, choices = value.split('=')
-    choices = choices.split(',')
-    return {name: choices}
+    if hasattr(value, 'split'):
+        name, choices = value.split('=')
+        choices = choices.split(',')
+        value = {name: choices}
+    return value
 
 cmdline_args = {}
 
@@ -62,10 +64,11 @@ def pytest_pycollect_makeitem(collector, name, obj):
     return None
 
 def getglobal(node, name):
-    try:
-        return cmdline_args[name]
-    except KeyError:
-        pass
+    if name != 'jstests_browser_specs':
+        try:
+            return cmdline_args[name]
+        except KeyError:
+            pass
 
     plugins = node.config._getmatchingplugins(node.fspath)
     if hasattr(node, 'obj'):
@@ -73,7 +76,14 @@ def getglobal(node, name):
     values = node.config.pluginmanager.listattr(attrname=name,
                                                 plugins=plugins)
     if values:
-        return values[-1]
+        if name == 'jstests_browser_specs':
+            res = {}
+            for v in values:
+                res.update(v)
+            res.update(cmdline_args.get(name, {}))
+            return res
+        else:
+            return values[-1]
     return None
 
 
