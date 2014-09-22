@@ -45,7 +45,7 @@ def pytest_addoption(parser):
         )
     group.addoption(
         "--jstests-weblib", action=store_global,
-        type="string", default=os.path.join(os.path.dirname(__file__), 'weblib'))
+        type="string", default='/usr/share/javascript')
     group.addoption(
         "--jstests_browser_kind", action=store_global,
         type="string", default="any", help="Browser spec group to run")
