@@ -47,6 +47,23 @@ def test_run(testdir, monkeypatch):
     result.stdout.fnmatch_lines(["*test_js.py .."])
 
 
+def test_jstest_run(testdir, monkeypatch):
+    monkeypatch.setenv('PYTHONPATH',
+                       py.path.local(__file__).dirpath().dirpath())
+
+    p = testdir.makefile('.js', jstest_foo_any="""
+    Tests = {
+        test_one: function() {
+        }
+    }
+    """)
+
+    result = testdir.runpytest(p)
+
+    assert result.ret == 0
+    result.stdout.fnmatch_lines(["jstest_foo_any.js ."])
+
+
 def test_collectonly(testdir, monkeypatch):
     monkeypatch.setenv('PYTHONPATH',
                        py.path.local(__file__).dirpath().dirpath())
