@@ -206,9 +206,9 @@ class TestRunningTest(BrowserTestClass):
 
         assert result['name'] == "test_leak"
         assert result['result']
-        expected = ['LEAK']
         if self.browser.name == 'iexplore':
-            expected = []  # name leak detection is not attempted on IE :(
+            return  # name leak detection is not attempted on IE :(
+        expected = ['LEAK']
         assert result['leakedNames'] == expected
 
     def test_gather(self):
