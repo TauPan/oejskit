@@ -154,11 +154,13 @@ InBrowserTesting = {
         function gotTestPage(n, panel, frame, reused) {
             var frameWin = frame.contentWindow
             var testing = frameWin.Testing
-            var collected = []
             if (testing) {
-                collected = testing.collect()
+                testing.collect().addCallback(function(collected) {
+                    self.result(collected, url+'@collect')
+                })
+            } else {
+                self.result([], url+'@collect')
             }
-            self.result(collected, url+'@collect')
         }
         self.doOpen(name, url, url, gotTestPage)
     },

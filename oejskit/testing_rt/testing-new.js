@@ -29,7 +29,7 @@ Testing._init()
 
 Testing.collect = function() {
     if (Testing._collected != null) {
-	return Testing._collected
+        return MochiKit.Async.succeed(Testing._collected)
     }
 
     var testNames = []
@@ -38,17 +38,22 @@ Testing.collect = function() {
     Testing._failed = 0
 
     if (window.Tests) {
-	var cands = MochiKit.Base.keys(window.Tests)
-	cands.sort()
-        MochiKit.Iter.forEach(cands, function(topName) {
-            if (topName.substring(0, 5) == 'test_') {
-                testNames.push(topName)
+        return MochiKit.Async.maybeDeferred(function() { return window.Tests }).addCallback(
+            function(tests) {
+                var cands = MochiKit.Base.keys(tests)
+                cands.sort()
+                MochiKit.Iter.forEach(cands, function(topName) {
+                    if (topName.substring(0, 5) == 'test_') {
+                        testNames.push(topName)
+                        window.Tests[topName] = tests[topName]
+                    }
+                })
+                return testNames
             }
-        })
+        )
     }
 
-    return testNames
-
+    return MochiKit.Async.succeed([])
 }
 
 Testing._toggle = function(el) {

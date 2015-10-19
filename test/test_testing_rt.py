@@ -211,6 +211,21 @@ class TestRunningTest(BrowserTestClass):
         expected = ['LEAK']
         assert result['leakedNames'] == expected
 
+    def test_tests_deferred(self):
+        result = self.send({'op': 'collectTests',
+                            'args': ["/test/examples/test_tests_deferred.html"]},
+                           discrim="/test/examples/test_tests_deferred.html@collect")
+        assert result == ['test_foo']
+
+        result = self.send({'op': 'runOneTest',
+                            'args': ["/test/examples/test_tests_deferred.html",
+                                     "test_foo", 1]},
+                           discrim="/test/examples/test_tests_deferred.html@1")
+
+        assert result['name'] == "test_foo"
+        assert result['result']
+
+
     def test_gather(self):
         b = self.browser
         res, runner = b._gatherTests("/test/examples/test_inBrowser.html",
