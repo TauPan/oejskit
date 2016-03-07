@@ -70,11 +70,26 @@ def getglobal(node, name):
         except KeyError:
             pass
 
-    plugins = node.config._getmatchingplugins(node.fspath)
+    try:
+        plugins = node.config._getmatchingplugins(node.fspath)
+    except AttributeError:
+        plugins = [node.config.pluginmanager.getplugin('pytest_jstests')] + \
+                  node.config.pluginmanager._getconftestmodules(node.fspath)
+
     if hasattr(node, 'obj'):
         plugins.append(node.obj)
-    values = node.config.pluginmanager.listattr(attrname=name,
-                                                plugins=plugins)
+
+    try:
+        values = node.config.pluginmanager.listattr(attrname=name,
+                                                    plugins=plugins)
+    except AttributeError:
+        values = []
+        for plugin in plugins:
+            try:
+                values.append(getattr(plugin, name))
+            except AttributeError:
+                pass
+
     if values:
         if name == 'jstests_browser_specs':
             res = {}
