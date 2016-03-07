@@ -140,8 +140,14 @@ def get_state(item, collect=False):
     if not collect:
         #print "ADD FINALIZER", os.getpid()
         #import traceback; traceback.print_stack()
-        collector.config._setupstate.addfinalizer(colitem=collector,
-                                     finalizer=lambda: del_state(collector))
+        try:
+            # py.test 2.8
+            collector.addfinalizer(lambda: del_state(collector))
+        except AttributeError:
+            # py.test <2.8
+            collector.config._setupstate.addfinalizer(
+                colitem=collector,
+                finalizer=lambda: del_state(collector))
     return state
 
 
