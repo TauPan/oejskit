@@ -9,7 +9,10 @@ between javascript 'modules'
 import sys, os
 import re
 
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 # path to the directory containing the runtime js file modular_rt.js
 jsDir = os.path.join(os.path.dirname(__file__), 'js')
